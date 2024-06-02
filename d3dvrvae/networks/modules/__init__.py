@@ -1,1 +1,1 @@
-from .conv import ConvSC2d
+from .conv import ConvBlock2d
