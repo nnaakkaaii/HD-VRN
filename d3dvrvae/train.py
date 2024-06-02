@@ -58,6 +58,7 @@ def train(opt: TrainExpOption):
 
     max_iter = 5 if opt.debug else None
 
+    model.to(device)
     for epoch in range(opt.n_epoch):
         model.train()
         running_loss = 0.
