@@ -1,10 +1,10 @@
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from omegaconf import OmegaConf, MISSING
+from omegaconf import MISSING, OmegaConf
 
-from .datasets import DatasetOption
 from .dataloaders import DataLoaderOption
+from .datasets import DatasetOption
 from .losses import LossOption
 from .networks import NetworkOption
 from .optimizers import OptimizerOption
@@ -47,12 +47,14 @@ class Option:
 
 
 def process_options(opt: Option) -> Option:
-    opt.experiment.result_dir = opt.experiment.result_dir / opt.task_name / opt.experiment.run_name
+    opt.experiment.result_dir = (
+        opt.experiment.result_dir / opt.task_name / opt.experiment.run_name
+    )
     return opt
 
 
 def save_options(opt: Option, save_dir: Path) -> None:
     config = OmegaConf.structured(opt)
     save_dir.mkdir(parents=True, exist_ok=True)
-    OmegaConf.save(config, save_dir / 'options.yaml')
+    OmegaConf.save(config, save_dir / "options.yaml")
     return

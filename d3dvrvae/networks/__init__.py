@@ -1,6 +1,6 @@
 from torch import nn
 
-from .autoencoder import create_autoencoder2d, AutoEncoder2dNetworkOption
+from .autoencoder import AutoEncoder2dNetworkOption, create_autoencoder2d
 from .option import NetworkOption
 
 

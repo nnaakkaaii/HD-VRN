@@ -1,3 +1,3 @@
-from typing import Callable, Any
+from typing import Any, Callable
 
 Transform = Callable[[Any], Any]

@@ -1,7 +1,7 @@
 import hydra
-from omegaconf import OmegaConf, DictConfig
+from omegaconf import DictConfig, OmegaConf
 
-from .option import TrainExpOption, save_options, process_options
+from .option import TrainExpOption, process_options, save_options
 from .train import train
 
 
@@ -13,7 +13,7 @@ def main(cfg: DictConfig):
     if isinstance(opt.experiment, TrainExpOption):
         train(opt.experiment)
         return
-    raise NotImplementedError(f'{opt.experiment.__class__.__name__} is not implemented')
+    raise NotImplementedError(f"{opt.experiment.__class__.__name__} is not implemented")
 
 
 main()
