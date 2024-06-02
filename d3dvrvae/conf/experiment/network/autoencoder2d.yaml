@@ -1,0 +1,10 @@
+in_channels: 1
+hidden_channels:
+  - 2
+  - 4
+  - 4
+  - 8
+  - 8
+debug_show_dim: false
+defaults:
+  - /config/experiment/network/autoencoder2d@_here_

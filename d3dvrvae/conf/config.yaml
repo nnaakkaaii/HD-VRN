@@ -1,0 +1,6 @@
+# Path: conf/config.yaml
+task_name: mnist_autoencoder
+defaults:
+  - config_schema
+  - experiment: train
+  - _self_

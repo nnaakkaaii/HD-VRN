@@ -1,0 +1,9 @@
+# Path: conf/experiment/test.yaml
+run_name: 87ea8a07-06ba-4230-9087-5a867165cdbd
+result_dir: results
+defaults:
+  - /config/experiment/test@_here_
+  - dataloader: defaults
+  - dataset: mnist
+  - network: autoencoder2d
+  - transform: basic
