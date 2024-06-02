@@ -16,7 +16,12 @@ from .losses import create_loss
 
 
 def train(opt: TrainExpOption):
-    device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+    if torch.cuda.is_available():
+        print('GPU is enabled')
+        device = torch.device('cuda:0')
+    else:
+        print('GPU is not enabled')
+        device = torch.device('cpu')
 
     transform = create_transform(opt.transform)
     dataset = create_dataset(opt.dataset,
