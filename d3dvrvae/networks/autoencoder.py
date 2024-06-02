@@ -44,7 +44,8 @@ class Encoder2d(nn.Module):
                 print(f'{self.__class__.__name__} Layer {i}', latent.shape)
             latent = layer(latent)
 
-        print(f'{self.__class__.__name__} Layer {len(self.enc)}', latent.shape)
+        if self.__debug_show_dim:
+            print(f'{self.__class__.__name__} Layer {len(self.enc)}', latent.shape)
         return latent, enc1
 
 
@@ -62,6 +63,7 @@ class Decoder2d(nn.Module):
                     h1,
                     h2,
                     stride=s,
+                    transpose=True,
                 ) for h1, h2, s in zip(
                     hidden_channels[:0:-1],
                     hidden_channels[-2::-1],

@@ -57,13 +57,13 @@ def train(opt: TrainExpOption):
         model.train()
         running_loss = 0.
         for idx, (data, _) in enumerate(train_loader):
-            if max_iter and max_iter > idx:
+            if max_iter and max_iter <= idx:
                 break
 
             data = data.to(device)
 
             optimizer.zero_grad()
-            output = model(data)
+            output, _ = model(data)
             loss = criterion(output, data)
             loss.backward()
             optimizer.step()
@@ -82,12 +82,12 @@ def train(opt: TrainExpOption):
         with torch.no_grad():
             total_val_loss = 0.
             for idx, (data, _) in enumerate(val_loader):
-                if max_iter and max_iter > idx:
+                if max_iter and max_iter <= idx:
                     break
 
                 data = data.to(device)
 
-                output = model(data)
+                output, _ = model(data)
                 loss = criterion(output, data)
                 total_val_loss += loss.item()
 
@@ -96,13 +96,14 @@ def train(opt: TrainExpOption):
 
         if epoch % 10 == 0:
             sample_images, _ = next(iter(val_loader))
-            sample_images, = sample_images.to(device)
-            reconstructed = model(sample_images)
-            save_reconstructed_images(sample_images.cpu().numpy()[:10],
-                                      reconstructed.cpu().nuumpy()[:10],
-                                      epoch,
-                                      opt.result_dir / 'logs' / 'reconstructed',
-                                      )
+            sample_images = sample_images.to(device)
+            reconstructed, _ = model(sample_images)
+            save_reconstructed_images(
+                sample_images.cpu().clone().detach().numpy()[:10],
+                reconstructed.cpu().clone().detach().numpy()[:10],
+                epoch,
+                opt.result_dir / 'logs' / 'reconstructed',
+                )
 
 
 def save_reconstructed_images(original: np.ndarray,
