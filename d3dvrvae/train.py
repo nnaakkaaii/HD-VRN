@@ -76,6 +76,7 @@ def train(opt: TrainExpOption):
                 break
 
             x = x.to(device)
+            t = t.to(device)
 
             optimizer.zero_grad()
             y = model(x)
@@ -101,6 +102,7 @@ def train(opt: TrainExpOption):
                     break
 
                 x = x.to(device)
+                t = t.to(device)
 
                 y = model(x)
                 loss = criterion(t, y)
@@ -111,8 +113,12 @@ def train(opt: TrainExpOption):
 
         if epoch % 10 == 0:
             x, t = next(iter(val_loader))
+
             x = x.to(device)
+            t = t.to(device)
+
             y = model(x)
+
             save_reconstructed_images(
                 t.data.cpu().clone().detach().numpy()[:10],
                 y.data.cpu().clone().detach().numpy()[:10],
