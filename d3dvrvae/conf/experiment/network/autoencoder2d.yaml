@@ -37,6 +37,6 @@ conv_params:
     stride: 2
     padding: 1
     output_padding: 1
-debug_show_dim: true
+debug_show_dim: false
 defaults:
   - /config/experiment/network/autoencoder2d@_here_
