@@ -1,2 +1,3 @@
+eval_latent: false
 defaults:
   - /config/experiment/loss/mse@_here_

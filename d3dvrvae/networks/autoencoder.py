@@ -5,6 +5,7 @@ from torch import Tensor, nn
 
 from .modules import ConvBlock2d
 from .option import NetworkOption
+from ..datasets import Data
 
 
 class Encoder2d(nn.Module):
@@ -116,14 +117,14 @@ class AutoEncoder2d(nn.Module):
 
         self.__debug_show_dim = debug_show_dim
 
-    def forward(self, x: Tensor) -> tuple[Tensor, Tensor]:
-        latent = self.encoder(x)
-        y = self.decoder(latent)
+    def forward(self, x: Data) -> Data:
+        y_latent = self.encoder(x.data)
+        y = self.decoder(y_latent)
 
         if self.__debug_show_dim:
-            print(f"Input", x.shape)
-            print(f"Latent", latent.shape)
+            print(f"Input", x.data.shape)
+            print(f"Latent", y_latent.shape)
             print(f"Output", y.shape)
             sys.exit(0)
 
-        return y, latent
+        return Data(y, latent=y_latent)
