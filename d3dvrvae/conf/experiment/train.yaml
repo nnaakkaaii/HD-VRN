@@ -1,8 +1,8 @@
 run_name: 79a117e6-8f2e-484b-b808-330b5b5707e1
 result_dir: results
-n_epoch: 200
+n_epoch: 5
 train_val_ratio: 0.8
-debug: false
+debug: true
 defaults:
   - /config/experiment/train@_here_
   - dataloader: defaults

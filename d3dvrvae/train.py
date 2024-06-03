@@ -6,7 +6,7 @@ import torch
 from torch.utils.data import random_split
 
 from .dataloaders import create_dataloader
-from .datasets import create_dataset
+from .datasets import create_dataset, Data
 from .losses import create_loss
 from .networks import create_network
 from .optimizers import create_optimizer
@@ -64,19 +64,22 @@ def train(opt: TrainExpOption):
 
     max_iter = 5 if opt.debug else None
 
+    x: Data
+    y: Data
+    t: Data
     model.to(device)
     for epoch in range(opt.n_epoch):
         model.train()
         running_loss = 0.0
-        for idx, (data, _) in enumerate(train_loader):
+        for idx, (x, t) in enumerate(train_loader):
             if max_iter and max_iter <= idx:
                 break
 
-            data = data.to(device)
+            x = x.to(device)
 
             optimizer.zero_grad()
-            output, _ = model(data)
-            loss = criterion(output, data)
+            y = model(x)
+            loss = criterion(t, y)
             loss.backward()
             optimizer.step()
 
@@ -93,26 +96,26 @@ def train(opt: TrainExpOption):
         model.eval()
         with torch.no_grad():
             total_val_loss = 0.0
-            for idx, (data, _) in enumerate(val_loader):
+            for idx, (x, t) in enumerate(val_loader):
                 if max_iter and max_iter <= idx:
                     break
 
-                data = data.to(device)
+                x = x.to(device)
 
-                output, _ = model(data)
-                loss = criterion(output, data)
+                y = model(x)
+                loss = criterion(t, y)
                 total_val_loss += loss.item()
 
             avg_val_loss = total_val_loss / len(val_loader)
             print(f"Epoch: {epoch+1}, Val Loss: {avg_val_loss:.6f}")
 
         if epoch % 10 == 0:
-            sample_images, _ = next(iter(val_loader))
-            sample_images = sample_images.to(device)
-            reconstructed, _ = model(sample_images)
+            x, t = next(iter(val_loader))
+            x = x.to(device)
+            y = model(x)
             save_reconstructed_images(
-                sample_images.cpu().clone().detach().numpy()[:10],
-                reconstructed.cpu().clone().detach().numpy()[:10],
+                t.data.cpu().clone().detach().numpy()[:10],
+                y.data.cpu().clone().detach().numpy()[:10],
                 epoch,
                 opt.result_dir / "logs" / "reconstructed",
             )

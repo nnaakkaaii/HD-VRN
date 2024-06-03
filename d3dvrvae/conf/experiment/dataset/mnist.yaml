@@ -1,3 +1,4 @@
 root: data
+input_as_label: true
 defaults:
   - /config/experiment/dataset/mnist@_here_
