@@ -18,8 +18,8 @@ class MSELoss(nn.MSELoss):
 
     def forward(self, t: Data, y: Data) -> Tensor:
         if self.eval_latent:
-            return super()(t.latent, y.latent)
-        return super()(t.data, y.data)
+            return super().forward(t.latent, y.latent)
+        return super().forward(t.data, y.data)
 
 
 def create_loss(opt: LossOption) -> nn.Module:
