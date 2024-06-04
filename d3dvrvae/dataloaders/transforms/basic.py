@@ -14,7 +14,7 @@ class BasicTransformOption(TransformOption):
 
 
 def create_basic_transform(opt: BasicTransformOption) -> Transform:
-    ts = [[transforms.ToTensor()]]
+    ts = [transforms.ToTensor()]
     if opt.pad_size:
         ts.append(transforms.Pad(opt.pad_size, fill=0))
     if opt.normalize:
