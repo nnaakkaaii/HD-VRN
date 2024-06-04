@@ -1,11 +1,11 @@
 from pathlib import Path
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 def save_reconstructed_images(
-        original: np.ndarray, reconstructed: np.ndarray, epoch: int, save_dir: Path
+    original: np.ndarray, reconstructed: np.ndarray, epoch: int, save_dir: Path
 ):
     save_dir.mkdir(parents=True, exist_ok=True)
     plt.figure(figsize=(20, 4))

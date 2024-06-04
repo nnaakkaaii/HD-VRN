@@ -48,16 +48,16 @@ class ConvBlock2d(nn.Module):
 
 class ConvBlock3d(nn.Module):
     def __init__(
-            self,
-            in_channels: int,
-            out_channels: int,
-            kernel_size: int,
-            stride: int,
-            padding: int,
-            output_padding: int | None = None,
-            transpose: bool = False,
-            act_norm: bool = True,
-        ) -> None:
+        self,
+        in_channels: int,
+        out_channels: int,
+        kernel_size: int,
+        stride: int,
+        padding: int,
+        output_padding: int | None = None,
+        transpose: bool = False,
+        act_norm: bool = True,
+    ) -> None:
         super().__init__()
         self.act_norm = act_norm
 

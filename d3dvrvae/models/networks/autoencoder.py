@@ -1,9 +1,9 @@
 import sys
 from dataclasses import dataclass, field
 
-from torch import nn, Tensor
+from torch import Tensor, nn
 
-from .modules import ConvEncoder2d, ConvDecoder2d
+from .modules import ConvDecoder2d, ConvEncoder2d
 from .option import NetworkOption
 
 

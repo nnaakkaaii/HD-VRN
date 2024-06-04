@@ -3,8 +3,8 @@ from dataclasses import dataclass
 from omegaconf import MISSING
 from torch.utils.data import DataLoader, random_split
 
-from .option import DataLoaderOption
 from .datasets import DatasetOption, create_dataset
+from .option import DataLoaderOption
 from .transforms import TransformOption, create_transform
 
 
@@ -15,8 +15,8 @@ class BasicDataLoaderOption(DataLoaderOption):
 
 
 def create_basic_dataloader(
-        opt: BasicDataLoaderOption,
-        is_train: bool,
+    opt: BasicDataLoaderOption,
+    is_train: bool,
 ) -> tuple[DataLoader, DataLoader | None]:
     transform = create_transform(opt.transform)
     dataset = create_dataset(opt.dataset, transform, is_train)
@@ -40,8 +40,11 @@ def create_basic_dataloader(
         )
         return train_loader, val_loader
 
-    return DataLoader(
-        dataset,
-        batch_size=opt.batch_size,
-        shuffle=is_train,
-    ), None
+    return (
+        DataLoader(
+            dataset,
+            batch_size=opt.batch_size,
+            shuffle=is_train,
+        ),
+        None,
+    )

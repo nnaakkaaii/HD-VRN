@@ -2,18 +2,18 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import torch
-from torch import nn
-from torch.utils.data import DataLoader
-from torch.optim.optimizer import Optimizer
 from omegaconf import MISSING
+from torch import nn
+from torch.optim.optimizer import Optimizer
+from torch.utils.data import DataLoader
 
+from .functions import save_reconstructed_images
 from .losses import LossOption, create_loss
 from .networks import NetworkOption, create_network
 from .optimizers import OptimizerOption, create_optimizer
-from .schedulers import SchedulerOption, create_scheduler, LRScheduler
 from .option import ModelOption
+from .schedulers import LRScheduler, SchedulerOption, create_scheduler
 from .typing import Model
-from .functions import save_reconstructed_images
 
 
 @dataclass
@@ -25,12 +25,13 @@ class BasicModelOption(ModelOption):
 
 
 class BasicModel(Model):
-    def __init__(self,
-                 network: nn.Module,
-                 optimizer: Optimizer,
-                 scheduler: LRScheduler,
-                 criterion: nn.Module,
-                 ) -> None:
+    def __init__(
+        self,
+        network: nn.Module,
+        optimizer: Optimizer,
+        scheduler: LRScheduler,
+        criterion: nn.Module,
+    ) -> None:
         self.network = network
         self.optimizer = optimizer
         self.scheduler = scheduler
@@ -43,13 +44,14 @@ class BasicModel(Model):
             print("GPU is not enabled")
             self.device = torch.device("cpu")
 
-    def train(self,
-              train_loader: DataLoader,
-              val_loader: DataLoader,
-              n_epoch: int,
-              result_dir: Path,
-              debug: bool,
-              ) -> None:
+    def train(
+        self,
+        train_loader: DataLoader,
+        val_loader: DataLoader,
+        n_epoch: int,
+        result_dir: Path,
+        debug: bool,
+    ) -> None:
         max_iter = None
         if debug:
             max_iter = 5
@@ -61,13 +63,13 @@ class BasicModel(Model):
             running_loss = 0.0
 
             for idx, data in enumerate(train_loader):
-                assert 'x' in data and 't' in data, 'Data must have keys "x" and "t"'
+                assert "x" in data and "t" in data, 'Data must have keys "x" and "t"'
 
                 if max_iter and max_iter <= idx:
                     break
 
-                x = data['x'].to(self.device)
-                t = data['t'].to(self.device)
+                x = data["x"].to(self.device)
+                t = data["t"].to(self.device)
 
                 self.optimizer.zero_grad()
                 y, _ = self.network(x)
@@ -119,9 +121,9 @@ class BasicModel(Model):
 
 
 def create_basic_model(
-        opt: BasicModelOption,
-        n_epoch: int,
-        steps_per_epoch: int,
+    opt: BasicModelOption,
+    n_epoch: int,
+    steps_per_epoch: int,
 ) -> BasicModel:
     network = create_network(opt.network)
     optimizer = create_optimizer(

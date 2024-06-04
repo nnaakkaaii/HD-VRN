@@ -1,5 +1,5 @@
-from .option import ModelOption
 from .basic_model import BasicModelOption, create_basic_model
+from .option import ModelOption
 
 
 def create_model(

@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from torch import nn, Tensor
+from torch import Tensor, nn
 
 from .option import LossOption
 

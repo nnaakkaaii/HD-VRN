@@ -16,19 +16,19 @@ class MNISTDatasetOption(DatasetOption):
 
 class MNIST(datasets.MNIST):
     def __init__(self, *args, **kwargs) -> None:
-        self.input_as_label = kwargs.pop('input_as_label')
+        self.input_as_label = kwargs.pop("input_as_label")
         super().__init__(*args, **kwargs)
 
     def __getitem__(self, idx: int) -> dict[str, Tensor]:
         x, t = super().__getitem__(idx)
         if self.input_as_label:
             return {
-                'x': x,
-                't': x,
+                "x": x,
+                "t": x,
             }
         return {
-            'x': x,
-            't': t,
+            "x": x,
+            "t": t,
         }
 
 

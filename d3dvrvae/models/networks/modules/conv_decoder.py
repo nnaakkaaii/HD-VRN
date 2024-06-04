@@ -1,15 +1,15 @@
-from torch import nn, Tensor
+from torch import Tensor, nn
 
 from .conv_block import ConvBlock2d, ConvBlock3d
 
 
 class ConvDecoder2d(nn.Module):
     def __init__(
-            self,
-            out_channels: int,
-            latent_dim: int,
-            conv_params: list[dict[str, int]],
-            debug_show_dim: bool = False,
+        self,
+        out_channels: int,
+        latent_dim: int,
+        conv_params: list[dict[str, int]],
+        debug_show_dim: bool = False,
     ) -> None:
         super().__init__()
 
@@ -42,11 +42,11 @@ class ConvDecoder2d(nn.Module):
 
 class ConvDecoder3d(nn.Module):
     def __init__(
-            self,
-            out_channels: int,
-            latent_dim: int,
-            conv_params: list[dict[str, int]],
-            debug_show_dim: bool = False,
+        self,
+        out_channels: int,
+        latent_dim: int,
+        conv_params: list[dict[str, int]],
+        debug_show_dim: bool = False,
     ) -> None:
         super().__init__()
 
