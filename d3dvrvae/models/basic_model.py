@@ -90,14 +90,14 @@ class BasicModel(Model):
             self.network.eval()
             with torch.no_grad():
                 total_val_loss = 0.0
-                for idx, (x, t) in enumerate(val_loader):
+                for idx, data in enumerate(val_loader):
                     if max_iter and max_iter <= idx:
                         break
 
-                    x = x.to(self.device)
-                    t = t.to(self.device)
+                    x = data['x'].to(self.device)
+                    t = data['t'].to(self.device)
 
-                    y = self.network(x)
+                    y, _ = self.network(x)
                     loss = self.criterion(t, y)
                     total_val_loss += loss.item()
 
@@ -105,12 +105,12 @@ class BasicModel(Model):
                 print(f"Epoch: {epoch+1}, Val Loss: {avg_val_loss:.6f}")
 
             if epoch % 10 == 0:
-                x, t = next(iter(val_loader))
+                data = next(iter(val_loader))
 
-                x = x.to(self.device)
-                t = t.to(self.device)
+                x = data['x'].to(self.device)
+                t = data['t'].to(self.device)
 
-                y = self.network(x)
+                y, _ = self.network(x)
 
                 save_reconstructed_images(
                     t.data.cpu().clone().detach().numpy()[:10],
