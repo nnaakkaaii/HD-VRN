@@ -1,3 +1,5 @@
 normalize: true
+pad_size: 4
+crop_size: 32
 defaults:
   - /config/experiment/dataloader/transform/basic@_here_
