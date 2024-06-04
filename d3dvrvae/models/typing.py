@@ -1,4 +1,5 @@
 from abc import ABCMeta, abstractmethod
+from pathlib import Path
 
 from torch.utils.data import DataLoader
 
@@ -9,6 +10,7 @@ class Model(metaclass=ABCMeta):
               train_loader: DataLoader,
               val_loader: DataLoader,
               n_epoch: int,
-              result_dir: str,
+              result_dir: Path,
+              debug: bool,
               ) -> None:
         pass

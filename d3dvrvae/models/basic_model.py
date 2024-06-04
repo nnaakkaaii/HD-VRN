@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from pathlib import Path
 
 import torch
 from torch import nn
@@ -30,13 +31,11 @@ class BasicModel(Model):
                  optimizer: Optimizer,
                  scheduler: LRScheduler,
                  criterion: nn.Module,
-                 max_iter: int | None = None,
                  ) -> None:
         self.network = network
         self.optimizer = optimizer
         self.scheduler = scheduler
         self.criterion = criterion
-        self.max_iter = max_iter
 
         if torch.cuda.is_available():
             print("GPU is enabled")
@@ -49,8 +48,13 @@ class BasicModel(Model):
               train_loader: DataLoader,
               val_loader: DataLoader,
               n_epoch: int,
-              result_dir: str,
+              result_dir: Path,
+              debug: bool,
               ) -> None:
+        max_iter = None
+        if debug:
+            max_iter = 5
+
         x: Data
         y: Data
         t: Data
@@ -61,7 +65,7 @@ class BasicModel(Model):
             running_loss = 0.0
 
             for idx, (x, t) in enumerate(train_loader):
-                if self.max_iter and self.max_iter <= idx:
+                if max_iter and max_iter <= idx:
                     break
 
                 x = x.to(self.device)
@@ -87,7 +91,7 @@ class BasicModel(Model):
             with torch.no_grad():
                 total_val_loss = 0.0
                 for idx, (x, t) in enumerate(val_loader):
-                    if self.max_iter and self.max_iter <= idx:
+                    if max_iter and max_iter <= idx:
                         break
 
                     x = x.to(self.device)

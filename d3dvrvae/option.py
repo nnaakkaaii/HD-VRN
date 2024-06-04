@@ -11,6 +11,7 @@ from .models import ModelOption
 class ExpOption:
     run_name: str = MISSING
     result_dir: Path = field(default_factory=Path)
+    debug: bool = False
 
     dataloader: DataLoaderOption = MISSING
     model: ModelOption = MISSING

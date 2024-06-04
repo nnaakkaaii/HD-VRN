@@ -1,4 +1,3 @@
-debug: true
 defaults:
   - /config/experiment/model/basic@_here_
   - loss: mse
