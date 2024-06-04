@@ -13,14 +13,14 @@ def save_reconstructed_images(
     # Original Images
     for i in range(10):
         plt.subplot(2, 10, i + 1)
-        plt.imshow(original[i], cmap="gray")
+        plt.imshow(np.squeeze(original[i]), cmap="gray")
         plt.title("Original")
         plt.axis("off")
 
     # Reconstructed Images
     for i in range(10):
         plt.subplot(2, 10, i + 11)
-        plt.imshow(reconstructed[i], cmap="gray")
+        plt.imshow(np.squeeze(reconstructed[i]), cmap="gray")
         plt.title("Reconstructed")
         plt.axis("off")
 
