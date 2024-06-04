@@ -39,4 +39,4 @@ conv_params:
     output_padding: 1
 debug_show_dim: false
 defaults:
-  - /config/experiment/network/autoencoder2d@_here_
+  - /config/experiment/model/network/autoencoder2d@_here_

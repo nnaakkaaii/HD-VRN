@@ -4,12 +4,7 @@ from pathlib import Path
 from omegaconf import MISSING, OmegaConf
 
 from .dataloaders import DataLoaderOption
-from .datasets import DatasetOption
-from .losses import LossOption
-from .networks import NetworkOption
-from .optimizers import OptimizerOption
-from .schedulers import SchedulerOption
-from .transforms import TransformOption
+from .models import ModelOption
 
 
 @dataclass
@@ -17,21 +12,13 @@ class ExpOption:
     run_name: str = MISSING
     result_dir: Path = field(default_factory=Path)
 
-    dataset: DatasetOption = MISSING
     dataloader: DataLoaderOption = MISSING
-    transform: TransformOption = MISSING
-    network: NetworkOption = MISSING
+    model: ModelOption = MISSING
 
 
 @dataclass
 class TrainExpOption(ExpOption):
     n_epoch: int = 50
-    train_val_ratio: float = 0.8
-    debug: bool = False
-
-    optimizer: OptimizerOption = MISSING
-    scheduler: SchedulerOption = MISSING
-    loss: LossOption = MISSING
 
 
 @dataclass

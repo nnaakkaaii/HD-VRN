@@ -5,7 +5,7 @@ from torch import Tensor, nn
 
 from .modules import ConvBlock2d
 from .option import NetworkOption
-from ..datasets import Data
+from ...dataloaders import Data
 
 
 class Encoder2d(nn.Module):

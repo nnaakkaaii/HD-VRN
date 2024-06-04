@@ -1,0 +1,6 @@
+batch_size: 32
+train_val_ratio: 0.8
+defaults:
+  - /config/experiment/dataloader/basic@_here_
+  - dataset: mnist
+  - transform: basic

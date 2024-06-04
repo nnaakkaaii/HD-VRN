@@ -1,3 +1,0 @@
-max_lr: 0.001
-defaults:
-  - /config/experiment/scheduler/onecyclelr@_here_

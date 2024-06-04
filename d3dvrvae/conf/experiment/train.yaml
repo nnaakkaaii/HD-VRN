@@ -1,14 +1,7 @@
 run_name: 03547105-e02f-4957-9ac2-77ec489e53bf
 result_dir: results
 n_epoch: 200
-train_val_ratio: 0.8
-debug: false
 defaults:
   - /config/experiment/train@_here_
-  - dataloader: defaults
-  - dataset: mnist
-  - loss: mse
-  - network: autoencoder2d
-  - optimizer: adam
-  - scheduler: onecyclelr
-  - transform: basic
+  - dataloader: basic
+  - model: basic

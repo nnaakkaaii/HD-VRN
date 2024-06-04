@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from torch import nn, Tensor
 
 from .option import LossOption
-from ..datasets import Data
+from ...dataloaders import Data
 
 
 @dataclass

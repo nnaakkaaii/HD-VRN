@@ -1,0 +1,7 @@
+debug: true
+defaults:
+  - /config/experiment/model/basic@_here_
+  - loss: mse
+  - network: autoencoder2d
+  - optimizer: adam
+  - scheduler: onecyclelr

@@ -1,3 +1,0 @@
-normalize: true
-defaults:
-  - /config/experiment/transform/basic@_here_
