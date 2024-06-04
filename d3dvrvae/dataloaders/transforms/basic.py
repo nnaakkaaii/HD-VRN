@@ -18,7 +18,7 @@ def create_basic_transform(opt: BasicTransformOption) -> Transform:
     if opt.normalize:
         ts.append(transforms.Normalize((0.5,), (0.5,)))
     if opt.pad_size:
-        ts.append(transforms.Pad(opt.pad_size))
+        ts.append(transforms.Pad(opt.pad_size, fill=0))
     if opt.crop_size:
         ts.append(transforms.RandomCrop(opt.crop_size))
     return transforms.Compose(ts)

@@ -1,73 +1,11 @@
 import sys
 from dataclasses import dataclass, field
 
-from torch import Tensor, nn
+from torch import nn
 
-from .modules import ConvBlock2d
+from .modules import ConvEncoder2d, ConvDecoder2d
 from .option import NetworkOption
 from ...dataloaders import Data
-
-
-class Encoder2d(nn.Module):
-    def __init__(
-        self,
-        in_channels: int,
-        latent_dim: int,
-        conv_params: list[dict[str, int]],
-        debug_show_dim: bool = False,
-    ) -> None:
-        super().__init__()
-
-        self.enc = nn.Sequential(
-            ConvBlock2d(in_channels, latent_dim, **conv_params[0]),
-            *[ConvBlock2d(latent_dim, latent_dim, **p) for p in conv_params[1:]],
-        )
-
-        self.__debug_show_dim = debug_show_dim
-
-    def forward(self, x: Tensor) -> Tensor:
-        for i, layer in enumerate(self.enc, start=1):
-            x = layer(x)
-            if self.__debug_show_dim:
-                print(f"{self.__class__.__name__} Layer {i}", x.shape)
-        return x
-
-
-class Decoder2d(nn.Module):
-    def __init__(
-        self,
-        out_channels: int,
-        latent_dim: int,
-        conv_params: list[dict[str, int]],
-        debug_show_dim: bool = False,
-    ) -> None:
-        super().__init__()
-
-        self.dec = nn.Sequential(
-            *[
-                ConvBlock2d(latent_dim, latent_dim, transpose=True, **p)
-                for p in conv_params[::-1]
-            ],
-        )
-        self.readout = nn.Conv2d(
-            latent_dim,
-            out_channels,
-            1,
-        )
-
-        self.__debug_show_dim = debug_show_dim
-
-    def forward(self, x: Tensor) -> Tensor:
-        for i, layer in enumerate(self.dec, start=1):
-            x = layer(x)
-            if self.__debug_show_dim:
-                print(f"{self.__class__.__name__} Layer {i}", x.shape)
-
-        y = self.readout(x)
-        if self.__debug_show_dim:
-            print(f"{self.__class__.__name__} Layer {1+len(self.dec)}", y.shape)
-
-        return y
 
 
 @dataclass
@@ -102,13 +40,13 @@ class AutoEncoder2d(nn.Module):
     ) -> None:
         super().__init__()
 
-        self.encoder = Encoder2d(
+        self.encoder = ConvEncoder2d(
             in_channels,
             latent_dim,
             conv_params,
             debug_show_dim,
         )
-        self.decoder = Decoder2d(
+        self.decoder = ConvDecoder2d(
             in_channels,
             latent_dim,
             conv_params,
