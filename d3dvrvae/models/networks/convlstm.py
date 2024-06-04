@@ -1,10 +1,10 @@
 import numpy as np
 from torch import nn, zeros, Tensor
 
-from .autoencoder import Encoder2d, Decoder2d
+from .modules import ConvEncoder2d, ConvDecoder2d
 
 
-class EncoderRNN(nn.Module):
+class RNNEncoder(nn.Module):
     """encode (batch_size, seq_len, in_channels) into (batch_size, seq_len, hidden_dim)"""
 
     def __init__(
@@ -43,7 +43,7 @@ class EncoderRNN(nn.Module):
         return out[:, -1, :].unsqueeze(1)
 
 
-class DecoderRNN(nn.Module):
+class RNNDecoder(nn.Module):
     def __init__(
         self,
         out_channels: int,
@@ -91,13 +91,13 @@ class ConvLSTM2d(nn.Module):
                  ):
         super().__init__()
         self.sequence_length = sequence_length
-        self.encoder_conv = Encoder2d(in_channels, latent_dim, conv_params)
-        self.encoder_rnn = EncoderRNN(latent_dim, rnn_hidden_dim, rnn_num_layers, rnn_bidirectional)
-        self.decoder_rnn = DecoderRNN(latent_dim, rnn_hidden_dim, rnn_num_layers, rnn_bidirectional)
-        self.decoder_conv = Decoder2d(in_channels, latent_dim, conv_params)
+        self.encoder_conv = ConvEncoder2d(in_channels, latent_dim, conv_params)
+        self.encoder_rnn = RNNEncoder(latent_dim, rnn_hidden_dim, rnn_num_layers, rnn_bidirectional)
+        self.decoder_rnn = RNNDecoder(latent_dim, rnn_hidden_dim, rnn_num_layers, rnn_bidirectional)
+        self.decoder_conv = ConvDecoder2d(in_channels, latent_dim, conv_params)
 
     def forward(self, x: dict[str, Tensor]) -> dict[str, Tensor]:
-        encoded_x = self.encoder(x).expand(-1, sequence_length, -1)
+        encoded_x = self.encoder(x).expand(-1, ..., -1)  # FIXME: TO BE FIXED
         decoded_x = self.decoder(encoded_x)
         latent = self.encoder(x)
         y = self.decoder(latent)

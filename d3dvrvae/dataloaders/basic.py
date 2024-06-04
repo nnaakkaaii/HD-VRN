@@ -6,7 +6,6 @@ from torch.utils.data import DataLoader, random_split
 from .option import DataLoaderOption
 from .datasets import DatasetOption, create_dataset
 from .transforms import TransformOption, create_transform
-from .functions import collate_fn
 
 
 @dataclass
@@ -32,13 +31,11 @@ def create_basic_dataloader(
         train_loader = DataLoader(
             train_dataset,
             batch_size=opt.batch_size,
-            collate_fn=collate_fn,
             shuffle=is_train,
         )
         val_loader = DataLoader(
             val_dataset,
             batch_size=opt.batch_size,
-            collate_fn=collate_fn,
             shuffle=is_train,
         )
         return train_loader, val_loader
@@ -46,6 +43,5 @@ def create_basic_dataloader(
     return DataLoader(
         dataset,
         batch_size=opt.batch_size,
-        collate_fn=collate_fn,
         shuffle=is_train,
     ), None

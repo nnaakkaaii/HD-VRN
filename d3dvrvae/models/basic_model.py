@@ -7,7 +7,6 @@ from torch.utils.data import DataLoader
 from torch.optim.optimizer import Optimizer
 from omegaconf import MISSING
 
-from ..dataloaders import Data
 from .losses import LossOption, create_loss
 from .networks import NetworkOption, create_network
 from .optimizers import OptimizerOption, create_optimizer
@@ -55,24 +54,23 @@ class BasicModel(Model):
         if debug:
             max_iter = 5
 
-        x: Data
-        y: Data
-        t: Data
         self.network.to(self.device)
 
         for epoch in range(n_epoch):
             self.network.train()
             running_loss = 0.0
 
-            for idx, (x, t) in enumerate(train_loader):
+            for idx, data in enumerate(train_loader):
+                assert 'x' in data and 't' in data, 'Data must have keys "x" and "t"'
+
                 if max_iter and max_iter <= idx:
                     break
 
-                x = x.to(self.device)
-                t = t.to(self.device)
+                x = data['x'].to(self.device)
+                t = data['t'].to(self.device)
 
                 self.optimizer.zero_grad()
-                y = self.network(x)
+                y, _ = self.network(x)
                 loss = self.criterion(t, y)
                 loss.backward()
                 self.optimizer.step()

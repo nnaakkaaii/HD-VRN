@@ -1,10 +1,10 @@
 from dataclasses import dataclass
 
+from torch import Tensor
 from torch.utils.data import Dataset
 from torchvision import datasets
 
 from ..transforms import Transform
-from .typing import Data
 from .option import DatasetOption
 
 
@@ -19,11 +19,17 @@ class MNIST(datasets.MNIST):
         self.input_as_label = kwargs.pop('input_as_label')
         super().__init__(*args, **kwargs)
 
-    def __getitem__(self, idx: int) -> tuple[Data, Data]:
+    def __getitem__(self, idx: int) -> dict[str, Tensor]:
         x, t = super().__getitem__(idx)
         if self.input_as_label:
-            return Data(x), Data(x)
-        return Data(x), Data(t)
+            return {
+                'x': x,
+                't': x,
+            }
+        return {
+            'x': x,
+            't': t,
+        }
 
 
 def create_mnist_dataset(

@@ -1,6 +1,6 @@
 from torch.utils.data import DataLoader
 
-from .datasets import Data, create_dataset
+from .datasets import create_dataset
 from .transforms import TransformOption, create_transform
 from .option import DataLoaderOption
 from .basic import BasicDataLoaderOption, create_basic_dataloader

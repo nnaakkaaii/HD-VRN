@@ -1,11 +1,10 @@
 import sys
 from dataclasses import dataclass, field
 
-from torch import nn
+from torch import nn, Tensor
 
 from .modules import ConvEncoder2d, ConvDecoder2d
 from .option import NetworkOption
-from ...dataloaders import Data
 
 
 @dataclass
@@ -55,14 +54,14 @@ class AutoEncoder2d(nn.Module):
 
         self.__debug_show_dim = debug_show_dim
 
-    def forward(self, x: Data) -> Data:
-        y_latent = self.encoder(x.data)
+    def forward(self, x: Tensor) -> tuple[Tensor, Tensor]:
+        y_latent = self.encoder(x)
         y = self.decoder(y_latent)
 
         if self.__debug_show_dim:
-            print(f"Input", x.data.shape)
+            print(f"Input", x.shape)
             print(f"Latent", y_latent.shape)
             print(f"Output", y.shape)
             sys.exit(0)
 
-        return Data(y, latent=y_latent)
+        return y, y_latent
