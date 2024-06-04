@@ -94,8 +94,8 @@ class BasicModel(Model):
                     if max_iter and max_iter <= idx:
                         break
 
-                    x = data['x'].to(self.device)
-                    t = data['t'].to(self.device)
+                    x = data["x"].to(self.device)
+                    t = data["t"].to(self.device)
 
                     y, _ = self.network(x)
                     loss = self.criterion(t, y)
@@ -107,8 +107,8 @@ class BasicModel(Model):
             if epoch % 10 == 0:
                 data = next(iter(val_loader))
 
-                x = data['x'].to(self.device)
-                t = data['t'].to(self.device)
+                x = data["x"].to(self.device)
+                t = data["t"].to(self.device)
 
                 y, _ = self.network(x)
 
