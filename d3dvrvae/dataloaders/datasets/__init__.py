@@ -3,7 +3,6 @@ from torch.utils.data import Dataset
 from ..transforms import Transform
 from .mnist import MNISTDatasetOption, create_mnist_dataset
 from .option import DatasetOption
-from .typing import Data
 
 
 def create_dataset(
