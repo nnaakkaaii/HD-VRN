@@ -29,4 +29,5 @@ sympy==1.12.1
 tomli==2.0.1
 torch==2.2.2
 torchvision==0.17.2
+tqdm==4.66.4
 typing_extensions==4.12.1

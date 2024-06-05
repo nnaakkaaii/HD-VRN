@@ -13,8 +13,8 @@ class AutoEncoder2dNetworkOption(NetworkOption):
     latent_dim: int = 64
     conv_params: list[dict[str, int]] = field(
         default_factory=lambda: [
-            {"kernel_size": 3, "stride": 2, "padding": 1, "output_padding": 0},
-            {"kernel_size": 3, "stride": 1, "padding": 1, "output_padding": 1},
+            {"kernel_size": 3, "stride": 2, "padding": 1, "output_padding": 1},
+            {"kernel_size": 3, "stride": 1, "padding": 1, "output_padding": 0},
         ]
     )
     debug_show_dim: bool = False

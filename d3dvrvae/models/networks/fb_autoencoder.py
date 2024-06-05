@@ -1,6 +1,38 @@
+from dataclasses import dataclass, field
+
 from torch import Tensor, cat, nn
 
 from .modules import ConvDecoder3d, ConvEncoder2d, ConvEncoder3d
+
+
+@dataclass
+class FiveBranchAutoencoder3dOption:
+    in_channels: int = 1
+    latent_dim: int = 64
+    conv_params_2d: list[dict[str, int]] = field(
+        default_factory=lambda: [
+            {"kernel_size": 3, "stride": 2, "padding": 1, "output_padding": 1},
+            {"kernel_size": 3, "stride": 1, "padding": 1, "output_padding": 0},
+        ]
+    )
+    conv_params_3d: list[dict[str, int]] = field(
+        default_factory=lambda: [
+            {"kernel_size": 3, "stride": 2, "padding": 1, "output_padding": 1},
+            {"kernel_size": 3, "stride": 1, "padding": 1, "output_padding": 0},
+        ]
+    )
+    weighted: bool = False
+    debug_show_dim: bool = False
+
+
+def create_fb_autoencoder3d(opt: FiveBranchAutoencoder3dOption) -> "FiveBranchAutoencoder3d":
+    return FiveBranchAutoencoder3d(
+        in_channels=opt.in_channels,
+        latent_dim=opt.latent_dim,
+        conv_params_2d=opt.conv_params_2d,
+        conv_params_3d=opt.conv_params_3d,
+        debug_show_dim=opt.debug_show_dim,
+    )
 
 
 class FiveBranchAutoencoder3d(nn.Module):
