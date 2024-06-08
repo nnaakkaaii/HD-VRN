@@ -18,7 +18,7 @@ def create_basic_dataloader(
     opt: BasicDataLoaderOption,
     is_train: bool,
 ) -> tuple[DataLoader, DataLoader | None]:
-    transform = create_transform(opt.transform)
+    transform = create_transform(opt.transform, is_train)
     dataset = create_dataset(opt.dataset, transform, is_train)
 
     if is_train:

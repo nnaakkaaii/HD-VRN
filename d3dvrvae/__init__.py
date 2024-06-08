@@ -1,8 +1,8 @@
 from hydra.core.config_store import ConfigStore
 
 from .dataloaders import BasicDataLoaderOption
-from .dataloaders.datasets import MNISTDatasetOption
-from .dataloaders.transforms import BasicTransformOption
+from .dataloaders.datasets import MNISTDatasetOption, CTDatasetOption
+from .dataloaders.transforms import BasicTransform2dOption, BasicTransform3dOption
 from .models import BasicModelOption
 from .models.losses import MSELossOption
 from .models.networks import AutoEncoder2dNetworkOption
@@ -19,9 +19,17 @@ cs.store(
     group="config/experiment/dataloader/dataset", name="mnist", node=MNISTDatasetOption
 )
 cs.store(
+    group="config/experiment/dataloader/ct", name="ct", node=CTDatasetOption,
+)
+cs.store(
     group="config/experiment/dataloader/transform",
-    name="basic",
-    node=BasicTransformOption,
+    name="basic2d",
+    node=BasicTransform2dOption,
+)
+cs.store(
+    group="config/experiment/dataloader/transform",
+    name="basic3d",
+    node=BasicTransform3dOption,
 )
 cs.store(group="config/experiment/model", name="basic", node=BasicModelOption)
 cs.store(group="config/experiment/model/loss", name="mse", node=MSELossOption)
