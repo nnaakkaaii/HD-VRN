@@ -15,5 +15,5 @@ def create_loss(opt: LossOption) -> nn.Module:
     if isinstance(opt, MSELossOption):
         return nn.MSELoss()
     if isinstance(opt, PJCLossOption):
-        return create_pjc_loss(opt)
+        return create_pjc_loss()
     raise NotImplementedError(f"{opt.__class__.__name__} is not implemented")
