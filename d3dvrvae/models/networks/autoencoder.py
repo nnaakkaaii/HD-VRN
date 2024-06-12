@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 
 from torch import Tensor, nn
 
-from .modules import ConvDecoder2d, ConvEncoder2d
+from .modules import ConvModule2d
 from .option import NetworkOption
 
 
@@ -14,7 +14,6 @@ class AutoEncoder2dNetworkOption(NetworkOption):
     conv_params: list[dict[str, int]] = field(
         default_factory=lambda: [
             {"kernel_size": 3, "stride": 2, "padding": 1, "output_padding": 1},
-            {"kernel_size": 3, "stride": 1, "padding": 1, "output_padding": 0},
         ]
     )
     debug_show_dim: bool = False
@@ -39,17 +38,21 @@ class AutoEncoder2d(nn.Module):
     ) -> None:
         super().__init__()
 
-        self.encoder = ConvEncoder2d(
+        self.encoder = ConvModule2d(
             in_channels,
             latent_dim,
+            latent_dim,
             conv_params,
-            debug_show_dim,
+            transpose=False,
+            debug_show_dim=debug_show_dim,
         )
-        self.decoder = ConvDecoder2d(
+        self.decoder = ConvModule2d(
+            latent_dim,
             in_channels,
             latent_dim,
             conv_params,
-            debug_show_dim,
+            transpose=True,
+            debug_show_dim=debug_show_dim,
         )
 
         self.__debug_show_dim = debug_show_dim

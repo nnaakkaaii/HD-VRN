@@ -1,68 +1,85 @@
-from torch import Tensor, nn
+from torch import nn, Tensor
 
-from .conv_block import ConvBlock2d, ConvBlock3d
-
-
-class ConvEncoderBase(nn.Module):
-    enc: nn.Sequential
-    debug_show_dim: bool
-
-    def _forward(self, x: Tensor) -> list[Tensor]:
-        xs = [x]
-        for i, layer in enumerate(self.enc, start=1):
-            xs.append(layer(xs[-1]))
-            if self.debug_show_dim:
-                print(f"{self.__class__.__name__} Layer {i}", xs[-1].shape)
-        return xs
+from .conv_block import ConvModuleBase, ConvBlock2d, IdenticalConvBlock2d, ConvBlock3d, IdenticalConvBlock3d
 
 
-class ConvHierarchicalEncoder2d(ConvEncoderBase):
+class HierarchicalConvEncoder2d(ConvModuleBase):
     def __init__(
         self,
         in_channels: int,
+        out_channels: int,
         latent_dim: int,
         conv_params: list[dict[str, int]],
         debug_show_dim: bool = False,
     ) -> None:
         super().__init__()
 
-        self.enc = nn.Sequential(
-            ConvBlock2d(in_channels, latent_dim, **conv_params[0]),
-            *[ConvBlock2d(latent_dim, latent_dim, **p) for p in conv_params[1:]],
-        )
+        self.layers = nn.ModuleList()
+        for i, conv_param in enumerate(conv_params[:-1]):
+            self.layers.append(nn.Sequential(
+                ConvBlock2d(
+                    latent_dim if i > 0 else in_channels,
+                    latent_dim,
+                    transpose=False,
+                    **conv_param,
+                ),
+                IdenticalConvBlock2d(
+                    latent_dim,
+                    latent_dim,
+                    transpose=False,
+                ),
+            ))
+        self.layers.apend(ConvBlock2d(
+            latent_dim,
+            out_channels,
+            transpose=False,
+            act_norm=False,
+            **conv_params[-1],
+        ))
 
         self.debug_show_dim = debug_show_dim
+        self.use_skip = False
 
-    def forward(self, x: Tensor) -> list[Tensor]:
+    def forward(self, x: Tensor) -> tuple[Tensor, list[Tensor]]:
         return self._forward(x)
 
 
-class ConvEncoder2d(ConvHierarchicalEncoder2d):
-    def forward(self, x: Tensor) -> Tensor:
-        return self._forward(x)[-1]
-
-
-class ConvHierarchicalEncoder3d(nn.Module):
+class HierarchicalConvEncoder3d(ConvModuleBase):
     def __init__(
         self,
         in_channels: int,
+        out_channels: int,
         latent_dim: int,
         conv_params: list[dict[str, int]],
         debug_show_dim: bool = False,
     ) -> None:
         super().__init__()
 
-        self.enc = nn.Sequential(
-            ConvBlock3d(in_channels, latent_dim, **conv_params[0]),
-            *[ConvBlock3d(latent_dim, latent_dim, **p) for p in conv_params[1:]],
-        )
+        self.layers = nn.ModuleList()
+        for i, conv_param in enumerate(conv_params[:-1]):
+            self.layers.append(nn.Sequential(
+                ConvBlock3d(
+                    latent_dim if i > 0 else in_channels,
+                    latent_dim,
+                    transpose=False,
+                    **conv_param,
+                ),
+                IdenticalConvBlock3d(
+                    latent_dim,
+                    latent_dim,
+                    transpose=False,
+                ),
+            ))
+        self.layers.append(ConvBlock3d(
+            latent_dim,
+            out_channels,
+            transpose=False,
+            act_norm=False,
+            **conv_params[-1],
+        ))
 
         self.debug_show_dim = debug_show_dim
+        self.use_skip = False
 
-    def forward(self, x: Tensor) -> list[Tensor]:
+    def forward(self, x: Tensor) -> tuple[Tensor, list[Tensor]]:
         return self._forward(x)
-
-
-class ConvEncoder3d(ConvHierarchicalEncoder3d):
-    def forward(self, x: Tensor) -> Tensor:
-        return self._forward(x)[-1]

@@ -1,7 +1,7 @@
 import numpy as np
 from torch import Tensor, nn, zeros
 
-from .modules import ConvDecoder2d, ConvEncoder2d
+from .modules import ConvModule2d
 
 
 class RNNEncoder(nn.Module):
@@ -92,14 +92,26 @@ class CNNLSTM2d(nn.Module):
     ):
         super().__init__()
         self.sequence_length = sequence_length
-        self.encoder_conv = ConvEncoder2d(in_channels, latent_dim, conv_params)
+        self.encoder_conv = ConvModule2d(
+            in_channels,
+            latent_dim,
+            latent_dim,
+            conv_params,
+            transpose=False,
+        )
         self.encoder_rnn = RNNEncoder(
             latent_dim, rnn_hidden_dim, rnn_num_layers, rnn_bidirectional
         )
         self.decoder_rnn = RNNDecoder(
             latent_dim, rnn_hidden_dim, rnn_num_layers, rnn_bidirectional
         )
-        self.decoder_conv = ConvDecoder2d(in_channels, latent_dim, conv_params)
+        self.decoder_conv = ConvModule2d(
+            latent_dim,
+            in_channels,
+            latent_dim,
+            conv_params,
+            transpose=True,
+        )
 
     def forward(self, x: dict[str, Tensor]) -> dict[str, Tensor]:
         encoded_x = self.encoder(x).expand(-1, ..., -1)  # FIXME: TO BE FIXED
