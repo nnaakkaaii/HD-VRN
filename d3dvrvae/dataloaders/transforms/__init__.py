@@ -12,6 +12,11 @@ from .pool import Pool3dOption, create_pool3d
 
 
 @dataclass
+class ToTensorOption(TransformOption):
+    pass
+
+
+@dataclass
 class Pad2dOption(TransformOption):
     pad_size: int = MISSING
 
@@ -28,6 +33,8 @@ class Crop2dOption(TransformOption):
 
 
 def create_transform(opt: TransformOption) -> Transform:
+    if isinstance(opt, ToTensorOption):
+        return transforms.ToTensor()
     if isinstance(opt, Pad2dOption):
         return transforms.Pad(opt.pad_size)
     if isinstance(opt, Normalize2dOption):

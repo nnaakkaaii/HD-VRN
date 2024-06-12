@@ -2,7 +2,7 @@ from hydra.core.config_store import ConfigStore
 
 from .dataloaders import BasicDataLoaderOption
 from .dataloaders.datasets import MNISTDatasetOption, CTDatasetOption
-from .dataloaders.transforms import Pad2dOption, Normalize2dOption, Crop2dOption, MinMaxNormalizationOption, RandomShift3dOption, UniformShape3dOption, Pool3dOption
+from .dataloaders.transforms import ToTensorOption, Pad2dOption, Normalize2dOption, Crop2dOption, MinMaxNormalizationOption, RandomShift3dOption, UniformShape3dOption, Pool3dOption
 from .models import BasicModelOption
 from .models.losses import MSELossOption, PJCLossOption, WeightedMSELossOption
 from .models.networks import AutoEncoder2dNetworkOption
@@ -20,6 +20,11 @@ cs.store(
 )
 cs.store(
     group="config/experiment/dataloader/ct", name="ct", node=CTDatasetOption,
+)
+cs.store(
+    group="config/experiment/dataloader/transform",
+    name="to_tensor",
+    node=ToTensorOption,
 )
 cs.store(
     group="config/experiment/dataloader/transform",
