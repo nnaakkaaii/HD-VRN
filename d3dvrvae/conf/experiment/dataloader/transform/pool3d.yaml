@@ -1,0 +1,6 @@
+pool_size:
+  - 1
+  - 4
+  - 4
+defaults:
+  - /config/experiment/dataloader/transform/pool3d@_here_

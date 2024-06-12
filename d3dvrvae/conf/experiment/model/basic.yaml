@@ -1,6 +1,8 @@
+coef:
+  mse: 1.0
 defaults:
   - /config/experiment/model/basic@_here_
-  - loss: mse
+  - loss@loss.mse: mse
   - network: autoencoder2d
   - optimizer: adam
   - scheduler: onecyclelr

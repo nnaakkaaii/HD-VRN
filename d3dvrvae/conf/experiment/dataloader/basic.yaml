@@ -1,6 +1,28 @@
 batch_size: 32
 train_val_ratio: 0.8
+transform_order_train:
+  - pad2d
+  - normalize2d
+  - crop2d
+transform_order_val:
+  - pad2d
+  - normalize2d
+  - crop2d
+# transform_order_train:
+#   - min_max_normalization
+#   - random_shift3d
+#   - uniform_shape3d
+#   - pool3d
+# transform_order_val:
+#   - min_max_normalization
+#   - uniform_shape3d
+#   - pool3d
 defaults:
   - /config/experiment/dataloader/basic@_here_
   - dataset: mnist
-  - transform: basic2d
+  - transform@transform.pad2d: pad2d
+  - transform@transform.normalize2d: normalize2d
+  - transform@transform.crop2d: crop2d
+  # - transform@transform.min_max_normalization: min_max_normalization
+  # - transform@transform.uniform_shape3d: uniform_shape3d
+  # - transform@transform.pool3d: pool3d

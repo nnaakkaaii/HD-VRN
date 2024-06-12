@@ -1,0 +1,6 @@
+target_shape:
+  - 64
+  - 512
+  - 512
+defaults:
+  - /config/experiment/dataloader/transform/uniform_shape3d@_here_

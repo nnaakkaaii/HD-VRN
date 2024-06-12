@@ -1,0 +1,6 @@
+max_shifts:
+  - 5
+  - 30
+  - 30
+defaults:
+  - /config/experiment/dataloader/transform/random_shift3d@_here_

@@ -2,9 +2,9 @@ from hydra.core.config_store import ConfigStore
 
 from .dataloaders import BasicDataLoaderOption
 from .dataloaders.datasets import MNISTDatasetOption, CTDatasetOption
-from .dataloaders.transforms import BasicTransform2dOption, BasicTransform3dOption
+from .dataloaders.transforms import Pad2dOption, Normalize2dOption, Crop2dOption, MinMaxNormalizationOption, RandomShift3dOption, UniformShape3dOption, Pool3dOption
 from .models import BasicModelOption
-from .models.losses import MSELossOption
+from .models.losses import MSELossOption, PJCLossOption, WeightedMSELossOption
 from .models.networks import AutoEncoder2dNetworkOption
 from .models.optimizers import AdamOptimizerOption
 from .models.schedulers import OneCycleLRSchedulerOption
@@ -23,16 +23,43 @@ cs.store(
 )
 cs.store(
     group="config/experiment/dataloader/transform",
-    name="basic2d",
-    node=BasicTransform2dOption,
+    name="pad2d",
+    node=Pad2dOption,
 )
 cs.store(
     group="config/experiment/dataloader/transform",
-    name="basic3d",
-    node=BasicTransform3dOption,
+    name="normalize2d",
+    node=Normalize2dOption,
+)
+cs.store(
+    group="config/experiment/dataloader/transform",
+    name="crop2d",
+    node=Crop2dOption,
+)
+cs.store(
+    group="config/experiment/dataloader/transform",
+    name="min_max_normalization",
+    node=MinMaxNormalizationOption,
+)
+cs.store(
+    group="config/experiment/dataloader/transform",
+    name="random_shift3d",
+    node=RandomShift3dOption,
+)
+cs.store(
+    group="config/experiment/dataloader/transform",
+    name="uniform_shape3d",
+    node=UniformShape3dOption,
+)
+cs.store(
+    group="config/experiment/dataloader/transform",
+    name="pool3d",
+    node=Pool3dOption,
 )
 cs.store(group="config/experiment/model", name="basic", node=BasicModelOption)
 cs.store(group="config/experiment/model/loss", name="mse", node=MSELossOption)
+cs.store(group="config/experiment/model/loss", name="pjc", node=PJCLossOption)
+cs.store(group="config/experiment/model/loss", name="wmse", node=WeightedMSELossOption)
 cs.store(
     group="config/experiment/model/network",
     name="autoencoder2d",

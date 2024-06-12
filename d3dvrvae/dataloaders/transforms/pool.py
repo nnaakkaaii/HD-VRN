@@ -11,6 +11,10 @@ class Pool3dOption(Transform):
     pool_size: list[int] = field(default_factory=lambda: [1, 4, 4])
 
 
+def create_pool3d(opt: Pool3dOption) -> Transform:
+    return Pool3d(opt.pool_size)
+
+
 class Pool3d(Transform):
     def __init__(self, pool_size: list[int]):
         self.pool_size = pool_size

@@ -11,6 +11,10 @@ class UniformShape3dOption:
     target_shape: list[int] = field(default_factory=lambda: [64, 512, 512])
 
 
+def create_uniform_shape3d(opt: UniformShape3dOption) -> Transform:
+    return UniformShape3d(opt.target_shape)
+
+
 class UniformShape3d(Transform):
     def __init__(self,
                  target_shape: list[int],
