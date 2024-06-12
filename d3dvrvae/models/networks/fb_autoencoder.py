@@ -25,9 +25,7 @@ class FiveBranchAutoencoder3dOption:
     debug_show_dim: bool = False
 
 
-def create_fb_autoencoder3d(
-    opt: FiveBranchAutoencoder3dOption,
-) -> "FiveBranchAutoencoder3d":
+def create_fb_autoencoder3d(opt: FiveBranchAutoencoder3dOption) -> nn.Module:
     return FiveBranchAutoencoder3d(
         in_channels=opt.in_channels,
         latent_dim=opt.latent_dim,

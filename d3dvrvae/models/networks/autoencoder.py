@@ -20,7 +20,7 @@ class AutoEncoder2dNetworkOption(NetworkOption):
     debug_show_dim: bool = False
 
 
-def create_autoencoder2d(opt: AutoEncoder2dNetworkOption) -> "AutoEncoder2d":
+def create_autoencoder2d(opt: AutoEncoder2dNetworkOption) -> nn.Module:
     return AutoEncoder2d(
         in_channels=opt.in_channels,
         latent_dim=opt.latent_dim,

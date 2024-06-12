@@ -79,7 +79,7 @@ class RNNDecoder(nn.Module):
         return out
 
 
-class ConvLSTM2d(nn.Module):
+class CNNLSTM2d(nn.Module):
     def __init__(
         self,
         in_channels: int,

@@ -3,7 +3,20 @@ from torch import Tensor, nn
 from .conv_block import ConvBlock2d, ConvBlock3d
 
 
-class ConvEncoder2d(nn.Module):
+class ConvEncoderBase(nn.Module):
+    enc: nn.Sequential
+    debug_show_dim: bool
+
+    def _forward(self, x: Tensor) -> list[Tensor]:
+        xs = [x]
+        for i, layer in enumerate(self.enc, start=1):
+            xs.append(layer(xs[-1]))
+            if self.debug_show_dim:
+                print(f"{self.__class__.__name__} Layer {i}", xs[-1].shape)
+        return xs
+
+
+class ConvHierarchicalEncoder2d(ConvEncoderBase):
     def __init__(
         self,
         in_channels: int,
@@ -18,17 +31,18 @@ class ConvEncoder2d(nn.Module):
             *[ConvBlock2d(latent_dim, latent_dim, **p) for p in conv_params[1:]],
         )
 
-        self.__debug_show_dim = debug_show_dim
+        self.debug_show_dim = debug_show_dim
 
+    def forward(self, x: Tensor) -> list[Tensor]:
+        return self._forward(x)
+
+
+class ConvEncoder2d(ConvHierarchicalEncoder2d):
     def forward(self, x: Tensor) -> Tensor:
-        for i, layer in enumerate(self.enc, start=1):
-            x = layer(x)
-            if self.__debug_show_dim:
-                print(f"{self.__class__.__name__} Layer {i}", x.shape)
-        return x
+        return self._forward(x)[-1]
 
 
-class ConvEncoder3d(nn.Module):
+class ConvHierarchicalEncoder3d(nn.Module):
     def __init__(
         self,
         in_channels: int,
@@ -43,11 +57,12 @@ class ConvEncoder3d(nn.Module):
             *[ConvBlock3d(latent_dim, latent_dim, **p) for p in conv_params[1:]],
         )
 
-        self.__debug_show_dim = debug_show_dim
+        self.debug_show_dim = debug_show_dim
 
+    def forward(self, x: Tensor) -> list[Tensor]:
+        return self._forward(x)
+
+
+class ConvEncoder3d(ConvHierarchicalEncoder3d):
     def forward(self, x: Tensor) -> Tensor:
-        for i, layer in enumerate(self.enc, start=1):
-            x = layer(x)
-            if self.__debug_show_dim:
-                print(f"{self.__class__.__name__} Layer {i}", x.shape)
-        return x
+        return self._forward(x)[-1]
