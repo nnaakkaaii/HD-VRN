@@ -103,7 +103,7 @@ class CT(Dataset):
         # (n, d, h, w) -> (b, n, d, h, w)
         t = t.unsqueeze(0)
 
-        x = t[:, , :, :, slice_idx]
+        x = t[:, :, :, :, slice_idx]
         x_0 = t[:, 0, :, :, :]
         x_T = t[:, self.PERIOD // 2, :, :, :]
 

@@ -1,4 +1,4 @@
-coef:
+loss_coef:
   mse: 1.0
 defaults:
   - /config/experiment/model/basic@_here_
