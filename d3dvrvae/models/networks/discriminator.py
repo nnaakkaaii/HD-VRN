@@ -38,7 +38,9 @@ class Discriminator3d(nn.Module):
     ) -> None:
         super().__init__()
 
-        self.encoder = ConvEncoder3d(in_channels, latent_dim, conv_params, debug_show_dim)
+        self.encoder = ConvEncoder3d(
+            in_channels, latent_dim, conv_params, debug_show_dim
+        )
         self.readout = nn.Conv3d(latent_dim, 2, 1)  # 2 classes
 
     def forward(self, x):

@@ -63,9 +63,11 @@ class PJCLoss(nn.Module):
 
         # target: (b, n, d, w, s)
         target = target.unsqueeze(1).repeat(1, n, 1, 1, 1)
-        assert target.shape == (b, n, d, w, s), f'{target.shape} != {(b, n, d, w, s)}'
+        assert target.shape == (b, n, d, w, s), f"{target.shape} != {(b, n, d, w, s)}"
         # slice_idx: (b, n, d, w, s)
-        idx_expanded = slice_idx.unsqueeze(1).unsqueeze(2).unsqueeze(3).expand(b, n, d, w, s)
+        idx_expanded = (
+            slice_idx.unsqueeze(1).unsqueeze(2).unsqueeze(3).expand(b, n, d, w, s)
+        )
         assert idx_expanded.shape == (b, n, d, w, s)
         # input: (b, n, d, w, s)
         selected_slices = gather(input, -1, idx_expanded)
@@ -74,8 +76,8 @@ class PJCLoss(nn.Module):
         return mse_loss(selected_slices, target)
 
 
-if __name__ == '__main__':
-    from torch import randn, randint
+if __name__ == "__main__":
+    from torch import randint, randn
 
     def test():
         pjc_loss = PJCLoss()

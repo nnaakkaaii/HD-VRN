@@ -4,10 +4,10 @@ from pathlib import Path
 from typing import Callable
 
 import numpy as np
-from torch import Tensor, where, from_numpy, tensor, int32
+from omegaconf import MISSING
+from torch import Tensor, from_numpy, int32, tensor, where
 from torch.utils.data import Dataset
 from tqdm import tqdm
-from omegaconf import MISSING
 
 from ..transforms import Transform
 
@@ -40,7 +40,9 @@ class BasicSliceIndexer:
         return int(mask.sum(dim=(0, 1)).argmax())
 
 
-def create_ct_dataset(opt: CTDatasetOption, transform: Transform, is_train: bool) -> Dataset:
+def create_ct_dataset(
+    opt: CTDatasetOption, transform: Transform, is_train: bool
+) -> Dataset:
     return CT(
         root=opt.root,
         slice_indexer=BasicSliceIndexer(opt.threshold, opt.min_occupancy),
@@ -54,13 +56,14 @@ class CT(Dataset):
     TRAIN_PER_TEST = 4
     PERIOD = 10
 
-    def __init__(self,
-                 root: Path,
-                 slice_indexer: Callable[[Tensor], int],
-                 transform: Transform | None = None,
-                 in_memory: bool = True,
-                 is_train: bool = True,
-                 ) -> None:
+    def __init__(
+        self,
+        root: Path,
+        slice_indexer: Callable[[Tensor], int],
+        transform: Transform | None = None,
+        in_memory: bool = True,
+        is_train: bool = True,
+    ) -> None:
         super().__init__()
 
         self.paths = []

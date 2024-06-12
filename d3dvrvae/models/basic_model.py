@@ -8,7 +8,7 @@ from torch.optim.optimizer import Optimizer
 from torch.utils.data import DataLoader
 
 from .functions import save_reconstructed_images
-from .losses import LossOption, create_loss, LossMixer
+from .losses import LossMixer, LossOption, create_loss
 from .networks import NetworkOption, create_network
 from .optimizers import OptimizerOption, create_optimizer
 from .option import ModelOption
@@ -137,5 +137,7 @@ def create_basic_model(
         n_epoch,
         steps_per_epoch,
     )
-    criterion = LossMixer({k: create_loss(v) for k, v in opt.loss.items()}, opt.loss_coef)
+    criterion = LossMixer(
+        {k: create_loss(v) for k, v in opt.loss.items()}, opt.loss_coef
+    )
     return BasicModel(network, optimizer, scheduler, criterion)

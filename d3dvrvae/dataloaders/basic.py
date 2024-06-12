@@ -22,7 +22,9 @@ def create_basic_dataloader(
     is_train: bool,
 ) -> tuple[DataLoader, DataLoader | None]:
     transform_order = opt.transform_order_train if is_train else opt.transform_order_val
-    transform = transforms.Compose([create_transform(opt.transform[name]) for name in transform_order])
+    transform = transforms.Compose(
+        [create_transform(opt.transform[name]) for name in transform_order]
+    )
     dataset = create_dataset(opt.dataset, transform, is_train)
 
     if is_train:

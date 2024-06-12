@@ -16,14 +16,16 @@ def create_uniform_shape3d(opt: UniformShape3dOption) -> Transform:
 
 
 class UniformShape3d(Transform):
-    def __init__(self,
-                 target_shape: list[int],
-                 ) -> None:
+    def __init__(
+        self,
+        target_shape: list[int],
+    ) -> None:
         self.target_shape = target_shape
 
-    def __call__(self,
-                 x: Tensor,
-                 ) -> Tensor:
+    def __call__(
+        self,
+        x: Tensor,
+    ) -> Tensor:
         _, n, h, w = x.shape
         target_n, target_h, target_w = self.target_shape
 
@@ -39,7 +41,7 @@ class UniformShape3d(Transform):
             crop_size = n - target_n
             crop_top = crop_size // 2
             crop_bottom = crop_size - crop_top
-            x = x[:, crop_top:n-crop_bottom, :, :]
+            x = x[:, crop_top : n - crop_bottom, :, :]
 
         # H dimension
         if h < target_h:
@@ -51,7 +53,7 @@ class UniformShape3d(Transform):
             crop_size = h - target_h
             crop_top = crop_size // 2
             crop_bottom = crop_size - crop_top
-            x = x[:, :, crop_top:h-crop_bottom, :]
+            x = x[:, :, crop_top : h - crop_bottom, :]
 
         # W dimension
         if w < target_w:
@@ -63,6 +65,6 @@ class UniformShape3d(Transform):
             crop_size = w - target_w
             crop_left = crop_size // 2
             crop_right = crop_size - crop_left
-            x = x[:, :, :, crop_left:w-crop_right]
+            x = x[:, :, :, crop_left : w - crop_right]
 
         return x

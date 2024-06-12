@@ -17,14 +17,16 @@ def create_random_shift3d(opt: RandomShift3dOption) -> Transform:
 
 
 class RandomShift3d(Transform):
-    def __init__(self,
-                 ds: list[int, int, int],
-                 ) -> None:
+    def __init__(
+        self,
+        ds: list[int, int, int],
+    ) -> None:
         self.dz, self.dx, self.dy = ds
 
-    def __call__(self,
-                 x: Tensor,
-                 ) -> Tensor:
+    def __call__(
+        self,
+        x: Tensor,
+    ) -> Tensor:
         min_val = float(min(x))
 
         # N dimension (dz)

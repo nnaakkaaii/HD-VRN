@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from torch import nn, Tensor
+from torch import Tensor, nn
 from torch.nn.functional import mse_loss
 
 
@@ -14,9 +14,10 @@ def create_weighted_mse_loss(opt: WeightedMSELossOption) -> nn.Module:
 
 
 class WeightedMSELoss(nn.Module):
-    def __init__(self,
-                 weight_dynamic: float,
-                 ) -> None:
+    def __init__(
+        self,
+        weight_dynamic: float,
+    ) -> None:
         super().__init__()
         self.weight_dynamic = weight_dynamic
 
