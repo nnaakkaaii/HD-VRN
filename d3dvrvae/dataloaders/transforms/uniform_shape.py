@@ -26,7 +26,7 @@ class UniformShape3d(Transform):
         self,
         x: Tensor,
     ) -> Tensor:
-        _, n, h, w = x.shape
+        _, n, h, w = x.size()
         target_n, target_h, target_w = self.target_shape
 
         min_val = float(min(x))

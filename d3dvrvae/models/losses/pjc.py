@@ -45,33 +45,33 @@ class PJCLoss(nn.Module):
         if input.dim() == 4:
             input = input.unsqueeze(1)
         assert input.dim() == 5
-        b, n, d, w, h = input.shape
+        b, n, d, w, h = input.size()
 
         if target.dim() == 3 and slice_idx.dim() == 1:
             target = target.unsqueeze(3)
             slice_idx = slice_idx.unsqueeze(1)
         assert target.dim() == 4
         assert slice_idx.dim() == 2
-        s = target.shape[3]
+        s = target.size(3)
 
         # input: (b, n, d, w, h)
         # target: (b, d, w, s)
         # slice_idx: (b, s)
-        assert input.shape == (b, n, d, w, h)
-        assert target.shape == (b, d, w, s)
-        assert slice_idx.shape == (b, s)
+        assert input.size() == (b, n, d, w, h)
+        assert target.size() == (b, d, w, s)
+        assert slice_idx.size() == (b, s)
 
         # target: (b, n, d, w, s)
         target = target.unsqueeze(1).repeat(1, n, 1, 1, 1)
-        assert target.shape == (b, n, d, w, s), f"{target.shape} != {(b, n, d, w, s)}"
+        assert target.size() == (b, n, d, w, s), f"{target.size()} != {(b, n, d, w, s)}"
         # slice_idx: (b, n, d, w, s)
         idx_expanded = (
             slice_idx.unsqueeze(1).unsqueeze(2).unsqueeze(3).expand(b, n, d, w, s)
         )
-        assert idx_expanded.shape == (b, n, d, w, s)
+        assert idx_expanded.size() == (b, n, d, w, s)
         # input: (b, n, d, w, s)
         selected_slices = gather(input, -1, idx_expanded)
-        assert selected_slices.shape == (b, n, d, w, s)
+        assert selected_slices.size() == (b, n, d, w, s)
 
         return mse_loss(selected_slices, target)
 

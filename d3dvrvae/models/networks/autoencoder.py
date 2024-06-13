@@ -62,9 +62,9 @@ class AutoEncoder2d(nn.Module):
         y = self.decoder(y_latent)
 
         if self.__debug_show_dim:
-            print(f"Input", x.shape)
-            print(f"Latent", y_latent.shape)
-            print(f"Output", y.shape)
+            print(f"Input", x.size())
+            print(f"Latent", y_latent.size())
+            print(f"Output", y.size())
             sys.exit(0)
 
         return y, y_latent

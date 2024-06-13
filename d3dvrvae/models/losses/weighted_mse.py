@@ -22,8 +22,8 @@ class WeightedMSELoss(nn.Module):
         self.weight_dynamic = weight_dynamic
 
     def forward(self, input: Tensor, target: Tensor) -> Tensor:
-        b, n, d, w, h = input.shape
-        assert target.shape == (b, n, d, w, h)
+        b, n, d, w, h = input.size()
+        assert target.size() == (b, n, d, w, h)
 
         loss_static = mse_loss(input, target)
 

@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 
 from torch import Tensor, cat, nn
 
-from .modules import ConvModule3d, ConvModule2d
+from .modules import ConvModule2d, ConvModule3d
 
 
 @dataclass
@@ -80,10 +80,14 @@ class FiveBranchAutoencoder3d(nn.Module):
         # encode
         exhale_3d_ct = self.encoder_3d(exhale_3d_ct)
         inhale_3d_ct = self.encoder_3d(inhale_3d_ct)
-        w_dim = exhale_3d_ct.shape[-1]
+        w_dim = exhale_3d_ct.size(-1)
         x_2d_ct = self.encoder_2d(x_2d_ct).unsqueeze(4).repeat(1, 1, 1, 1, w_dim)
-        exhale_2d_ct = self.encoder_2d(exhale_2d_ct).unsqueeze(4).repeat(1, 1, 1, 1, w_dim)
-        inhale_2d_ct = self.encoder_2d(inhale_2d_ct).unsqueeze(4).repeat(1, 1, 1, 1, w_dim)
+        exhale_2d_ct = (
+            self.encoder_2d(exhale_2d_ct).unsqueeze(4).repeat(1, 1, 1, 1, w_dim)
+        )
+        inhale_2d_ct = (
+            self.encoder_2d(inhale_2d_ct).unsqueeze(4).repeat(1, 1, 1, 1, w_dim)
+        )
 
         # aggregate
         latent = cat(

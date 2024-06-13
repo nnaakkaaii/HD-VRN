@@ -28,7 +28,7 @@ class BasicSliceIndexer:
     def __call__(self, x: Tensor) -> int:
         mask = where(x > self.threshold, 1, 0)
         choices = []
-        n, d, h, w = x.shape
+        n, d, h, w = x.size()
         for i in range(w):
             if mask[:, :, :, i].sum() < self.min_occupancy * n * d * h:
                 continue
@@ -98,7 +98,7 @@ class CT(Dataset):
             if self.transform is not None:
                 t = self.transform(t)
 
-        n = t.shape[0]
+        n = t.size(0)
         assert n == self.PERIOD, f"expected {self.PERIOD} but got {n}"
 
         slice_idx = self.slice_indexer(t)
