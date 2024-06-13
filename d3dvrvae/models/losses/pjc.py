@@ -22,56 +22,35 @@ class PJCLoss(nn.Module):
         self,
         input: Tensor,
         target: Tensor,
-        slice_idx: Tensor,
+        idx_expanded: Tensor,
     ) -> Tensor:
         """
-        :param input:
-            1. (b, n, d, w, h)
-            2. (b, n, d, w, h)
-            3. (b, d, w, h)
-            4. (b, d, w, h)
-        :param target:
-            1. (b, d, w, s)
-            2. (b, d, w)
-            3. (b, d, w, s)
-            4. (b, d, w)
-        :param slice_idx:
-            1. (b, s)
-            2. (b,)
-            3. (b, s)
-            4. (b,)
+        :param input: (b, n, d, h, w)
+        :param target: (b, d, h, s)
+        :param idx_expanded: (b, n, d, h, s)
         :return:
         """
-        if input.dim() == 4:
-            input = input.unsqueeze(1)
         assert input.dim() == 5
         b, n, d, w, h = input.size()
 
-        if target.dim() == 3 and slice_idx.dim() == 1:
-            target = target.unsqueeze(3)
-            slice_idx = slice_idx.unsqueeze(1)
         assert target.dim() == 4
-        assert slice_idx.dim() == 2
         s = target.size(3)
 
-        # input: (b, n, d, w, h)
-        # target: (b, d, w, s)
-        # slice_idx: (b, s)
-        assert input.size() == (b, n, d, w, h)
-        assert target.size() == (b, d, w, s)
-        assert slice_idx.size() == (b, s)
+        assert idx_expanded.dim() == 5
 
-        # target: (b, n, d, w, s)
+        # input: (b, n, d, h, w)
+        # target: (b, d, h, s)
+        # idx_expanded: (b, n, d, h, s)
+        assert input.size() == (b, n, d, h, w)
+        assert target.size() == (b, d, h, s)
+        assert idx_expanded.size() == (b, n, d, h, s)
+
+        # target: (b, n, d, h, s)
         target = target.unsqueeze(1).repeat(1, n, 1, 1, 1)
-        assert target.size() == (b, n, d, w, s), f"{target.size()} != {(b, n, d, w, s)}"
-        # slice_idx: (b, n, d, w, s)
-        idx_expanded = (
-            slice_idx.unsqueeze(1).unsqueeze(2).unsqueeze(3).expand(b, n, d, w, s)
-        )
-        assert idx_expanded.size() == (b, n, d, w, s)
-        # input: (b, n, d, w, s)
+        assert target.size() == (b, n, d, h, s), f"{target.size()} != {(b, n, d, h, s)}"
+        # input: (b, n, d, h, s)
         selected_slices = gather(input, -1, idx_expanded)
-        assert selected_slices.size() == (b, n, d, w, s)
+        assert selected_slices.size() == (b, n, d, h, s)
 
         return mse_loss(selected_slices, target)
 
@@ -81,37 +60,19 @@ if __name__ == "__main__":
 
     def test():
         pjc_loss = PJCLoss()
-        b, n, d, w, h, s = 32, 10, 50, 128, 128, 3
-        # reconstructed_3d: (b, n, d, w, h)
-        # input_2d: (b, d, w, s)
-        # slice_idx: (b, s)
-        reconstructed_3d = randn(b, n, d, w, h)
-        input_2d = randn(b, d, w, s)
-        slice_idx = randint(0, 127, (b, s))
-        loss = pjc_loss(reconstructed_3d, input_2d, slice_idx)
-        print(loss)
-        # reconstructed_3d: (b, n, d, w, h)
-        # input_2d: (b, d, w)
-        # slice_idx: (b,)
-        reconstructed_3d = randn(b, n, d, w, h)
-        input_2d = randn(b, d, w)
-        slice_idx = randint(0, 127, (b,))
-        loss = pjc_loss(reconstructed_3d, input_2d, slice_idx)
-        print(loss)
-        # reconstructed_3d: (b, d, w, h)
-        # input_2d: (b, d, w, s)
-        # slice_idx: (b, s)
-        reconstructed_3d = randn(b, d, w, h)
-        input_2d = randn(b, d, w, s)
-        slice_idx = randint(0, 127, (b, s))
-        loss = pjc_loss(reconstructed_3d, input_2d, slice_idx)
-        print(loss)
-        # reconstructed_3d: (b, d, w, h)
-        # input_2d: (b, d, w)
-        # slice_idx: (b,)
-        reconstructed_3d = randn(b, d, w, h)
-        input_2d = randn(b, d, w)
-        slice_idx = randint(0, 127, (b,))
+        b, n, d, h, w, s = 32, 10, 50, 128, 128, 3
+        # reconstructed_3d: (b, n, d, h, w)
+        # input_2d: (b, d, h, s)
+        # slice_idx: (b, n, d, h, s)
+        reconstructed_3d = randn(b, n, d, h, w)
+        input_2d = randn(b, d, h, s)
+        slice_idx = (
+            randint(0, 127, (b, s))
+            .unsqueeze(1)
+            .unsqueeze(2)
+            .unsqueeze(3)
+            .expand((b, n, d, h, s))
+        )
         loss = pjc_loss(reconstructed_3d, input_2d, slice_idx)
         print(loss)
 

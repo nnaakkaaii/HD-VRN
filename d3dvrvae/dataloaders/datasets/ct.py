@@ -5,7 +5,7 @@ from typing import Callable
 
 import numpy as np
 from omegaconf import MISSING
-from torch import Tensor, from_numpy, int32, tensor, where
+from torch import Tensor, from_numpy, gather, int64, tensor, where
 from torch.utils.data import Dataset
 from tqdm import tqdm
 
@@ -25,7 +25,7 @@ class BasicSliceIndexer:
         self.threshold = threshold
         self.min_occupancy = min_occupancy
 
-    def __call__(self, x: Tensor) -> int:
+    def __call__(self, x: Tensor) -> Tensor:
         mask = where(x > self.threshold, 1, 0)
         choices = []
         n, d, h, w = x.size()
@@ -35,9 +35,9 @@ class BasicSliceIndexer:
             choices.append(i)
 
         if len(choices) > 0:
-            return random.choice(choices)
+            return tensor([random.choice(choices)], dtype=int64)
 
-        return int(mask.sum(dim=(0, 1)).argmax())
+        return tensor([int(mask.sum(dim=(0, 1)).argmax())], dtype=int64)
 
 
 def create_ct_dataset(
@@ -59,7 +59,7 @@ class CT(Dataset):
     def __init__(
         self,
         root: Path,
-        slice_indexer: Callable[[Tensor], int],
+        slice_indexer: Callable[[Tensor], Tensor],
         transform: Transform | None = None,
         in_memory: bool = True,
         is_train: bool = True,
@@ -91,29 +91,57 @@ class CT(Dataset):
     def __getitem__(self, index: int) -> dict[str, Tensor]:
         if len(self.data) > 0:
             assert self.in_memory
-            t = self.data[index]
+            x_3d = self.data[index]
         else:  # not in memory
             assert not self.in_memory
-            t = from_numpy(np.load(str(self.paths[index]))["arr_0"])
+            x_3d = from_numpy(np.load(str(self.paths[index]))["arr_0"])
             if self.transform is not None:
-                t = self.transform(t)
+                x_3d = self.transform(x_3d)
 
-        n = t.size(0)
+        n = x_3d.size(0)
         assert n == self.PERIOD, f"expected {self.PERIOD} but got {n}"
 
-        slice_idx = self.slice_indexer(t)
+        # (s,)
+        slice_idx = self.slice_indexer(x_3d)
+        # (n, d, h, s)
+        idx_expanded = (
+            slice_idx.unsqueeze(0)
+            .unsqueeze(1)
+            .unsqueeze(2)
+            .expand(x_3d.size()[:-1] + (len(slice_idx),))
+        )
 
-        # (n, d, h, w) -> (b, n, d, h, w)
-        t = t.unsqueeze(0)
+        # (n, d, h, s)
+        x_2d = gather(x_3d, -1, idx_expanded)
+        # (d, h, s)
+        x_2d_0 = x_2d[0]
+        x_2d_t = x_2d[self.PERIOD // 2]
+        # (d, h, w)
+        x_3d_0 = x_3d[0]
+        x_3d_t = x_3d[self.PERIOD // 2]
 
-        x = t[:, :, :, :, slice_idx]
-        x_0 = t[:, 0, :, :, :]
-        x_T = t[:, self.PERIOD // 2, :, :, :]
+        # (n, d, h, s) -> (b, n, c, d, h, s)
+        x_2d = x_2d.unsqueeze(0).unsqueeze(2)
+        # (d, h, s) -> (b, c, d, h, s)
+        x_2d_0 = x_2d_0.unsqueeze(0).unsqueeze(1)
+        x_2d_t = x_2d_t.unsqueeze(0).unsqueeze(1)
+        # (n, d, h, w) -> (b, n, c, d, h, w)
+        x_3d = x_3d.unsqueeze(0).unsqueeze(2)
+        # (d, h, w) -> (b, c, d, h, w)
+        x_3d_0 = x_3d_0.unsqueeze(0).unsqueeze(1)
+        x_3d_t = x_3d_t.unsqueeze(0).unsqueeze(1)
+        # (s,) -> (b, s)
+        slice_idx = slice_idx.unsqueeze(0)
+        # (n, d, h, s) -> (b, n, c, d, h, s)
+        idx_expanded = idx_expanded.unsqueeze(0).unsqueeze(2)
 
         return {
-            "x": x,  # (b, n, d, h)
-            "x_0": x_0,  # (b, d, h, w)
-            "x_T": x_T,  # (b, d, h, w)
-            "t": t,  # (b, n, d, h, w)
-            "slice_idx": tensor(slice_idx, dtype=int32),
+            "x_2d": x_2d,  # (b, n, c, d, h, s)
+            "x_2d_0": x_2d_0,  # (b, c, d, h, s)
+            "x_2d_t": x_2d_t,  # (b, c, d, h, s)
+            "x_3d": x_3d,  # (b, n, c, d, h, w)
+            "x_3d_0": x_3d_0,  # (b, c, d, h, w)
+            "x_3d_t": x_3d_t,  # (b, c, d, h, w)
+            "slice_idx": slice_idx,  # (b, s)
+            "idx_expanded": idx_expanded,  # (b, n, c, d, h, s)
         }

@@ -22,7 +22,9 @@ class GRU2d(nn.Module):
             batch_first=True,
         )
 
-    def forward(self, x: Tensor, last_states: Tensor | None = None) -> tuple[Tensor, Tensor]:
+    def forward(
+        self, x: Tensor, last_states: Tensor | None = None
+    ) -> tuple[Tensor, Tensor]:
         b, t, c, h, w = x.size()
         x = x.view(b, t, c * h * w)
         y, last_states = self.rnn(x, last_states)
