@@ -14,6 +14,7 @@ class HierarchicalConvDecoder2d(ConvModuleBase):
         debug_show_dim: bool = False,
     ) -> None:
         super().__init__()
+        assert len(conv_params) > 1
 
         self.layers = nn.ModuleList()
         for i, conv_param in enumerate(conv_params[:-1]):
@@ -59,6 +60,7 @@ class HierarchicalConvDecoder3d(ConvModuleBase):
         debug_show_dim: bool = False,
     ) -> None:
         super().__init__()
+        assert len(conv_params) > 1
 
         self.layers = nn.ModuleList()
         for i, conv_param in enumerate(conv_params[:-1]):

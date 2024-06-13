@@ -98,17 +98,18 @@ class CT(Dataset):
             if self.transform is not None:
                 x_3d = self.transform(x_3d)
 
-        n = x_3d.size(0)
+        n, d, h, w = x_3d.size()
         assert n == self.PERIOD, f"expected {self.PERIOD} but got {n}"
 
         # (s,)
         slice_idx = self.slice_indexer(x_3d)
+        s = len(slice_idx)
         # (n, d, h, s)
         idx_expanded = (
             slice_idx.unsqueeze(0)
             .unsqueeze(1)
             .unsqueeze(2)
-            .expand(x_3d.size()[:-1] + (len(slice_idx),))
+            .repeat(n, d, h, 1)
         )
 
         # (n, d, h, s)
@@ -120,11 +121,11 @@ class CT(Dataset):
         x_3d_0 = x_3d[0]
         x_3d_t = x_3d[self.PERIOD // 2]
 
-        # (n, d, h, s) -> (b, n, c, d, h, s)
-        x_2d = x_2d.unsqueeze(0).unsqueeze(2)
-        # (d, h, s) -> (b, c, d, h, s)
-        x_2d_0 = x_2d_0.unsqueeze(0).unsqueeze(1)
-        x_2d_t = x_2d_t.unsqueeze(0).unsqueeze(1)
+        # (n, d, h, s) -> (b, n, d, h, s) -> (b, n, s, d, h)
+        x_2d = x_2d.unsqueeze(0).permute(0, 1, 4, 2, 3)
+        # (d, h, s) -> (b, d, h, s) -> (b, s, d, h)
+        x_2d_0 = x_2d_0.unsqueeze(0).permute(0, 3, 1, 2)
+        x_2d_t = x_2d_t.unsqueeze(0).permute(0, 3, 1, 2)
         # (n, d, h, w) -> (b, n, c, d, h, w)
         x_3d = x_3d.unsqueeze(0).unsqueeze(2)
         # (d, h, w) -> (b, c, d, h, w)
@@ -132,16 +133,16 @@ class CT(Dataset):
         x_3d_t = x_3d_t.unsqueeze(0).unsqueeze(1)
         # (s,) -> (b, s)
         slice_idx = slice_idx.unsqueeze(0)
-        # (n, d, h, s) -> (b, n, c, d, h, s)
-        idx_expanded = idx_expanded.unsqueeze(0).unsqueeze(2)
+        # (n, d, h, s) -> (b, n, d, h, s) -> (b, n, s, d, h)
+        idx_expanded = idx_expanded.unsqueeze(0).permute(0, 1, 4, 2, 3)
 
         return {
-            "x_2d": x_2d,  # (b, n, c, d, h, s)
-            "x_2d_0": x_2d_0,  # (b, c, d, h, s)
-            "x_2d_t": x_2d_t,  # (b, c, d, h, s)
+            "x_2d": x_2d,  # (b, n, s, d, h)
+            "x_2d_0": x_2d_0,  # (b, s, d, h)
+            "x_2d_t": x_2d_t,  # (b, s, d, h)
             "x_3d": x_3d,  # (b, n, c, d, h, w)
             "x_3d_0": x_3d_0,  # (b, c, d, h, w)
             "x_3d_t": x_3d_t,  # (b, c, d, h, w)
             "slice_idx": slice_idx,  # (b, s)
-            "idx_expanded": idx_expanded,  # (b, n, c, d, h, s)
+            "idx_expanded": idx_expanded,  # (b, n, s, d, h)
         }

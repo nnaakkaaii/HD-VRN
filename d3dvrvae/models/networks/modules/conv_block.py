@@ -167,6 +167,7 @@ class ConvModule2d(ConvModuleBase):
         debug_show_dim: bool = False,
     ) -> None:
         super().__init__()
+        assert len(conv_params) > 1
 
         self.layers = nn.ModuleList()
         for i, conv_param in enumerate(conv_params[:-1]):
@@ -213,18 +214,19 @@ class ConvModule3d(ConvModuleBase):
         debug_show_dim: bool = False,
     ) -> None:
         super().__init__()
+        assert len(conv_params) > 1
 
         self.layers = nn.ModuleList()
         for i, conv_param in enumerate(conv_params[:-1]):
             self.layers.append(
                 nn.Sequential(
-                    ConvBlock2d(
+                    ConvBlock3d(
                         latent_dim if i > 0 else in_channels,
                         latent_dim,
                         transpose=transpose,
                         **conv_param,
                     ),
-                    IdenticalConvBlock2d(
+                    IdenticalConvBlock3d(
                         latent_dim,
                         latent_dim,
                         transpose=False,
@@ -232,7 +234,7 @@ class ConvModule3d(ConvModuleBase):
                 )
             )
         self.layers.append(
-            ConvBlock2d(
+            ConvBlock3d(
                 latent_dim,
                 out_channels,
                 transpose=transpose,

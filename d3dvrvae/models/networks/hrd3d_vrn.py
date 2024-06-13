@@ -1,18 +1,15 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # Hierarchical Recurrent Disentangled 3D Video Reconstruction Network (HRD3D-VRN)
 
-from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass, field
 
 from omegaconf import MISSING
 from torch import Tensor, cat, nn
 from torch.nn.functional import interpolate
 
-from .modules import (ConvLSTM2d, ConvModule2d, GRU2d,
-                      HierarchicalConvDecoder3d, HierarchicalConvEncoder3d,
-                      IdenticalConvBlock3d, IdenticalConvBlockConvParams,
-                      ResNetBranch, TCN2d)
+from .modules import (ConvModule2d, HierarchicalConvDecoder3d, HierarchicalConvEncoder3d, IdenticalConvBlock3d, IdenticalConvBlockConvParams, ResNetBranch)
 from .option import NetworkOption
+from .rnn2d import RNN2dOption, create_rnn2d, RNN2d
 
 
 @dataclass
@@ -27,12 +24,12 @@ class HRD3DVRNOption(NetworkOption):
     motion_encoder_conv_params: list[dict[str, int]] = field(
         default_factory=lambda: [{"kernel_size": 3, "stride": 2, "padding": 1}] * 3,
     )
-    rnn2d: "MotionRNN2dOption" = MISSING
+    rnn2d: RNN2dOption = MISSING
     debug_show_dim: bool = False
 
 
 def create_hrd3dvrn(opt: HRD3DVRNOption) -> nn.Module:
-    motion_rnn2d = create_motion_rnn2d(opt.latent_dim, opt.rnn2d)
+    motion_rnn2d = create_rnn2d(opt.latent_dim, opt.rnn2d)
     return HRD3DVRN(
         opt.content_encoder_in_channels,
         opt.motion_encoder_in_channels,
@@ -62,178 +59,13 @@ class HierarchicalContentEncoder3d(HierarchicalConvEncoder3d):
         )
 
 
-class MotionRNN2d(nn.Module, metaclass=ABCMeta):
-    @abstractmethod
-    def forward(
-        self,
-        x: Tensor,
-        last_states: list[tuple[Tensor, Tensor]] | Tensor | None = None,
-    ) -> tuple[Tensor, list[tuple[Tensor, Tensor]] | Tensor | None]:
-        pass
-
-
-@dataclass
-class MotionRNN2dOption(NetworkOption):
-    pass
-
-
-def create_motion_rnn2d(latent_dim: int, opt: MotionRNN2dOption) -> MotionRNN2d:
-    if isinstance(opt, MotionNoRNN2dOption):
-        return create_motion_no_rnn2d(latent_dim, opt)
-    if isinstance(opt, MotionConvLSTM2dOption):
-        return create_motion_conv_lstm2d(latent_dim, opt)
-    if isinstance(opt, MotionGRU2dOption):
-        return create_motion_gru2d(latent_dim, opt)
-    if isinstance(opt, MotionTCN2dOption):
-        return create_motion_tcn2d(latent_dim, opt)
-    raise NotImplementedError(f"{opt.__class__.__name__} not implemented")
-
-
-@dataclass
-class MotionNoRNN2dOption(MotionRNN2dOption):
-    pass
-
-
-def create_motion_no_rnn2d(latent_dim: int, opt: MotionNoRNN2dOption) -> MotionRNN2d:
-    return MotionNoRNN2d()
-
-
-class MotionNoRNN2d(MotionRNN2d):
-    def forward(
-        self,
-        x: Tensor,
-        last_states: list[tuple[Tensor, Tensor]] | Tensor | None = None,
-    ) -> tuple[Tensor, list[tuple[Tensor, Tensor]] | Tensor | None]:
-        return x, last_states
-
-
-@dataclass
-class MotionConvLSTM2dOption(MotionRNN2dOption):
-    num_layers: int = 3
-
-
-def create_motion_conv_lstm2d(
-    latent_dim: int, opt: MotionConvLSTM2dOption
-) -> MotionRNN2d:
-    return MotionConvLSTM2d(latent_dim, opt.num_layers)
-
-
-class MotionConvLSTM2d(MotionRNN2d):
-    def __init__(
-        self,
-        latent_dim: int,
-        num_layers: int,
-    ) -> None:
-        super().__init__()
-        self.rnn = ConvLSTM2d(
-            latent_dim,
-            latent_dim,
-            (3, 3),
-            num_layers,
-            batch_first=True,
-        )
-
-    def forward(
-        self,
-        x: Tensor,
-        last_states: list[tuple[Tensor, Tensor]] | Tensor | None = None,
-    ) -> tuple[Tensor, list[tuple[Tensor, Tensor]] | Tensor | None]:
-        assert last_states is None or (
-            isinstance(last_states, list)
-            and all([isinstance(s, tuple) for s in last_states])
-        )
-        y, last_states = self.rnn(x, last_states)
-        assert isinstance(last_states, list) and all(
-            [isinstance(s, tuple) for s in last_states]
-        )
-        return y, last_states
-
-
-@dataclass
-class MotionGRU2dOption(MotionRNN2dOption):
-    num_layers: int = 3
-    image_size: tuple[int, int] = (64, 64)
-
-
-def create_motion_gru2d(latent_dim: int, opt: MotionGRU2dOption) -> MotionRNN2d:
-    return MotionGRU2d(latent_dim, opt.num_layers, opt.image_size)
-
-
-class MotionGRU2d(MotionRNN2d):
-    def __init__(
-        self,
-        latent_dim: int,
-        num_layers: int,
-        image_size: tuple[int, int],
-    ) -> None:
-        super().__init__()
-        self.rnn = GRU2d(
-            latent_dim,
-            latent_dim,
-            num_layers,
-            image_size,
-        )
-
-    def forward(
-        self,
-        x: Tensor,
-        last_states: list[tuple[Tensor, Tensor]] | Tensor | None = None,
-    ) -> tuple[Tensor, list[tuple[Tensor, Tensor]] | Tensor | None]:
-        assert last_states is None or isinstance(last_states, Tensor)
-        y, last_states = self.rnn(x, last_states)
-        assert isinstance(last_states, Tensor)
-        return y, last_states
-
-
-@dataclass
-class MotionTCN2dOption(MotionRNN2dOption):
-    num_layers: int = 3
-    image_size: tuple[int, int] = (64, 64)
-    kernel_size: int = 3
-    dropout: float = 0.0
-
-
-def create_motion_tcn2d(latent_dim: int, opt: MotionTCN2dOption) -> MotionRNN2d:
-    return MotionTCN2d(
-        latent_dim, opt.num_layers, opt.image_size, opt.kernel_size, opt.dropout
-    )
-
-
-class MotionTCN2d(MotionRNN2d):
-    def __init__(
-        self,
-        latent_dim: int,
-        num_layers: int,
-        image_size: tuple[int, int],
-        kernel_size: int,
-        dropout: float = 0.0,
-    ) -> None:
-        super().__init__()
-        self.rnn = TCN2d(
-            latent_dim,
-            [latent_dim] * num_layers,
-            kernel_size,
-            image_size,
-            dropout,
-        )
-
-    def forward(
-        self,
-        x: Tensor,
-        last_states: list[tuple[Tensor, Tensor]] | Tensor | None = None,
-    ) -> tuple[Tensor, list[tuple[Tensor, Tensor]] | Tensor | None]:
-        assert last_states is None
-        y = self.rnn(x)
-        return y, None
-
-
 class MotionEncoder2d(nn.Module):
     def __init__(
         self,
         in_channels: int,
         latent_dim: int,
         conv_params: list[dict[str, int]],
-        rnn2d: MotionRNN2d,
+        rnn2d: RNN2d,
         debug_show_dim: bool = False,
     ) -> None:
         super().__init__()
@@ -320,7 +152,7 @@ class HRD3DVRN(nn.Module):
         latent_dim: int,
         content_encoder_conv_params: list[dict[str, int]],
         motion_encoder_conv_params: list[dict[str, int]],
-        motion_rnn2d: MotionRNN2d,
+        motion_rnn2d: RNN2d,
         debug_show_dim: bool = False,
     ) -> None:
         super().__init__()
@@ -362,6 +194,7 @@ if __name__ == "__main__":
 
     def test1():
         from torch import randn
+        from .rnn2d import ConvLSTM2d
 
         ce_net = HierarchicalContentEncoder3d(
             1,
@@ -388,7 +221,7 @@ if __name__ == "__main__":
                 {"kernel_size": 3, "stride": 2, "padding": 1},
                 {"kernel_size": 3, "stride": 1, "padding": 1},
             ],
-            MotionConvLSTM2d(16, 2),
+            ConvLSTM2d(16, 2),
             debug_show_dim=True,
         )
         x = randn(8, 10, 1, 64, 64)
@@ -414,6 +247,7 @@ if __name__ == "__main__":
 
     def test2():
         from torch import randn
+        from .rnn2d import ConvLSTM2d
 
         net = HRD3DVRN(
             content_encoder_in_channels=2,
@@ -429,7 +263,7 @@ if __name__ == "__main__":
                 {"kernel_size": 3, "stride": 2, "padding": 1},
                 {"kernel_size": 3, "stride": 2, "padding": 1},
             ],
-            motion_rnn2d=MotionConvLSTM2d(16, 2),
+            motion_rnn2d=ConvLSTM2d(16, 2),
             debug_show_dim=True,
         )
         x = net(
