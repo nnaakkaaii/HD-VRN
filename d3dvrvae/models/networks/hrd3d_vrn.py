@@ -32,7 +32,17 @@ class HRD3DVRNOption(NetworkOption):
 
 
 def create_hrd3dvrn(opt: HRD3DVRNOption) -> nn.Module:
-    pass
+    motion_rnn2d = create_motion_rnn2d(opt.latent_dim, opt.rnn2d)
+    return HRD3DVRN(
+        opt.content_encoder_in_channels,
+        opt.motion_encoder_in_channels,
+        opt.decoder_out_channels,
+        opt.latent_dim,
+        opt.content_encoder_conv_params,
+        opt.motion_encoder_conv_params,
+        motion_rnn2d,
+        opt.debug_show_dim,
+    )
 
 
 class HierarchicalContentEncoder3d(HierarchicalConvEncoder3d):
@@ -65,6 +75,18 @@ class MotionRNN2d(nn.Module, metaclass=ABCMeta):
 @dataclass
 class MotionRNN2dOption(NetworkOption):
     pass
+
+
+def create_motion_rnn2d(latent_dim: int, opt: MotionRNN2dOption) -> MotionRNN2d:
+    if isinstance(opt, MotionNoRNN2dOption):
+        return create_motion_no_rnn2d(latent_dim, opt)
+    if isinstance(opt, MotionConvLSTM2dOption):
+        return create_motion_conv_lstm2d(latent_dim, opt)
+    if isinstance(opt, MotionGRU2dOption):
+        return create_motion_gru2d(latent_dim, opt)
+    if isinstance(opt, MotionTCN2dOption):
+        return create_motion_tcn2d(latent_dim, opt)
+    raise NotImplementedError(f"{opt.__class__.__name__} not implemented")
 
 
 @dataclass
@@ -298,7 +320,7 @@ class HRD3DVRN(nn.Module):
         latent_dim: int,
         content_encoder_conv_params: list[dict[str, int]],
         motion_encoder_conv_params: list[dict[str, int]],
-        rnn2d: MotionRNN2d,
+        motion_rnn2d: MotionRNN2d,
         debug_show_dim: bool = False,
     ) -> None:
         super().__init__()
@@ -312,7 +334,7 @@ class HRD3DVRN(nn.Module):
             motion_encoder_in_channels,
             latent_dim,
             motion_encoder_conv_params,
-            rnn2d,
+            motion_rnn2d,
             debug_show_dim,
         )
         self.decoder = HierarchicalDecoder3d(
@@ -407,7 +429,7 @@ if __name__ == "__main__":
                 {"kernel_size": 3, "stride": 2, "padding": 1},
                 {"kernel_size": 3, "stride": 2, "padding": 1},
             ],
-            rnn2d=MotionConvLSTM2d(16, 2),
+            motion_rnn2d=MotionConvLSTM2d(16, 2),
             debug_show_dim=True,
         )
         x = net(

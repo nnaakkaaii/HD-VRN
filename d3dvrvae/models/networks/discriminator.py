@@ -6,7 +6,7 @@ from .modules import ConvModule3d
 
 
 @dataclass
-class Discriminator3d:
+class Discriminator3dOption:
     in_channels: int = 1
     latent_dim: int = 64
     conv_params: list[dict[str, int]] = field(
@@ -17,7 +17,7 @@ class Discriminator3d:
     debug_show_dim: bool = False
 
 
-def create_discriminator_3d(opt: Discriminator3d) -> nn.Module:
+def create_discriminator3d(opt: Discriminator3dOption) -> nn.Module:
     return ConvModule3d(
         opt.in_channels,
         2,
