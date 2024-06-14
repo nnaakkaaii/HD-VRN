@@ -9,9 +9,9 @@ from .modules import ConvModule3d
 class Discriminator3dOption:
     in_channels: int = 1
     latent_dim: int = 64
-    conv_params: list[dict[str, int]] = field(
+    conv_params: list[dict[str, list[int]]] = field(
         default_factory=lambda: [
-            {"kernel_size": 3, "stride": 2, "padding": 1, "output_padding": 1},
+            {"kernel_size": [3], "stride": [2], "padding": [1], "output_padding": [1]},
         ]
     )
     debug_show_dim: bool = False

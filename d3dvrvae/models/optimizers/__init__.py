@@ -17,6 +17,6 @@ def create_optimizer(
     opt: OptimizerOption,
     params: Iterable[Tensor] | Iterable[dict[str, Any]],
 ) -> Optimizer:
-    if isinstance(opt, AdamOptimizerOption):
+    if isinstance(opt, AdamOptimizerOption) and type(opt) is AdamOptimizerOption:
         return Adam(params, lr=opt.lr)
     raise NotImplementedError(f"{opt.__class__.__name__} is not implemented")

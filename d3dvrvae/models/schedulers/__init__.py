@@ -19,7 +19,7 @@ def create_scheduler(
     n_epoch: int,
     steps_per_epoch: int,
 ) -> LRScheduler:
-    if isinstance(opt, OneCycleLRSchedulerOption):
+    if isinstance(opt, OneCycleLRSchedulerOption) and type(opt) is OneCycleLRSchedulerOption:
         return OneCycleLR(
             optimizer,
             max_lr=opt.max_lr,

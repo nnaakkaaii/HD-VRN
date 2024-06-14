@@ -10,7 +10,7 @@ class HierarchicalConvEncoder2d(ConvModuleBase):
         in_channels: int,
         out_channels: int,
         latent_dim: int,
-        conv_params: list[dict[str, int]],
+        conv_params: list[dict[str, list[int]]],
         debug_show_dim: bool = False,
     ) -> None:
         super().__init__()
@@ -23,8 +23,11 @@ class HierarchicalConvEncoder2d(ConvModuleBase):
                     ConvBlock2d(
                         latent_dim if i > 0 else in_channels,
                         latent_dim,
+                        kernel_size=conv_param["kernel_size"],
+                        stride=conv_param["stride"],
+                        padding=conv_param["padding"],
+                        output_padding=conv_param.get("output_padding"),
                         transpose=False,
-                        **conv_param,
                     ),
                     IdenticalConvBlock2d(
                         latent_dim,
@@ -37,9 +40,12 @@ class HierarchicalConvEncoder2d(ConvModuleBase):
             ConvBlock2d(
                 latent_dim,
                 out_channels,
+                kernel_size=conv_params[-1]["kernel_size"],
+                stride=conv_params[-1]["stride"],
+                padding=conv_params[-1]["padding"],
+                output_padding=conv_params[-1].get("output_padding"),
                 transpose=False,
                 act_norm=False,
-                **conv_params[-1],
             )
         )
 
@@ -56,7 +62,7 @@ class HierarchicalConvEncoder3d(ConvModuleBase):
         in_channels: int,
         out_channels: int,
         latent_dim: int,
-        conv_params: list[dict[str, int]],
+        conv_params: list[dict[str, list[int]]],
         debug_show_dim: bool = False,
     ) -> None:
         super().__init__()
@@ -70,7 +76,10 @@ class HierarchicalConvEncoder3d(ConvModuleBase):
                         latent_dim if i > 0 else in_channels,
                         latent_dim,
                         transpose=False,
-                        **conv_param,
+                        kernel_size=conv_param["kernel_size"],
+                        stride=conv_param["stride"],
+                        padding=conv_param["padding"],
+                        output_padding=conv_param.get("output_padding"),
                     ),
                     IdenticalConvBlock3d(
                         latent_dim,
@@ -83,9 +92,12 @@ class HierarchicalConvEncoder3d(ConvModuleBase):
             ConvBlock3d(
                 latent_dim,
                 out_channels,
+                kernel_size=conv_params[-1]["kernel_size"],
+                stride=conv_params[-1]["stride"],
+                padding=conv_params[-1]["padding"],
+                output_padding=conv_params[-1].get("output_padding"),
                 transpose=False,
                 act_norm=False,
-                **conv_params[-1],
             )
         )
 

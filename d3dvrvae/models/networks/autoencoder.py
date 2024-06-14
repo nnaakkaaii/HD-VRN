@@ -11,9 +11,9 @@ from .option import NetworkOption
 class AutoEncoder2dNetworkOption(NetworkOption):
     in_channels: int = 1
     latent_dim: int = 64
-    conv_params: list[dict[str, int]] = field(
+    conv_params: list[dict[str, list[int]]] = field(
         default_factory=lambda: [
-            {"kernel_size": 3, "stride": 2, "padding": 1, "output_padding": 1},
+            {"kernel_size": [3], "stride": [2], "padding": [1], "output_padding": [1]},
         ]
     )
     debug_show_dim: bool = False
@@ -33,7 +33,7 @@ class AutoEncoder2d(nn.Module):
         self,
         in_channels: int,
         latent_dim: int,
-        conv_params: list[dict[str, int]],
+        conv_params: list[dict[str, list[int]]],
         debug_show_dim: bool,
     ) -> None:
         super().__init__()

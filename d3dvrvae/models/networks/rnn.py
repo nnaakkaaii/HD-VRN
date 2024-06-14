@@ -23,11 +23,11 @@ class RNN2dOption(NetworkOption):
 
 
 def create_rnn2d(latent_dim: int, opt: RNN2dOption) -> RNN2d:
-    if isinstance(opt, ConvLSTM2dOption):
+    if isinstance(opt, ConvLSTM2dOption) and type(opt) is ConvLSTM2dOption:
         return create_conv_lstm2d(latent_dim, opt)
-    if isinstance(opt, GRU2dOption):
+    if isinstance(opt, GRU2dOption) and type(opt) is GRU2dOption:
         return create_gru2d(latent_dim, opt)
-    if isinstance(opt, TCN2dOption):
+    if isinstance(opt, TCN2dOption) and type(opt) is TCN2dOption:
         return create_tcn2d(latent_dim, opt)
     raise NotImplementedError(f"{opt.__class__.__name__} not implemented")
 

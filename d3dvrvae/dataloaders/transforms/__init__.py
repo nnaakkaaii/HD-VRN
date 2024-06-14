@@ -33,20 +33,20 @@ class Crop2dOption(TransformOption):
 
 
 def create_transform(opt: TransformOption) -> Transform:
-    if isinstance(opt, ToTensorOption):
+    if isinstance(opt, ToTensorOption) and type(opt) is ToTensorOption:
         return transforms.ToTensor()
-    if isinstance(opt, Pad2dOption):
+    if isinstance(opt, Pad2dOption) and type(opt) is Pad2dOption:
         return transforms.Pad(opt.pad_size)
-    if isinstance(opt, Normalize2dOption):
+    if isinstance(opt, Normalize2dOption) and type(opt) is Normalize2dOption:
         return transforms.Normalize((opt.mean,), (opt.std,))
-    if isinstance(opt, Crop2dOption):
+    if isinstance(opt, Crop2dOption) and type(opt) is Crop2dOption:
         return transforms.RandomCrop(opt.crop_size)
-    if isinstance(opt, MinMaxNormalizationOption):
+    if isinstance(opt, MinMaxNormalizationOption) and type(opt) is MinMaxNormalization:
         return MinMaxNormalization()
-    if isinstance(opt, RandomShift3dOption):
+    if isinstance(opt, RandomShift3dOption) and type(opt) is RandomShift3dOption:
         return create_random_shift3d(opt)
-    if isinstance(opt, UniformShape3dOption):
+    if isinstance(opt, UniformShape3dOption) and type(opt) is UniformShape3dOption:
         return create_uniform_shape3d(opt)
-    if isinstance(opt, Pool3dOption):
+    if isinstance(opt, Pool3dOption) and type(opt) is Pool3dOption:
         return create_pool3d(opt)
     raise NotImplementedError(f"{opt.__class__.__name__} is not implemented")

@@ -11,7 +11,7 @@ def main(cfg: DictConfig):
     opt = OmegaConf.to_object(cfg)
     opt = process_options(opt)
     save_options(opt, opt.experiment.result_dir)
-    if isinstance(opt.experiment, TrainExpOption):
+    if isinstance(opt.experiment, TrainExpOption) and type(opt.experiment) is TrainExpOption:
         train(opt.experiment)
         return
     raise NotImplementedError(f"{opt.experiment.__class__.__name__} is not implemented")

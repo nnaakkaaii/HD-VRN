@@ -37,7 +37,7 @@ class HierarchicalContentEncoder3d(HierarchicalConvEncoder3d):
         self,
         in_channels: int,
         latent_dim: int,
-        conv_params: list[dict[str, int]],
+        conv_params: list[dict[str, list[int]]],
         debug_show_dim: bool = False,
     ) -> None:
         super().__init__(
@@ -54,7 +54,7 @@ class HierarchicalDecoder3d(nn.Module):
         self,
         out_channels: int,
         latent_dim: int,
-        conv_params: list[dict[str, int]],
+        conv_params: list[dict[str, list[int]]],
         debug_show_dim: bool = False,
     ) -> None:
         super().__init__()
@@ -105,7 +105,7 @@ class HRD3DVRN(nn.Module):
         in_channels: int,
         out_channels: int,
         latent_dim: int,
-        conv_params: list[dict[str, int]],
+        conv_params: list[dict[str, list[int]]],
         motion_encoder2d: MotionEncoder2d,
         debug_show_dim: bool = False,
     ) -> None:
@@ -147,9 +147,9 @@ if __name__ == "__main__":
             1,
             16,
             [
-                {"kernel_size": 3, "stride": 2, "padding": 1},
-                {"kernel_size": 3, "stride": 2, "padding": 1},
-                {"kernel_size": 3, "stride": 1, "padding": 1},
+                {"kernel_size": [3], "stride": [2], "padding": [1]},
+                {"kernel_size": [3], "stride": [2], "padding": [1]},
+                {"kernel_size": [3], "stride": [1], "padding": [1]},
             ],
             debug_show_dim=True,
         )
@@ -164,15 +164,15 @@ if __name__ == "__main__":
             1,
             2 * 16,
             [
-                {"kernel_size": 3, "stride": 2, "padding": 1},
-                {"kernel_size": 3, "stride": 2, "padding": 1},
+                {"kernel_size": [3], "stride": [2], "padding": [1]},
+                {"kernel_size": [3], "stride": [2], "padding": [1]},
             ],
             debug_show_dim=True,
         )
         d = d_net(
-            randn(8 * 10, 16, 16, 16),
-            c.repeat(10, 1, 1, 1, 1),
-            [c_.repeat(10, 1, 1, 1, 1) for c_ in cs[::-1]],
+            randn(8 * 10, 16, 8, 8),
+            c.repeat(10, 1, 1, 1, 1),  # (80, 16, 16, 16, 16)
+            [c_.repeat(10, 1, 1, 1, 1) for c_ in cs[::-1]],  # [(80, 16, 16, 16, 16), (80, 16, 32, 32, 32)]
         )
         print("d output", d.size())
 
@@ -187,15 +187,15 @@ if __name__ == "__main__":
             out_channels=1,
             latent_dim=16,
             conv_params=[
-                {"kernel_size": 3, "stride": 2, "padding": 1},
-                {"kernel_size": 3, "stride": 2, "padding": 1},
+                {"kernel_size": [3], "stride": [2], "padding": [1]},
+                {"kernel_size": [3], "stride": [2], "padding": [1]},
             ],
             motion_encoder2d=MotionRNNEncoder2dOption(
                 in_channels=1,
                 conv_params=[
-                    {"kernel_size": 3, "stride": 2, "padding": 1},
-                    {"kernel_size": 3, "stride": 2, "padding": 1},
-                    {"kernel_size": 3, "stride": 2, "padding": 1},
+                    {"kernel_size": [3], "stride": [2], "padding": [1]},
+                    {"kernel_size": [3], "stride": [2], "padding": [1]},
+                    {"kernel_size": [3], "stride": [2], "padding": [1]},
                 ],
                 rnn2d=ConvLSTM2dOption(
                     num_layers=1,
@@ -210,4 +210,5 @@ if __name__ == "__main__":
         )
         print(x.size())
 
+    test1()
     test2()

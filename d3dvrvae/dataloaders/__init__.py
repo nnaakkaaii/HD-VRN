@@ -10,6 +10,6 @@ def create_dataloader(
     opt: DataLoaderOption,
     is_train: bool,
 ) -> tuple[DataLoader, DataLoader | None]:
-    if isinstance(opt, BasicDataLoaderOption):
+    if isinstance(opt, BasicDataLoaderOption) and type(opt) is BasicDataLoaderOption:
         return create_basic_dataloader(opt, is_train)
     raise NotImplementedError(f"{opt.__class__.__name__} is not implemented")

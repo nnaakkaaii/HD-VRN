@@ -10,14 +10,14 @@ class FiveBranchAutoencoder3dOption:
     in_channels_2d: int = 1
     in_channels_3d: int = 1
     latent_dim: int = 64
-    conv_params_2d: list[dict[str, int]] = field(
+    conv_params_2d: list[dict[str, list[int]]] = field(
         default_factory=lambda: [
-            {"kernel_size": 3, "stride": 2, "padding": 1, "output_padding": 1},
+            {"kernel_size": [3], "stride": [2], "padding": [1], "output_padding": [1]},
         ]
     )
-    conv_params_3d: list[dict[str, int]] = field(
+    conv_params_3d: list[dict[str, list[int]]] = field(
         default_factory=lambda: [
-            {"kernel_size": 3, "stride": 2, "padding": 1, "output_padding": 1},
+            {"kernel_size": [3], "stride": [2], "padding": [1], "output_padding": [1]},
         ]
     )
     weighted: bool = False
@@ -41,8 +41,8 @@ class FiveBranchAutoencoder3d(nn.Module):
         in_channels_2d: int,
         in_channels_3d: int,
         latent_dim: int,
-        conv_params_2d: list[dict[str, int]],
-        conv_params_3d: list[dict[str, int]],
+        conv_params_2d: list[dict[str, list[int]]],
+        conv_params_3d: list[dict[str, list[int]]],
         debug_show_dim: bool,
     ) -> None:
         super().__init__()
@@ -129,12 +129,12 @@ if __name__ == "__main__":
             in_channels_3d=1,
             latent_dim=64,
             conv_params_2d=[
-                {"kernel_size": 3, "stride": 2, "padding": 1, "output_padding": 1},
-                {"kernel_size": 3, "stride": 2, "padding": 1, "output_padding": 1},
+                {"kernel_size": [3], "stride": [2], "padding": [1], "output_padding": [1]},
+                {"kernel_size": [3], "stride": [1, 2], "padding": [1], "output_padding": [0, 1]},
             ],
             conv_params_3d=[
-                {"kernel_size": 3, "stride": 2, "padding": 1, "output_padding": 1},
-                {"kernel_size": 3, "stride": 2, "padding": 1, "output_padding": 1},
+                {"kernel_size": [3], "stride": [2], "padding": [1], "output_padding": [1]},
+                {"kernel_size": [3], "stride": [1, 2, 2], "padding": [1], "output_padding": [0, 1, 1]},
             ],
             debug_show_dim=True,
         )

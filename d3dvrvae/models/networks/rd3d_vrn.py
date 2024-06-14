@@ -18,8 +18,8 @@ class RD3DVRNOption(NetworkOption):
     in_channels: int = 2
     out_channels: int = 1
     latent_dim: int = 64
-    conv_params: list[dict[str, int]] = field(
-        default_factory=lambda: [{"kernel_size": 3, "stride": 2, "padding": 1}] * 3,
+    conv_params: list[dict[str, list[int]]] = field(
+        default_factory=lambda: [{"kernel_size": [3], "stride": [2], "padding": [1]}] * 3,
     )
     motion_encoder2d: MotionEncoder2dOption = MISSING
     debug_show_dim: bool = False
@@ -44,7 +44,7 @@ class NormalContentEncoder3d(ConvModule3d):
         self,
         in_channels: int,
         latent_dim: int,
-        conv_params: list[dict[str, int]],
+        conv_params: list[dict[str, list[int]]],
         debug_show_dim: bool = False,
     ) -> None:
         super().__init__(
@@ -62,7 +62,7 @@ class NormalDecoder3d(nn.Module):
         self,
         out_channels: int,
         latent_dim: int,
-        conv_params: list[dict[str, int]],
+        conv_params: list[dict[str, list[int]]],
         debug_show_dim: bool = False,
     ) -> None:
         super().__init__()
@@ -94,7 +94,7 @@ class RD3DVRN(nn.Module):
         in_channels: int,
         out_channels: int,
         latent_dim: int,
-        conv_params: list[dict[str, int]],
+        conv_params: list[dict[str, list[int]]],
         motion_encoder2d: MotionEncoder2d,
         debug_show_dim: bool = False,
     ) -> None:
@@ -139,15 +139,15 @@ if __name__ == "__main__":
             out_channels=1,
             latent_dim=16,
             conv_params=[
-                {"kernel_size": 3, "stride": 2, "padding": 1},
-                {"kernel_size": 3, "stride": 2, "padding": 1},
+                {"kernel_size": [3], "stride": [2], "padding": [1]},
+                {"kernel_size": [3], "stride": [2], "padding": [1]},
             ],
             motion_encoder2d=MotionRNNEncoder2dOption(
                 in_channels=1,
                 conv_params=[
-                    {"kernel_size": 3, "stride": 2, "padding": 1},
-                    {"kernel_size": 3, "stride": 2, "padding": 1},
-                    {"kernel_size": 3, "stride": 2, "padding": 1},
+                    {"kernel_size": [3], "stride": [2], "padding": [1]},
+                    {"kernel_size": [3], "stride": [2], "padding": [1]},
+                    {"kernel_size": [3], "stride": [2], "padding": [1]},
                 ],
                 rnn2d=ConvLSTM2dOption(
                     num_layers=1,

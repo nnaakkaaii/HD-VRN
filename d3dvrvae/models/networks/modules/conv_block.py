@@ -2,11 +2,27 @@ from torch import Tensor, cat, nn
 from torch.nn.functional import group_norm, leaky_relu
 
 IdenticalConvBlockConvParams = {
-    "kernel_size": 3,
-    "stride": 1,
-    "padding": 1,
-    "output_padding": 0,
+    "kernel_size": [3],
+    "stride": [1],
+    "padding": [1],
+    "output_padding": [0],
 }
+
+
+def _parse_for_2d(f: list[int]) -> tuple[int, int]:
+    if len(f) == 1:
+        return f[0], f[0]
+    if len(f) == 2:
+        return f[0], f[1]
+    raise ValueError(f"Invalid length: {len(f)}")
+
+
+def _parse_for_3d(f: list[int]) -> tuple[int, int, int]:
+    if len(f) == 1:
+        return f[0], f[0], f[0]
+    if len(f) == 3:
+        return f[0], f[1], f[2]
+    raise ValueError(f"Invalid length: {len(f)}")
 
 
 class ConvBlock2d(nn.Module):
@@ -14,34 +30,39 @@ class ConvBlock2d(nn.Module):
         self,
         in_channels: int,
         out_channels: int,
-        kernel_size: int,
-        stride: int,
-        padding: int,
-        output_padding: int | None = None,
+        kernel_size: list[int],
+        stride: list[int],
+        padding: list[int],
+        output_padding: list[int] | None = None,
         transpose: bool = False,
         act_norm: bool = True,
     ) -> None:
         super().__init__()
         self.act_norm = act_norm
 
+        _kernel_size = _parse_for_2d(kernel_size)
+        _stride = _parse_for_2d(stride)
+        _padding = _parse_for_2d(padding)
+
         if not transpose:
             self.conv = nn.Conv2d(
                 in_channels,
                 out_channels,
-                kernel_size=kernel_size,
-                stride=stride,
-                padding=padding,
+                kernel_size=_kernel_size,
+                stride=_stride,
+                padding=_padding,
             )
         else:
-            if output_padding is None:
-                output_padding = stride // 2
+            _output_padding = (_stride[0] // 2, _stride[1] // 2)
+            if output_padding is not None:
+                _output_padding = _parse_for_2d(output_padding)
             self.conv = nn.ConvTranspose2d(
                 in_channels,
                 out_channels,
-                kernel_size=kernel_size,
-                stride=stride,
-                padding=padding,
-                output_padding=output_padding,
+                kernel_size=_kernel_size,
+                stride=_stride,
+                padding=_padding,
+                output_padding=_output_padding,
             )
 
     def forward(self, x: Tensor) -> Tensor:
@@ -74,34 +95,39 @@ class ConvBlock3d(nn.Module):
         self,
         in_channels: int,
         out_channels: int,
-        kernel_size: int,
-        stride: int,
-        padding: int,
-        output_padding: int | None = None,
+        kernel_size: list[int],
+        stride: list[int],
+        padding: list[int],
+        output_padding: list[int] | None = None,
         transpose: bool = False,
         act_norm: bool = True,
     ) -> None:
         super().__init__()
         self.act_norm = act_norm
 
+        _kernel_size = _parse_for_3d(kernel_size)
+        _stride = _parse_for_3d(stride)
+        _padding = _parse_for_3d(padding)
+
         if not transpose:
             self.conv = nn.Conv3d(
                 in_channels,
                 out_channels,
-                kernel_size=kernel_size,
-                stride=stride,
-                padding=padding,
+                kernel_size=_kernel_size,
+                stride=_stride,
+                padding=_padding,
             )
         else:
-            if output_padding is None:
-                output_padding = stride // 2
+            _output_padding = (_stride[0] // 2, _stride[1] // 2, _stride[2] // 2)
+            if output_padding is not None:
+                _output_padding = _parse_for_3d(output_padding)
             self.conv = nn.ConvTranspose3d(
                 in_channels,
                 out_channels,
-                kernel_size=kernel_size,
-                stride=stride,
-                padding=padding,
-                output_padding=output_padding,
+                kernel_size=_kernel_size,
+                stride=_stride,
+                padding=_padding,
+                output_padding=_output_padding,
             )
 
     def forward(self, x: Tensor) -> Tensor:
@@ -162,7 +188,7 @@ class ConvModule2d(ConvModuleBase):
         in_channels: int,
         out_channels: int,
         latent_dim: int,
-        conv_params: list[dict[str, int]],
+        conv_params: list[dict[str, list[int]]],
         transpose: bool,
         debug_show_dim: bool = False,
     ) -> None:
@@ -176,8 +202,11 @@ class ConvModule2d(ConvModuleBase):
                     ConvBlock2d(
                         latent_dim if i > 0 else in_channels,
                         latent_dim,
+                        kernel_size=conv_param["kernel_size"],
+                        stride=conv_param["stride"],
+                        padding=conv_param["padding"],
+                        output_padding=conv_param.get("output_padding"),
                         transpose=transpose,
-                        **conv_param,
                     ),
                     IdenticalConvBlock2d(
                         latent_dim,
@@ -209,7 +238,7 @@ class ConvModule3d(ConvModuleBase):
         in_channels: int,
         out_channels: int,
         latent_dim: int,
-        conv_params: list[dict[str, int]],
+        conv_params: list[dict[str, list[int]]],
         transpose: bool,
         debug_show_dim: bool = False,
     ) -> None:
@@ -223,8 +252,11 @@ class ConvModule3d(ConvModuleBase):
                     ConvBlock3d(
                         latent_dim if i > 0 else in_channels,
                         latent_dim,
+                        kernel_size=conv_param["kernel_size"],
+                        stride=conv_param["stride"],
+                        padding=conv_param["padding"],
+                        output_padding=conv_param.get("output_padding"),
                         transpose=transpose,
-                        **conv_param,
                     ),
                     IdenticalConvBlock3d(
                         latent_dim,

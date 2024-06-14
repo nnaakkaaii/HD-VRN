@@ -11,8 +11,8 @@ def create_dataset(
     transform: Transform,
     is_train: bool,
 ) -> Dataset:
-    if isinstance(opt, MNISTDatasetOption):
+    if isinstance(opt, MNISTDatasetOption) and type(opt) is MNISTDatasetOption:
         return create_mnist_dataset(opt, transform, is_train)
-    if isinstance(opt, CTDatasetOption):
+    if isinstance(opt, CTDatasetOption) and type(opt) is CTDatasetOption:
         return create_ct_dataset(opt, transform, is_train)
     raise NotImplementedError(f"dataset {opt.__class__.__name__} not implemented")

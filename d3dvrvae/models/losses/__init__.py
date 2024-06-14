@@ -13,11 +13,11 @@ class MSELossOption(LossOption):
 
 
 def create_loss(opt: LossOption) -> nn.Module:
-    if isinstance(opt, MSELossOption):
+    if isinstance(opt, MSELossOption) and type(opt) is MSELossOption:
         return nn.MSELoss()
-    if isinstance(opt, WeightedMSELossOption):
+    if isinstance(opt, WeightedMSELossOption) and type(opt) is WeightedMSELossOption:
         return create_weighted_mse_loss(opt)
-    if isinstance(opt, PJCLossOption):
+    if isinstance(opt, PJCLossOption) and type(opt) is PJCLossOption:
         return create_pjc_loss()
     raise NotImplementedError(f"{opt.__class__.__name__} is not implemented")
 
