@@ -7,6 +7,7 @@ from .fb_autoencoder import (FiveBranchAutoencoder3dOption,
 from .hrd3d_vrn import HRD3DVRNOption, create_hrd3dvrn
 from .option import NetworkOption
 from .rd3d_vrn import RD3DVRNOption, create_rd3dvrn
+from .straight_vrn import SVRNOption, create_svrn
 
 
 def create_network(opt: NetworkOption) -> nn.Module:
@@ -20,4 +21,6 @@ def create_network(opt: NetworkOption) -> nn.Module:
         return create_hrd3dvrn(opt)
     if isinstance(opt, RD3DVRNOption) and type(opt) is RD3DVRNOption:
         return create_rd3dvrn(opt)
+    if isinstance(opt, SVRNOption) and type(opt) is SVRNOption:
+        return create_svrn(opt)
     raise NotImplementedError(f"network {opt.__class__.__name__} not implemented")
