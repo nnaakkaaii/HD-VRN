@@ -1,4 +1,4 @@
 root: data
-input_as_label: true
+slice_index: [16, 32, 48]
 defaults:
-  - /config/experiment/dataloader/dataset/mnist@_here_
+  - /config/experiment/dataloader/dataset/moving_mnist@_here_

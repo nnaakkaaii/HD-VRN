@@ -37,10 +37,11 @@ class GRU2d(nn.Module):
         in_channels: int,
         hidden_dim: int,
         num_layers: int,
-        image_size: tuple[int, int],
+        image_size: list[int],
     ) -> None:
         super().__init__()
 
+        assert len(image_size) == 2
         s = image_size[0] * image_size[1]
         self.c = hidden_dim
         hidden_dim *= s
@@ -74,7 +75,7 @@ if __name__ == "__main__":
         print(last_states.size())
 
         x = randn((32, 10, 64, 4, 4))
-        gru2d = GRU2d(64, 256, 3, (4, 4))
+        gru2d = GRU2d(64, 256, 3, [4, 4])
         y, last_states = gru2d(x)
         print(y.size())
         print(last_states.size())

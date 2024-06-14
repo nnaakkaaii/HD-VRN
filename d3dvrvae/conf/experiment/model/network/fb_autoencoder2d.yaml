@@ -1,28 +1,20 @@
+in_channels_1d: 1
 in_channels_2d: 1
-in_channels_3d: 1
-latent_dim: 64
+latent_dim: 32
+conv_params_1d:
+  - kernel_size: [3]
+    stride: [2]
+    padding: [1]
+    output_padding: [1]
+  - kernel_size: [3]
+    stride: [2]
+    padding: [1]
+    output_padding: [1]
+  - kernel_size: [3]
+    stride: [2]
+    padding: [1]
+    output_padding: [1]
 conv_params_2d:
-  - kernel_size: [3]
-    stride: [2]
-    padding: [1]
-    output_padding: [1]
-  - kernel_size: [3]
-    stride: [2]
-    padding: [1]
-    output_padding: [1]
-  - kernel_size: [3]
-    stride: [2]
-    padding: [1]
-    output_padding: [1]
-  - kernel_size: [3]
-    stride: [2]
-    padding: [1]
-    output_padding: [1]
-conv_params_3d:
-  - kernel_size: [3]
-    stride: [2]
-    padding: [1]
-    output_padding: [1]
   - kernel_size: [3]
     stride: [2]
     padding: [1]
@@ -38,4 +30,4 @@ conv_params_3d:
 weighted: false
 debug_show_dim: false
 defaults:
-  - /config/experiment/model/network/fb_autoencoder3d@_here_
+  - /config/experiment/model/network/fb_autoencoder2d@_here_

@@ -1,3 +1,16 @@
-debug_show_dim: false
+in_channels: 1
+conv_params:
+  - kernel_size: [3]
+    stride: [2]
+    padding: [1]
+    output_padding: [1]
+  - kernel_size: [3]
+    stride: [2]
+    padding: [1]
+    output_padding: [1]
+  - kernel_size: [3]
+    stride: [2]
+    padding: [1]
+    output_padding: [1]
 defaults:
-  - /config/experiment/model/network/autoencoder2d@_here_
+  - /config/experiment/model/network/motion_encoder/tsn1d@_here_

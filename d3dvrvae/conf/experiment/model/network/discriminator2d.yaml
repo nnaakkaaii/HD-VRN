@@ -1,4 +1,5 @@
 in_channels: 1
+latent_dim: 32
 conv_params:
   - kernel_size: [3]
     stride: [2]
@@ -12,5 +13,6 @@ conv_params:
     stride: [2]
     padding: [1]
     output_padding: [1]
+debug_show_dim: false
 defaults:
-  - /config/experiment/model/network/motion_encoder/guided1d@_here_
+  - /config/experiment/model/network/discriminator2d@_here_

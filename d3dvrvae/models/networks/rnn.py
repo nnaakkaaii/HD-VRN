@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from torch import Tensor, nn
 
@@ -146,7 +146,7 @@ class GRU1dOption(RNN1dOption):
 @dataclass
 class GRU2dOption(RNN2dOption):
     num_layers: int = 3
-    image_size: tuple[int, int] = (64, 64)
+    image_size: list[int] = field(default_factory=lambda: [64, 64])
 
 
 def create_gru1d(latent_dim: int, opt: GRU1dOption) -> RNN1d:
@@ -188,7 +188,7 @@ class GRU2d(RNN2d):
         self,
         latent_dim: int,
         num_layers: int,
-        image_size: tuple[int, int],
+        image_size: list[int],
     ) -> None:
         super().__init__()
         self.rnn = mdl.GRU2d(

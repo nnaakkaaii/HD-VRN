@@ -3,7 +3,6 @@ from dataclasses import dataclass
 from torch import Tensor
 
 from .option import TransformOption
-from .typing import Transform
 
 
 @dataclass

@@ -1,3 +1,4 @@
-debug_show_dim: false
+num_layers: 3
+image_size: [4, 8]
 defaults:
-  - /config/experiment/model/network/autoencoder2d@_here_
+  - /config/experiment/model/network/motion_encoder/rnn/gru2d@_here_
