@@ -3,11 +3,11 @@ from torch import Tensor, cat, nn, sigmoid, split, stack, tanh, zeros
 
 class ConvLSTMCell1d(nn.Module):
     def __init__(
-            self,
-            input_dim: int,
-            hidden_dim: int,
-            kernel_size: int,
-            bias: bool,
+        self,
+        input_dim: int,
+        hidden_dim: int,
+        kernel_size: int,
+        bias: bool,
     ) -> None:
         super().__init__()
 
@@ -26,9 +26,9 @@ class ConvLSTMCell1d(nn.Module):
         )
 
     def forward(
-            self,
-            input_tensor: Tensor,
-            cur_state: tuple[Tensor, Tensor],
+        self,
+        input_tensor: Tensor,
+        cur_state: tuple[Tensor, Tensor],
     ) -> tuple[Tensor, Tensor]:
         h_cur, c_cur = cur_state
 
@@ -46,9 +46,7 @@ class ConvLSTMCell1d(nn.Module):
 
         return h_next, c_next
 
-    def init_hidden(
-            self, batch_size: int, image_size: int
-    ) -> tuple[Tensor, Tensor]:
+    def init_hidden(self, batch_size: int, image_size: int) -> tuple[Tensor, Tensor]:
         return (
             zeros(
                 batch_size,
@@ -67,13 +65,13 @@ class ConvLSTMCell1d(nn.Module):
 
 class ConvLSTM1d(nn.Module):
     def __init__(
-            self,
-            input_dim: int,
-            hidden_dim: int | list[int],
-            kernel_size: int | list[int],
-            num_layers: int,
-            batch_first: bool = False,
-            bias: bool = True,
+        self,
+        input_dim: int,
+        hidden_dim: int | list[int],
+        kernel_size: int | list[int],
+        num_layers: int,
+        batch_first: bool = False,
+        bias: bool = True,
     ) -> None:
         super().__init__()
 
@@ -107,9 +105,9 @@ class ConvLSTM1d(nn.Module):
         self.cell_list = nn.ModuleList(cell_list)
 
     def forward(
-            self,
-            input_tensor: Tensor,
-            hidden_state: list[tuple[Tensor, Tensor]] | None = None,
+        self,
+        input_tensor: Tensor,
+        hidden_state: list[tuple[Tensor, Tensor]] | None = None,
     ) -> tuple[Tensor, list[tuple[Tensor, Tensor]]]:
         if not self.batch_first:
             # (t, b, c, h) -> (b, t, c, h)
@@ -143,7 +141,7 @@ class ConvLSTM1d(nn.Module):
         return cur_layer_input, last_state_list
 
     def _init_hidden(
-            self, batch_size: int, image_size: int
+        self, batch_size: int, image_size: int
     ) -> list[tuple[Tensor, Tensor]]:
         init_states = []
         for i in range(self.num_layers):
@@ -151,20 +149,18 @@ class ConvLSTM1d(nn.Module):
         return init_states
 
     @staticmethod
-    def _check_kernel_size_consistency(
-            kernel_size: int | list[int]
-    ) -> None:
+    def _check_kernel_size_consistency(kernel_size: int | list[int]) -> None:
         if isinstance(kernel_size, int):
             return
         if isinstance(kernel_size, list) and all(
-                [isinstance(elem, int) for elem in kernel_size]
+            [isinstance(elem, int) for elem in kernel_size]
         ):
             return
         raise ValueError("`kernel_size` must be int or list of ints")
 
     @staticmethod
     def _extend_for_multilayer(
-            param: int | tuple[int, int] | list[int | tuple[int, int]], num_layers: int
+        param: int | tuple[int, int] | list[int | tuple[int, int]], num_layers: int
     ) -> list[int | tuple[int, int]]:
         if not isinstance(param, list):
             param = [param] * num_layers

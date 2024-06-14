@@ -5,13 +5,14 @@ from dataclasses import dataclass
 
 from torch import Tensor, nn
 
+from .functions import aggregate
 from .modules import (HierarchicalConvDecoder2d, HierarchicalConvDecoder3d,
                       HierarchicalConvEncoder2d, HierarchicalConvEncoder3d,
                       IdenticalConvBlock2d, IdenticalConvBlock3d,
                       IdenticalConvBlockConvParams, ResNetBranch)
-from .motion_encoder import MotionEncoder1d, create_motion_encoder1d, MotionEncoder2d, create_motion_encoder2d
+from .motion_encoder import (MotionEncoder1d, MotionEncoder2d,
+                             create_motion_encoder1d, create_motion_encoder2d)
 from .r_dae import RDAE2dOption, RDAE3dOption
-from .functions import aggregate
 
 
 @dataclass
@@ -56,11 +57,11 @@ def create_hrdae3d(opt: HRDAE3dOption) -> nn.Module:
 
 class HierarchicalContentEncoder2d(HierarchicalConvEncoder2d):
     def __init__(
-            self,
-            in_channels: int,
-            latent_dim: int,
-            conv_params: list[dict[str, list[int]]],
-            debug_show_dim: bool = False,
+        self,
+        in_channels: int,
+        latent_dim: int,
+        conv_params: list[dict[str, list[int]]],
+        debug_show_dim: bool = False,
     ) -> None:
         super().__init__(
             in_channels,
@@ -90,15 +91,18 @@ class HierarchicalContentEncoder3d(HierarchicalConvEncoder3d):
 
 class HierarchicalDecoder2d(nn.Module):
     def __init__(
-            self,
-            out_channels: int,
-            latent_dim: int,
-            conv_params: list[dict[str, list[int]]],
-            aggregation_method: str = "concat",
-            debug_show_dim: bool = False,
+        self,
+        out_channels: int,
+        latent_dim: int,
+        conv_params: list[dict[str, list[int]]],
+        aggregation_method: str = "concat",
+        debug_show_dim: bool = False,
     ) -> None:
         super().__init__()
-        assert aggregation_method in ["concat", "sum"], f"aggregation_method: {aggregation_method} not implemented"
+        assert aggregation_method in [
+            "concat",
+            "sum",
+        ], f"aggregation_method: {aggregation_method} not implemented"
 
         if aggregation_method == "concat":
             latent_dim *= 2
@@ -147,7 +151,10 @@ class HierarchicalDecoder3d(nn.Module):
         debug_show_dim: bool = False,
     ) -> None:
         super().__init__()
-        assert aggregation_method in ["concat", "sum"], f"aggregation_method: {aggregation_method} not implemented"
+        assert aggregation_method in [
+            "concat",
+            "sum",
+        ], f"aggregation_method: {aggregation_method} not implemented"
 
         if aggregation_method == "concat":
             latent_dim *= 2
@@ -188,14 +195,14 @@ class HierarchicalDecoder3d(nn.Module):
 
 class HRDAE2d(nn.Module):
     def __init__(
-            self,
-            in_channels: int,
-            out_channels: int,
-            latent_dim: int,
-            conv_params: list[dict[str, list[int]]],
-            motion_encoder1d: MotionEncoder1d,
-            aggregation_method: str = "concat",
-            debug_show_dim: bool = False,
+        self,
+        in_channels: int,
+        out_channels: int,
+        latent_dim: int,
+        conv_params: list[dict[str, list[int]]],
+        motion_encoder1d: MotionEncoder1d,
+        aggregation_method: str = "concat",
+        debug_show_dim: bool = False,
     ) -> None:
         super().__init__()
         self.content_encoder = HierarchicalContentEncoder2d(
@@ -203,7 +210,7 @@ class HRDAE2d(nn.Module):
             latent_dim,
             conv_params + [IdenticalConvBlockConvParams],
             debug_show_dim,
-            )
+        )
         self.motion_encoder = motion_encoder1d
         self.decoder = HierarchicalDecoder2d(
             out_channels,
@@ -214,9 +221,9 @@ class HRDAE2d(nn.Module):
         )
 
     def forward(
-            self,
-            x_1d: Tensor,
-            x_2d_0: Tensor,
+        self,
+        x_1d: Tensor,
+        x_2d_0: Tensor,
     ) -> Tensor:
         c, cs = self.content_encoder(x_2d_0)
         m = self.motion_encoder(x_1d)
@@ -303,14 +310,17 @@ if __name__ == "__main__":
         d = d_net(
             randn(8 * 10, 16, 8, 8),
             c.repeat(10, 1, 1, 1, 1),  # (80, 16, 16, 16, 16)
-            [c_.repeat(10, 1, 1, 1, 1) for c_ in cs[::-1]],  # [(80, 16, 16, 16, 16), (80, 16, 32, 32, 32)]
+            [
+                c_.repeat(10, 1, 1, 1, 1) for c_ in cs[::-1]
+            ],  # [(80, 16, 16, 16, 16), (80, 16, 32, 32, 32)]
         )
         print("d output", d.size())
 
     def test2():
         from torch import randn
 
-        from .motion_encoder import MotionRNNEncoder1dOption, MotionRNNEncoder2dOption
+        from .motion_encoder import (MotionRNNEncoder1dOption,
+                                     MotionRNNEncoder2dOption)
         from .rnn import ConvLSTM1dOption, ConvLSTM2dOption
 
         option = HRDAE2dOption(

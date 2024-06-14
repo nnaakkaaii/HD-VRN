@@ -3,11 +3,11 @@ from torch import Tensor, nn
 
 class GRU1d(nn.Module):
     def __init__(
-            self,
-            in_channels: int,
-            hidden_dim: int,
-            num_layers: int,
-            image_size: int,
+        self,
+        in_channels: int,
+        hidden_dim: int,
+        num_layers: int,
+        image_size: int,
     ) -> None:
         super().__init__()
 
@@ -22,7 +22,7 @@ class GRU1d(nn.Module):
         )
 
     def forward(
-            self, x: Tensor, last_states: Tensor | None = None
+        self, x: Tensor, last_states: Tensor | None = None
     ) -> tuple[Tensor, Tensor]:
         b, t, c, h = x.size()
         x = x.view(b, t, c * h)

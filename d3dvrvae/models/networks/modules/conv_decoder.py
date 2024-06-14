@@ -1,17 +1,18 @@
 from torch import Tensor, nn
 
 from .conv_block import (ConvBlock1d, ConvBlock2d, ConvBlock3d, ConvModuleBase,
-                         IdenticalConvBlock1d, IdenticalConvBlock2d, IdenticalConvBlock3d)
+                         IdenticalConvBlock1d, IdenticalConvBlock2d,
+                         IdenticalConvBlock3d)
 
 
 class HierarchicalConvDecoder1d(ConvModuleBase):
     def __init__(
-            self,
-            in_channels: int,
-            out_channels: int,
-            latent_dim: int,
-            conv_params: list[dict[str, list[int]]],
-            debug_show_dim: bool = False,
+        self,
+        in_channels: int,
+        out_channels: int,
+        latent_dim: int,
+        conv_params: list[dict[str, list[int]]],
+        debug_show_dim: bool = False,
     ) -> None:
         super().__init__()
         assert len(conv_params) > 1
@@ -46,7 +47,7 @@ class HierarchicalConvDecoder1d(ConvModuleBase):
                 output_padding=conv_params[-1].get("output_padding"),
                 transpose=True,
                 act_norm=False,
-                )
+            )
         )
 
         self.debug_show_dim = debug_show_dim

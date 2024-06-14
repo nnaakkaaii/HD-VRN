@@ -28,10 +28,10 @@ class PJCLoss2d(nn.Module):
         return ["slice_idx"]
 
     def forward(
-            self,
-            input: Tensor,
-            target: Tensor,
-            idx_expanded: Tensor,
+        self,
+        input: Tensor,
+        target: Tensor,
+        idx_expanded: Tensor,
     ) -> Tensor:
         """
         :param input: (b, n, c=1, h, w)
@@ -118,12 +118,7 @@ if __name__ == "__main__":
         # slice_idx: (b, n, s, h)
         reconstructed_2d = randn(b, n, c, h, w)
         input_1d = randn(b, n, s, h)
-        slice_idx = (
-            randint(0, 127, (b, s))
-            .unsqueeze(1)
-            .unsqueeze(3)
-            .repeat(1, n, 1, h)
-        )
+        slice_idx = randint(0, 127, (b, s)).unsqueeze(1).unsqueeze(3).repeat(1, n, 1, h)
         loss = pjc_loss2d(reconstructed_2d, input_1d, slice_idx)
         print(loss)
 

@@ -3,7 +3,8 @@ from dataclasses import dataclass
 from torch import Tensor, float32, nn, tensor
 
 from .option import LossOption
-from .pjc import PJCLoss2dOption, create_pjc_loss2d, PJCLoss3dOption, create_pjc_loss3d
+from .pjc import (PJCLoss2dOption, PJCLoss3dOption, create_pjc_loss2d,
+                  create_pjc_loss3d)
 from .weighted_mse import WeightedMSELossOption, create_weighted_mse_loss
 
 

@@ -33,15 +33,15 @@ def _parse_for_3d(f: list[int]) -> tuple[int, int, int]:
 
 class ConvBlock1d(nn.Module):
     def __init__(
-            self,
-            in_channels: int,
-            out_channels: int,
-            kernel_size: list[int],
-            stride: list[int],
-            padding: list[int],
-            output_padding: list[int] | None = None,
-            transpose: bool = False,
-            act_norm: bool = True,
+        self,
+        in_channels: int,
+        out_channels: int,
+        kernel_size: list[int],
+        stride: list[int],
+        padding: list[int],
+        output_padding: list[int] | None = None,
+        transpose: bool = False,
+        act_norm: bool = True,
     ) -> None:
         super().__init__()
         self.act_norm = act_norm
@@ -81,11 +81,11 @@ class ConvBlock1d(nn.Module):
 
 class IdenticalConvBlock1d(ConvBlock1d):
     def __init__(
-            self,
-            in_channels: int,
-            out_channels: int,
-            transpose: bool = False,
-            act_norm: bool = True,
+        self,
+        in_channels: int,
+        out_channels: int,
+        transpose: bool = False,
+        act_norm: bool = True,
     ) -> None:
         super().__init__(
             in_channels,
@@ -264,13 +264,13 @@ class ConvModuleBase(nn.Module):
 
 class ConvModule1d(ConvModuleBase):
     def __init__(
-            self,
-            in_channels: int,
-            out_channels: int,
-            latent_dim: int,
-            conv_params: list[dict[str, list[int]]],
-            transpose: bool,
-            debug_show_dim: bool = False,
+        self,
+        in_channels: int,
+        out_channels: int,
+        latent_dim: int,
+        conv_params: list[dict[str, list[int]]],
+        transpose: bool,
+        debug_show_dim: bool = False,
     ) -> None:
         super().__init__()
         assert len(conv_params) > 1

@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 
 from torch import nn
 
-from .modules import ConvModule3d, ConvModule2d
+from .modules import ConvModule2d, ConvModule3d
 
 
 @dataclass

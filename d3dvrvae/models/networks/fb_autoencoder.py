@@ -67,13 +67,13 @@ def create_fb_autoencoder3d(opt: FiveBranchAutoencoder3dOption) -> nn.Module:
 
 class FiveBranchAutoencoder2d(nn.Module):
     def __init__(
-            self,
-            in_channels_1d: int,
-            in_channels_2d: int,
-            latent_dim: int,
-            conv_params_1d: list[dict[str, list[int]]],
-            conv_params_2d: list[dict[str, list[int]]],
-            debug_show_dim: bool,
+        self,
+        in_channels_1d: int,
+        in_channels_2d: int,
+        latent_dim: int,
+        conv_params_1d: list[dict[str, list[int]]],
+        conv_params_2d: list[dict[str, list[int]]],
+        debug_show_dim: bool,
     ) -> None:
         super().__init__()
 
@@ -100,13 +100,13 @@ class FiveBranchAutoencoder2d(nn.Module):
             conv_params_2d,
             transpose=True,
             debug_show_dim=debug_show_dim,
-            )
+        )
 
     def forward(
-            self,
-            x_1d: Tensor,  # (b, n, s, h)
-            x_2d_0: Tensor,  # (b, 2, c, h, w)
-            x_1d_0: Tensor,  # (b, 2, s, h)
+        self,
+        x_1d: Tensor,  # (b, n, s, h)
+        x_2d_0: Tensor,  # (b, 2, c, h, w)
+        x_1d_0: Tensor,  # (b, 2, s, h)
     ) -> Tensor:
         b, n, s, h = x_1d.size()
         _, _, c, _, w = x_2d_0.size()
@@ -239,12 +239,32 @@ if __name__ == "__main__":
             in_channels_2d=1,
             latent_dim=64,
             conv_params_1d=[
-                {"kernel_size": [3], "stride": [2], "padding": [1], "output_padding": [1]},
-                {"kernel_size": [3], "stride": [2], "padding": [1], "output_padding": [1]},
+                {
+                    "kernel_size": [3],
+                    "stride": [2],
+                    "padding": [1],
+                    "output_padding": [1],
+                },
+                {
+                    "kernel_size": [3],
+                    "stride": [2],
+                    "padding": [1],
+                    "output_padding": [1],
+                },
             ],
             conv_params_2d=[
-                {"kernel_size": [3], "stride": [2], "padding": [1], "output_padding": [1]},
-                {"kernel_size": [3], "stride": [2], "padding": [1], "output_padding": [1]},
+                {
+                    "kernel_size": [3],
+                    "stride": [2],
+                    "padding": [1],
+                    "output_padding": [1],
+                },
+                {
+                    "kernel_size": [3],
+                    "stride": [2],
+                    "padding": [1],
+                    "output_padding": [1],
+                },
             ],
             debug_show_dim=True,
         )
@@ -260,12 +280,32 @@ if __name__ == "__main__":
             in_channels_3d=1,
             latent_dim=64,
             conv_params_2d=[
-                {"kernel_size": [3], "stride": [2], "padding": [1], "output_padding": [1]},
-                {"kernel_size": [3], "stride": [1, 2], "padding": [1], "output_padding": [0, 1]},
+                {
+                    "kernel_size": [3],
+                    "stride": [2],
+                    "padding": [1],
+                    "output_padding": [1],
+                },
+                {
+                    "kernel_size": [3],
+                    "stride": [1, 2],
+                    "padding": [1],
+                    "output_padding": [0, 1],
+                },
             ],
             conv_params_3d=[
-                {"kernel_size": [3], "stride": [2], "padding": [1], "output_padding": [1]},
-                {"kernel_size": [3], "stride": [1, 2, 2], "padding": [1], "output_padding": [0, 1, 1]},
+                {
+                    "kernel_size": [3],
+                    "stride": [2],
+                    "padding": [1],
+                    "output_padding": [1],
+                },
+                {
+                    "kernel_size": [3],
+                    "stride": [1, 2, 2],
+                    "padding": [1],
+                    "output_padding": [0, 1, 1],
+                },
             ],
             debug_show_dim=True,
         )

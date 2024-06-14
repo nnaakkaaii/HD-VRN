@@ -4,18 +4,25 @@ from .autoencoder import AutoEncoder2dNetworkOption, create_autoencoder2d
 from .discriminator import Discriminator3dOption, create_discriminator3d
 from .fb_autoencoder import (FiveBranchAutoencoder3dOption,
                              create_fb_autoencoder3d)
-from .hr_dae import HRDAE2dOption, create_hrdae2d, HRDAE3dOption, create_hrdae3d
-from .r_ae import RAE2dOption, create_rae2d, RAE3dOption, create_rae3d
-from .r_dae import RDAE2dOption, create_rdae2d, RDAE3dOption, create_rdae3d
+from .hr_dae import (HRDAE2dOption, HRDAE3dOption, create_hrdae2d,
+                     create_hrdae3d)
 from .option import NetworkOption
+from .r_ae import RAE2dOption, RAE3dOption, create_rae2d, create_rae3d
+from .r_dae import RDAE2dOption, RDAE3dOption, create_rdae2d, create_rdae3d
 
 
 def create_network(opt: NetworkOption) -> nn.Module:
-    if isinstance(opt, AutoEncoder2dNetworkOption) and type(opt) is AutoEncoder2dNetworkOption:
+    if (
+        isinstance(opt, AutoEncoder2dNetworkOption)
+        and type(opt) is AutoEncoder2dNetworkOption
+    ):
         return create_autoencoder2d(opt)
     if isinstance(opt, Discriminator3dOption) and type(opt) is Discriminator3dOption:
         return create_discriminator3d(opt)
-    if isinstance(opt, FiveBranchAutoencoder3dOption) and type(opt) is FiveBranchAutoencoder3dOption:
+    if (
+        isinstance(opt, FiveBranchAutoencoder3dOption)
+        and type(opt) is FiveBranchAutoencoder3dOption
+    ):
         return create_fb_autoencoder3d(opt)
     if isinstance(opt, HRDAE2dOption) and type(opt) is HRDAE2dOption:
         return create_hrdae2d(opt)

@@ -4,12 +4,12 @@ from torch import Tensor, nn
 
 class TCN1d(nn.Module):
     def __init__(
-            self,
-            in_channels: int,
-            hidden_dim: int | list[int],
-            kernel_size: int,
-            image_size: int,
-            dropout: float = 0.0,
+        self,
+        in_channels: int,
+        hidden_dim: int | list[int],
+        kernel_size: int,
+        image_size: int,
+        dropout: float = 0.0,
     ) -> None:
         super().__init__()
 

@@ -8,7 +8,8 @@ from torch import Tensor, nn
 from torch.nn.functional import interpolate
 
 from .modules import ConvModule2d, ConvModule3d
-from .motion_encoder import (MotionEncoder1d, MotionEncoder2d, MotionEncoder1dOption, MotionEncoder2dOption,
+from .motion_encoder import (MotionEncoder1d, MotionEncoder1dOption,
+                             MotionEncoder2d, MotionEncoder2dOption,
                              create_motion_encoder1d, create_motion_encoder2d)
 from .option import NetworkOption
 
@@ -18,7 +19,8 @@ class RAE2dOption(NetworkOption):
     out_channels: int = 1
     latent_dim: int = 64
     conv_params: list[dict[str, list[int]]] = field(
-        default_factory=lambda: [{"kernel_size": [3], "stride": [2], "padding": [1]}] * 3,
+        default_factory=lambda: [{"kernel_size": [3], "stride": [2], "padding": [1]}]
+        * 3,
     )
     motion_encoder1d: MotionEncoder1dOption = MISSING
     upsample_size: list[int] = field(default_factory=lambda: [8, 8])
@@ -30,7 +32,8 @@ class RAE3dOption(NetworkOption):
     out_channels: int = 1
     latent_dim: int = 64
     conv_params: list[dict[str, list[int]]] = field(
-        default_factory=lambda: [{"kernel_size": [3], "stride": [2], "padding": [1]}] * 3,
+        default_factory=lambda: [{"kernel_size": [3], "stride": [2], "padding": [1]}]
+        * 3,
     )
     motion_encoder2d: MotionEncoder2dOption = MISSING
     upsample_size: list[int] = field(default_factory=lambda: [8, 8, 8])
@@ -67,11 +70,11 @@ def create_rae3d(opt: RAE3dOption) -> nn.Module:
 
 class Decoder2d(nn.Module):
     def __init__(
-            self,
-            out_channels: int,
-            latent_dim: int,
-            conv_params: list[dict[str, list[int]]],
-            debug_show_dim: bool = False,
+        self,
+        out_channels: int,
+        latent_dim: int,
+        conv_params: list[dict[str, list[int]]],
+        debug_show_dim: bool = False,
     ) -> None:
         super().__init__()
         self.dec = ConvModule2d(
@@ -111,13 +114,13 @@ class Decoder3d(nn.Module):
 
 class RAE2d(nn.Module):
     def __init__(
-            self,
-            out_channels: int,
-            latent_dim: int,
-            conv_params: list[dict[str, list[int]]],
-            motion_encoder1d: MotionEncoder1d,
-            upsample_size: list[int],
-            debug_show_dim: bool = False,
+        self,
+        out_channels: int,
+        latent_dim: int,
+        conv_params: list[dict[str, list[int]]],
+        motion_encoder1d: MotionEncoder1d,
+        upsample_size: list[int],
+        debug_show_dim: bool = False,
     ) -> None:
         super().__init__()
         self.motion_encoder = motion_encoder1d
@@ -130,8 +133,8 @@ class RAE2d(nn.Module):
         self.upsample_size = upsample_size
 
     def forward(
-            self,
-            x_1d: Tensor,
+        self,
+        x_1d: Tensor,
     ) -> Tensor:
         m = self.motion_encoder(x_1d)
         b, t, c_, h = m.size()
@@ -167,7 +170,9 @@ class RAE3d(nn.Module):
         m = self.motion_encoder(x_2d)
         b, t, c_, d, h = m.size()
         m = m.view(b * t, c_, d, h, 1)
-        m = interpolate(m, size=self.upsample_size, mode="trilinear", align_corners=True)
+        m = interpolate(
+            m, size=self.upsample_size, mode="trilinear", align_corners=True
+        )
         return self.decoder(m)
 
 
@@ -176,7 +181,8 @@ if __name__ == "__main__":
     def test():
         from torch import randn
 
-        from .motion_encoder import MotionRNNEncoder1dOption, MotionRNNEncoder2dOption
+        from .motion_encoder import (MotionRNNEncoder1dOption,
+                                     MotionRNNEncoder2dOption)
         from .rnn import ConvLSTM1dOption, ConvLSTM2dOption
 
         option = RAE2dOption(

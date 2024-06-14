@@ -6,11 +6,12 @@ from dataclasses import dataclass, field
 from omegaconf import MISSING
 from torch import Tensor, nn
 
+from .functions import aggregate
 from .modules import ConvModule2d, ConvModule3d, IdenticalConvBlockConvParams
-from .motion_encoder import (MotionEncoder1d, MotionEncoder2d, MotionEncoder1dOption, MotionEncoder2dOption,
+from .motion_encoder import (MotionEncoder1d, MotionEncoder1dOption,
+                             MotionEncoder2d, MotionEncoder2dOption,
                              create_motion_encoder1d, create_motion_encoder2d)
 from .option import NetworkOption
-from .functions import aggregate
 
 
 @dataclass
@@ -19,7 +20,8 @@ class RDAE2dOption(NetworkOption):
     out_channels: int = 1
     latent_dim: int = 64
     conv_params: list[dict[str, list[int]]] = field(
-        default_factory=lambda: [{"kernel_size": [3], "stride": [2], "padding": [1]}] * 3,
+        default_factory=lambda: [{"kernel_size": [3], "stride": [2], "padding": [1]}]
+        * 3,
     )
     motion_encoder1d: MotionEncoder1dOption = MISSING
     aggregation_method: str = "concat"
@@ -32,7 +34,8 @@ class RDAE3dOption(NetworkOption):
     out_channels: int = 1
     latent_dim: int = 64
     conv_params: list[dict[str, list[int]]] = field(
-        default_factory=lambda: [{"kernel_size": [3], "stride": [2], "padding": [1]}] * 3,
+        default_factory=lambda: [{"kernel_size": [3], "stride": [2], "padding": [1]}]
+        * 3,
     )
     motion_encoder2d: MotionEncoder2dOption = MISSING
     aggregation_method: str = "concat"
@@ -71,11 +74,11 @@ def create_rdae3d(opt: RDAE3dOption) -> nn.Module:
 
 class NormalContentEncoder2d(ConvModule2d):
     def __init__(
-            self,
-            in_channels: int,
-            latent_dim: int,
-            conv_params: list[dict[str, list[int]]],
-            debug_show_dim: bool = False,
+        self,
+        in_channels: int,
+        latent_dim: int,
+        conv_params: list[dict[str, list[int]]],
+        debug_show_dim: bool = False,
     ) -> None:
         super().__init__(
             in_channels,
@@ -107,12 +110,12 @@ class NormalContentEncoder3d(ConvModule3d):
 
 class NormalDecoder2d(nn.Module):
     def __init__(
-            self,
-            out_channels: int,
-            latent_dim: int,
-            conv_params: list[dict[str, list[int]]],
-            aggregation_method: str = "concat",
-            debug_show_dim: bool = False,
+        self,
+        out_channels: int,
+        latent_dim: int,
+        conv_params: list[dict[str, list[int]]],
+        aggregation_method: str = "concat",
+        debug_show_dim: bool = False,
     ) -> None:
         super().__init__()
         assert aggregation_method in ["concat", "sum"]
@@ -165,14 +168,14 @@ class NormalDecoder3d(nn.Module):
 
 class RDAE2d(nn.Module):
     def __init__(
-            self,
-            in_channels: int,
-            out_channels: int,
-            latent_dim: int,
-            conv_params: list[dict[str, list[int]]],
-            motion_encoder1d: MotionEncoder1d,
-            aggregation_method: str = "concat",
-            debug_show_dim: bool = False,
+        self,
+        in_channels: int,
+        out_channels: int,
+        latent_dim: int,
+        conv_params: list[dict[str, list[int]]],
+        motion_encoder1d: MotionEncoder1d,
+        aggregation_method: str = "concat",
+        debug_show_dim: bool = False,
     ) -> None:
         super().__init__()
         self.content_encoder = NormalContentEncoder2d(
@@ -180,7 +183,7 @@ class RDAE2d(nn.Module):
             latent_dim,
             conv_params + [IdenticalConvBlockConvParams],
             debug_show_dim,
-            )
+        )
         self.motion_encoder = motion_encoder1d
         self.decoder = NormalDecoder2d(
             out_channels,
@@ -191,9 +194,9 @@ class RDAE2d(nn.Module):
         )
 
     def forward(
-            self,
-            x_1d: Tensor,
-            x_2d_0: Tensor,
+        self,
+        x_1d: Tensor,
+        x_2d_0: Tensor,
     ) -> Tensor:
         c = self.content_encoder(x_2d_0)
         m = self.motion_encoder(x_1d)
@@ -248,7 +251,8 @@ if __name__ == "__main__":
     def test():
         from torch import randn
 
-        from .motion_encoder import MotionRNNEncoder1dOption, MotionRNNEncoder2dOption
+        from .motion_encoder import (MotionRNNEncoder1dOption,
+                                     MotionRNNEncoder2dOption)
         from .rnn import ConvLSTM1dOption, ConvLSTM2dOption
 
         option = RDAE2dOption(
@@ -275,7 +279,12 @@ if __name__ == "__main__":
         )
         net = create_rdae2d(option)
         x = net(
-            randn(8, 10, 1, 64,),
+            randn(
+                8,
+                10,
+                1,
+                64,
+            ),
             randn(8, 2, 64, 64),
         )
         print(x.size())
