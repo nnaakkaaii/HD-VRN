@@ -4,10 +4,11 @@ from torch import Tensor
 from torch.nn.functional import avg_pool3d
 
 from .typing import Transform
+from .option import TransformOption
 
 
 @dataclass
-class Pool3dOption(Transform):
+class Pool3dOption(TransformOption):
     pool_size: list[int] = field(default_factory=lambda: [1, 4, 4])
 
 
@@ -15,7 +16,7 @@ def create_pool3d(opt: Pool3dOption) -> Transform:
     return Pool3d(opt.pool_size)
 
 
-class Pool3d(Transform):
+class Pool3d:
     def __init__(self, pool_size: list[int]):
         self.pool_size = pool_size
 

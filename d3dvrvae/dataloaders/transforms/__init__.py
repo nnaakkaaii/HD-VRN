@@ -41,7 +41,7 @@ def create_transform(opt: TransformOption) -> Transform:
         return transforms.Normalize((opt.mean,), (opt.std,))
     if isinstance(opt, Crop2dOption) and type(opt) is Crop2dOption:
         return transforms.RandomCrop(opt.crop_size)
-    if isinstance(opt, MinMaxNormalizationOption) and type(opt) is MinMaxNormalization:
+    if isinstance(opt, MinMaxNormalizationOption) and type(opt) is MinMaxNormalizationOption:
         return MinMaxNormalization()
     if isinstance(opt, RandomShift3dOption) and type(opt) is RandomShift3dOption:
         return create_random_shift3d(opt)

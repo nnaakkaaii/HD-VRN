@@ -1,0 +1,2 @@
+defaults:
+  - /config/experiment/model/loss/mse@_here_

@@ -4,10 +4,11 @@ from torch import Tensor, min
 from torch.nn.functional import pad
 
 from .typing import Transform
+from .option import TransformOption
 
 
 @dataclass
-class UniformShape3dOption:
+class UniformShape3dOption(TransformOption):
     target_shape: list[int] = field(default_factory=lambda: [64, 512, 512])
 
 
@@ -15,7 +16,7 @@ def create_uniform_shape3d(opt: UniformShape3dOption) -> Transform:
     return UniformShape3d(opt.target_shape)
 
 
-class UniformShape3d(Transform):
+class UniformShape3d:
     def __init__(
         self,
         target_shape: list[int],

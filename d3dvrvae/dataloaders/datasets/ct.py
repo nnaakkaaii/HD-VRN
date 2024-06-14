@@ -67,7 +67,8 @@ class CT(Dataset):
         super().__init__()
 
         self.paths = []
-        for i, path in enumerate(sorted(root.glob("**/*"))):
+        data_root = root / self.__class__.__name__
+        for i, path in enumerate(sorted(data_root.glob("**/*"))):
             if is_train and i % (1 + self.TRAIN_PER_TEST) != 0:
                 self.paths.append(path)
             elif not is_train and i % (1 + self.TRAIN_PER_TEST) == 0:
@@ -103,7 +104,6 @@ class CT(Dataset):
 
         # (s,)
         slice_idx = self.slice_indexer(x_3d)
-        s = len(slice_idx)
         # (n, d, h, s)
         idx_expanded = (
             slice_idx.unsqueeze(0).unsqueeze(1).unsqueeze(2).repeat(n, d, h, 1)
@@ -143,3 +143,27 @@ class CT(Dataset):
             "slice_idx": slice_idx,  # (b, s)
             "idx_expanded": idx_expanded,  # (b, n, s, d, h)
         }
+
+
+if __name__ == "__main__":
+    def test():
+        from torchvision import transforms
+        from ..transforms import create_transform, MinMaxNormalizationOption, UniformShape3dOption, Pool3dOption
+
+        option = CTDatasetOption(
+            root=Path("data"),
+        )
+        dataset = create_ct_dataset(
+            option,
+            transform=transforms.Compose([
+                create_transform(MinMaxNormalizationOption()),
+                create_transform(UniformShape3dOption()),
+                create_transform(Pool3dOption()),
+            ]),
+            is_train=True,
+        )
+        data = dataset[0]
+        for k, v in data.items():
+            print(k, v.shape)
+
+    test()

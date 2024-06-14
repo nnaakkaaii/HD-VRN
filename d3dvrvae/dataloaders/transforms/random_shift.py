@@ -5,10 +5,11 @@ from torch import Tensor, min
 from torch.nn.functional import pad
 
 from .typing import Transform
+from .option import TransformOption
 
 
 @dataclass
-class RandomShift3dOption:
+class RandomShift3dOption(TransformOption):
     max_shifts: list[int, int, int] = field(default_factory=lambda: [5, 30, 30])
 
 
@@ -16,7 +17,7 @@ def create_random_shift3d(opt: RandomShift3dOption) -> Transform:
     return RandomShift3d(opt.max_shifts)
 
 
-class RandomShift3d(Transform):
+class RandomShift3d:
     def __init__(
         self,
         ds: list[int, int, int],

@@ -16,8 +16,8 @@ from .models.networks import (AutoEncoder2dNetworkOption,
                               RDAE2dOption, RDAE3dOption)
 from .models.networks.motion_encoder import (MotionConv2dEncoder1dOption,
                                              MotionConv3dEncoder2dOption,
-                                             MotionGuidedEncoder1d,
-                                             MotionGuidedEncoder2d,
+                                             MotionGuidedEncoder1dOption,
+                                             MotionGuidedEncoder2dOption,
                                              MotionNormalEncoder1dOption,
                                              MotionNormalEncoder2dOption,
                                              MotionRNNEncoder1dOption,
@@ -40,7 +40,7 @@ cs.store(
     group="config/experiment/dataloader/dataset", name="mnist", node=MNISTDatasetOption
 )
 cs.store(
-    group="config/experiment/dataloader/ct",
+    group="config/experiment/dataloader/dataset",
     name="ct",
     node=CTDatasetOption,
 )
@@ -143,12 +143,12 @@ cs.store(
 cs.store(
     group="config/experiment/model/network/motion_encoder",
     name="guided1d",
-    node=MotionGuidedEncoder1d,
+    node=MotionGuidedEncoder1dOption,
 )
 cs.store(
     group="config/experiment/model/network/motion_encoder",
     name="guided2d",
-    node=MotionGuidedEncoder2d,
+    node=MotionGuidedEncoder2dOption,
 )
 cs.store(
     group="config/experiment/model/network/motion_encoder",
