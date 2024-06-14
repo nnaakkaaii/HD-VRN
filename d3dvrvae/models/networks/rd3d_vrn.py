@@ -4,13 +4,13 @@
 from dataclasses import dataclass, field
 
 from omegaconf import MISSING
-from torch import Tensor, cat, nn
-from torch.nn.functional import interpolate
+from torch import Tensor, nn
 
 from .modules import ConvModule3d, IdenticalConvBlockConvParams
 from .motion_encoder import (MotionEncoder2d, MotionEncoder2dOption,
                              create_motion_encoder2d)
 from .option import NetworkOption
+from .functions import aggregate
 
 
 @dataclass
@@ -22,6 +22,7 @@ class RD3DVRNOption(NetworkOption):
         default_factory=lambda: [{"kernel_size": [3], "stride": [2], "padding": [1]}] * 3,
     )
     motion_encoder2d: MotionEncoder2dOption = MISSING
+    aggregation_method: str = "concat"
     debug_show_dim: bool = False
 
 
@@ -35,6 +36,7 @@ def create_rd3dvrn(opt: RD3DVRNOption) -> nn.Module:
         opt.latent_dim,
         opt.conv_params,
         motion_encoder2d,
+        opt.aggregation_method,
         opt.debug_show_dim,
     )
 
@@ -63,9 +65,14 @@ class NormalDecoder3d(nn.Module):
         out_channels: int,
         latent_dim: int,
         conv_params: list[dict[str, list[int]]],
+        aggregation_method: str = "concat",
         debug_show_dim: bool = False,
     ) -> None:
         super().__init__()
+        assert aggregation_method in ["concat", "sum"]
+
+        if aggregation_method == "concat":
+            latent_dim *= 2
 
         self.dec = ConvModule3d(
             latent_dim,
@@ -75,17 +82,10 @@ class NormalDecoder3d(nn.Module):
             transpose=True,
             debug_show_dim=debug_show_dim,
         )
+        self.aggregation_method = aggregation_method
 
     def forward(self, m: Tensor, c: Tensor) -> Tensor:
-        x = cat([c, self._upsample_motion_tensor(m, c)], dim=1)
-        return self.dec(x)
-
-    @staticmethod
-    def _upsample_motion_tensor(m: Tensor, c: Tensor) -> Tensor:
-        b, c_, d, h, w = c.size()
-        m = m.unsqueeze(2)
-        m = interpolate(m, size=(d, h, w), mode="trilinear", align_corners=True)
-        return m
+        return self.dec(aggregate(m, c, method=self.aggregation_method))
 
 
 class RD3DVRN(nn.Module):
@@ -96,6 +96,7 @@ class RD3DVRN(nn.Module):
         latent_dim: int,
         conv_params: list[dict[str, list[int]]],
         motion_encoder2d: MotionEncoder2d,
+        aggregation_method: str = "concat",
         debug_show_dim: bool = False,
     ) -> None:
         super().__init__()
@@ -108,8 +109,9 @@ class RD3DVRN(nn.Module):
         self.motion_encoder = motion_encoder2d
         self.decoder = NormalDecoder3d(
             out_channels,
-            2 * latent_dim,
+            latent_dim,
             conv_params[::-1],
+            aggregation_method,
             debug_show_dim,
         )
 
@@ -153,6 +155,7 @@ if __name__ == "__main__":
                     num_layers=1,
                 ),
             ),
+            aggregation_method="sum",
             debug_show_dim=True,
         )
         net = create_rd3dvrn(option)

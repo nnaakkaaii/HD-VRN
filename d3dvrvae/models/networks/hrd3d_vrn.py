@@ -3,14 +3,14 @@
 
 from dataclasses import dataclass
 
-from torch import Tensor, cat, nn
-from torch.nn.functional import interpolate
+from torch import Tensor, nn
 
 from .modules import (HierarchicalConvDecoder3d, HierarchicalConvEncoder3d,
                       IdenticalConvBlock3d, IdenticalConvBlockConvParams,
                       ResNetBranch)
 from .motion_encoder import MotionEncoder2d, create_motion_encoder2d
 from .rd3d_vrn import RD3DVRNOption
+from .functions import aggregate
 
 
 @dataclass
@@ -28,6 +28,7 @@ def create_hrd3dvrn(opt: HRD3DVRNOption) -> nn.Module:
         opt.latent_dim,
         opt.conv_params,
         motion_encoder2d,
+        opt.aggregation_method,
         opt.debug_show_dim,
     )
 
@@ -55,9 +56,14 @@ class HierarchicalDecoder3d(nn.Module):
         out_channels: int,
         latent_dim: int,
         conv_params: list[dict[str, list[int]]],
+        aggregation_method: str = "concat",
         debug_show_dim: bool = False,
     ) -> None:
         super().__init__()
+        assert aggregation_method in ["concat", "sum"], f"aggregation_method: {aggregation_method} not implemented"
+
+        if aggregation_method == "concat":
+            latent_dim *= 2
 
         self.dec = HierarchicalConvDecoder3d(
             latent_dim,
@@ -80,23 +86,17 @@ class HierarchicalDecoder3d(nn.Module):
                     nn.LeakyReLU(0.2, inplace=True),
                 )
             )
+        self.aggregation_method = aggregation_method
 
     def forward(self, m: Tensor, c: Tensor, cs: list[Tensor]) -> Tensor:
         assert len(self.mgc) == len(cs)
 
-        x = cat([c, self._upsample_motion_tensor(m, c)], dim=1)
+        x = aggregate(m, c, method=self.aggregation_method)
         for i, (mgc, c_) in enumerate(zip(self.mgc, cs)):
-            c_ = cat([c_, self._upsample_motion_tensor(m, c_)], dim=1)
+            c_ = aggregate(m, c_, method=self.aggregation_method)
             cs[i] = mgc(c_)
 
         return self.dec(x, cs)
-
-    @staticmethod
-    def _upsample_motion_tensor(m: Tensor, c: Tensor) -> Tensor:
-        b, c_, d, h, w = c.size()
-        m = m.unsqueeze(2)
-        m = interpolate(m, size=(d, h, w), mode="trilinear", align_corners=True)
-        return m
 
 
 class HRD3DVRN(nn.Module):
@@ -107,6 +107,7 @@ class HRD3DVRN(nn.Module):
         latent_dim: int,
         conv_params: list[dict[str, list[int]]],
         motion_encoder2d: MotionEncoder2d,
+        aggregation_method: str = "concat",
         debug_show_dim: bool = False,
     ) -> None:
         super().__init__()
@@ -119,8 +120,9 @@ class HRD3DVRN(nn.Module):
         self.motion_encoder = motion_encoder2d
         self.decoder = HierarchicalDecoder3d(
             out_channels,
-            2 * latent_dim,
+            latent_dim,
             conv_params[::-1],
+            aggregation_method,
             debug_show_dim,
         )
 
@@ -162,11 +164,12 @@ if __name__ == "__main__":
 
         d_net = HierarchicalDecoder3d(
             1,
-            2 * 16,
+            16,
             [
                 {"kernel_size": [3], "stride": [2], "padding": [1]},
                 {"kernel_size": [3], "stride": [2], "padding": [1]},
             ],
+            aggregation_method="concat",
             debug_show_dim=True,
         )
         d = d_net(
@@ -201,6 +204,7 @@ if __name__ == "__main__":
                     num_layers=1,
                 ),
             ),
+            aggregation_method="concat",
             debug_show_dim=True,
         )
         net = create_hrd3dvrn(option)
