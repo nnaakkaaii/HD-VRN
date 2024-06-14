@@ -42,6 +42,11 @@ def create_motion_encoder1d(
         and type(opt) is MotionGuidedEncoder1dOption
     ):
         return create_motion_guided_encoder1d(latent_dim, debug_show_dim, opt)
+    if (
+        isinstance(opt, MotionTSNEncoder1dOption)
+        and type(opt) is MotionTSNEncoder1dOption
+    ):
+        return create_motion_tsn_encoder1d(latent_dim, debug_show_dim, opt)
     raise NotImplementedError(f"{opt.__class__.__name__} not implemented")
 
 
@@ -68,6 +73,11 @@ def create_motion_encoder2d(
         and type(opt) is MotionGuidedEncoder2dOption
     ):
         return create_motion_guided_encoder2d(latent_dim, debug_show_dim, opt)
+    if (
+        isinstance(opt, MotionTSNEncoder2dOption)
+        and type(opt) is MotionTSNEncoder2dOption
+    ):
+        return create_motion_tsn_encoder2d(latent_dim, debug_show_dim, opt)
     raise NotImplementedError(f"{opt.__class__.__name__} not implemented")
 
 
@@ -203,12 +213,12 @@ class MotionNormalEncoder2d(MotionEncoder2d):
 
 @dataclass
 class MotionRNNEncoder1dOption(MotionNormalEncoder1dOption):
-    rnn1d: RNN1dOption = MISSING
+    rnn: RNN1dOption = MISSING
 
 
 @dataclass
 class MotionRNNEncoder2dOption(MotionNormalEncoder2dOption):
-    rnn2d: RNN2dOption = MISSING
+    rnn: RNN2dOption = MISSING
 
 
 def create_motion_rnn_encoder1d(
@@ -218,7 +228,7 @@ def create_motion_rnn_encoder1d(
         opt.in_channels,
         latent_dim,
         opt.conv_params,
-        create_rnn1d(latent_dim, opt.rnn1d),
+        create_rnn1d(latent_dim, opt.rnn),
         debug_show_dim=debug_show_dim,
     )
 
@@ -230,7 +240,7 @@ def create_motion_rnn_encoder2d(
         opt.in_channels,
         latent_dim,
         opt.conv_params,
-        create_rnn2d(latent_dim, opt.rnn2d),
+        create_rnn2d(latent_dim, opt.rnn),
         debug_show_dim=debug_show_dim,
     )
 
@@ -241,7 +251,7 @@ class MotionRNNEncoder1d(MotionNormalEncoder1d):
         in_channels: int,
         latent_dim: int,
         conv_params: list[dict[str, list[int]]],
-        rnn1d: RNN1d,
+        rnn: RNN1d,
         debug_show_dim: bool = False,
     ) -> None:
         super().__init__(
@@ -250,7 +260,7 @@ class MotionRNNEncoder1d(MotionNormalEncoder1d):
             conv_params,
             debug_show_dim=debug_show_dim,
         )
-        self.rnn = rnn1d
+        self.rnn = rnn
 
     def forward(
         self,
@@ -270,7 +280,7 @@ class MotionRNNEncoder2d(MotionNormalEncoder2d):
         in_channels: int,
         latent_dim: int,
         conv_params: list[dict[str, list[int]]],
-        rnn2d: RNN2d,
+        rnn: RNN2d,
         debug_show_dim: bool = False,
     ) -> None:
         super().__init__(
@@ -279,7 +289,7 @@ class MotionRNNEncoder2d(MotionNormalEncoder2d):
             conv_params,
             debug_show_dim=debug_show_dim,
         )
-        self.rnn = rnn2d
+        self.rnn = rnn
 
     def forward(
         self,

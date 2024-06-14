@@ -7,8 +7,26 @@ from .dataloaders.transforms import (Crop2dOption, MinMaxNormalizationOption,
                                      Pool3dOption, RandomShift3dOption,
                                      ToTensorOption, UniformShape3dOption)
 from .models import BasicModelOption
-from .models.losses import MSELossOption, PJCLossOption, WeightedMSELossOption
-from .models.networks import AutoEncoder2dNetworkOption
+from .models.losses import (MSELossOption, PJC2dLossOption, PJC3dLossOption,
+                            WeightedMSELossOption)
+from .models.networks import (AutoEncoder2dNetworkOption,
+                              Discriminator3dOption,
+                              FiveBranchAutoencoder3dOption, HRDAE2dOption,
+                              HRDAE3dOption, RAE2dOption, RAE3dOption,
+                              RDAE2dOption, RDAE3dOption)
+from .models.networks.motion_encoder import (MotionConv2dEncoder1dOption,
+                                             MotionConv3dEncoder2dOption,
+                                             MotionGuidedEncoder1d,
+                                             MotionGuidedEncoder2d,
+                                             MotionNormalEncoder1dOption,
+                                             MotionNormalEncoder2dOption,
+                                             MotionRNNEncoder1dOption,
+                                             MotionRNNEncoder2dOption,
+                                             MotionTSNEncoder1dOption,
+                                             MotionTSNEncoder2dOption)
+from .models.networks.rnn import (ConvLSTM1dOption, ConvLSTM2dOption,
+                                  GRU1dOption, GRU2dOption, TCN1dOption,
+                                  TCN2dOption)
 from .models.optimizers import AdamOptimizerOption
 from .models.schedulers import OneCycleLRSchedulerOption
 from .option import Option, TestExpOption, TrainExpOption
@@ -68,12 +86,109 @@ cs.store(
 )
 cs.store(group="config/experiment/model", name="basic", node=BasicModelOption)
 cs.store(group="config/experiment/model/loss", name="mse", node=MSELossOption)
-cs.store(group="config/experiment/model/loss", name="pjc", node=PJCLossOption)
+cs.store(group="config/experiment/model/loss", name="pjc2d", node=PJC2dLossOption)
+cs.store(group="config/experiment/model/loss", name="pjc3d", node=PJC3dLossOption)
 cs.store(group="config/experiment/model/loss", name="wmse", node=WeightedMSELossOption)
 cs.store(
     group="config/experiment/model/network",
     name="autoencoder2d",
     node=AutoEncoder2dNetworkOption,
+)
+cs.store(
+    group="config/experiment/model/network",
+    name="discriminator3d",
+    node=Discriminator3dOption,
+)
+cs.store(
+    group="config/experiment/model/network",
+    name="fb_autoencoder3d",
+    node=FiveBranchAutoencoder3dOption,
+)
+cs.store(group="config/experiment/model/network", name="hrdae2d", node=HRDAE2dOption)
+cs.store(group="config/experiment/model/network", name="hrdae3d", node=HRDAE3dOption)
+cs.store(group="config/experiment/model/network", name="rae2d", node=RAE2dOption)
+cs.store(group="config/experiment/model/network", name="rae3d", node=RAE3dOption)
+cs.store(group="config/experiment/model/network", name="rdae2d", node=RDAE2dOption)
+cs.store(group="config/experiment/model/network", name="rdae3d", node=RDAE3dOption)
+cs.store(
+    group="config/experiment/model/network/motion_encoder",
+    name="rnn1d",
+    node=MotionRNNEncoder1dOption,
+)
+cs.store(
+    group="config/experiment/model/network/motion_encoder",
+    name="rnn2d",
+    node=MotionRNNEncoder2dOption,
+)
+cs.store(
+    group="config/experiment/model/network/motion_encoder",
+    name="normal1d",
+    node=MotionNormalEncoder1dOption,
+)
+cs.store(
+    group="config/experiment/model/network/motion_encoder",
+    name="normal2d",
+    node=MotionNormalEncoder2dOption,
+)
+cs.store(
+    group="config/experiment/model/network/motion_encoder",
+    name="conv2d",
+    node=MotionConv2dEncoder1dOption,
+)
+cs.store(
+    group="config/experiment/model/network/motion_encoder",
+    name="conv3d",
+    node=MotionConv3dEncoder2dOption,
+)
+cs.store(
+    group="config/experiment/model/network/motion_encoder",
+    name="guided1d",
+    node=MotionGuidedEncoder1d,
+)
+cs.store(
+    group="config/experiment/model/network/motion_encoder",
+    name="guided2d",
+    node=MotionGuidedEncoder2d,
+)
+cs.store(
+    group="config/experiment/model/network/motion_encoder",
+    name="tsn1d",
+    node=MotionTSNEncoder1dOption,
+)
+cs.store(
+    group="config/experiment/model/network/motion_encoder",
+    name="tsn2d",
+    node=MotionTSNEncoder2dOption,
+)
+cs.store(
+    group="config/experiment/model/network/motion_encoder/rnn",
+    name="conv_lstm1d",
+    node=ConvLSTM1dOption,
+)
+cs.store(
+    group="config/experiment/model/network/motion_encoder/rnn",
+    name="conv_lstm2d",
+    node=ConvLSTM2dOption,
+)
+cs.store(
+    group="config/experiment/model/network/motion_encoder/rnn",
+    name="gru1d",
+    node=GRU1dOption,
+)
+cs.store(
+    group="config/experiment/model/network/motion_encoder/rnn",
+    name="gru2d",
+    node=GRU2dOption,
+)
+cs.store(
+    group="config/experiment/model/network/motion_encoder/rnn",
+    name="tcn1d",
+    node=TCN1dOption,
+)
+cs.store(
+    group="config/experiment/model/network/motion_encoder/rnn",
+    name="tcn2d",
+    node=TCN2dOption,
 )
 cs.store(
     group="config/experiment/model/optimizer", name="adam", node=AdamOptimizerOption

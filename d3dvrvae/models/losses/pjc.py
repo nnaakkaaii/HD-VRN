@@ -5,27 +5,27 @@ from torch.nn.functional import mse_loss
 
 
 @dataclass
-class PJCLoss2dOption:
+class PJC2dLossOption:
     pass
 
 
 @dataclass
-class PJCLoss3dOption:
+class PJC3dLossOption:
     pass
 
 
-def create_pjc_loss2d() -> nn.Module:
-    return PJCLoss2d()
+def create_pjc2d_loss() -> nn.Module:
+    return PJC2dLoss()
 
 
-def create_pjc_loss3d() -> nn.Module:
-    return PJCLoss3d()
+def create_pjc3d_loss() -> nn.Module:
+    return PJC3dLoss()
 
 
-class PJCLoss2d(nn.Module):
+class PJC2dLoss(nn.Module):
     @property
     def required_kwargs(self) -> list[str]:
-        return ["slice_idx"]
+        return ["idx_expanded"]
 
     def forward(
         self,
@@ -64,10 +64,10 @@ class PJCLoss2d(nn.Module):
         return mse_loss(selected_slices, target)
 
 
-class PJCLoss3d(nn.Module):
+class PJC3dLoss(nn.Module):
     @property
     def required_kwargs(self) -> list[str]:
-        return ["slice_idx"]
+        return ["idx_expanded"]
 
     def forward(
         self,
@@ -112,17 +112,17 @@ if __name__ == "__main__":
     def test():
         b, n, c, d, h, w, s = 32, 10, 1, 50, 128, 128, 3
 
-        pjc_loss2d = PJCLoss2d()
+        pjc2d_loss = PJC2dLoss()
         # reconstructed_2d: (b, n, c, h, w)
         # input_2d: (b, n, s, h)
         # slice_idx: (b, n, s, h)
         reconstructed_2d = randn(b, n, c, h, w)
         input_1d = randn(b, n, s, h)
         slice_idx = randint(0, 127, (b, s)).unsqueeze(1).unsqueeze(3).repeat(1, n, 1, h)
-        loss = pjc_loss2d(reconstructed_2d, input_1d, slice_idx)
+        loss = pjc2d_loss(reconstructed_2d, input_1d, slice_idx)
         print(loss)
 
-        pjc_loss3d = PJCLoss3d()
+        pjc3d_loss = PJC3dLoss()
         # reconstructed_3d: (b, n, c, d, h, w)
         # input_2d: (b, n, s, d, h)
         # slice_idx: (b, n, s, d, h)
@@ -135,7 +135,7 @@ if __name__ == "__main__":
             .unsqueeze(4)
             .repeat(1, n, 1, d, h)
         )
-        loss = pjc_loss3d(reconstructed_3d, input_2d, slice_idx)
+        loss = pjc3d_loss(reconstructed_3d, input_2d, slice_idx)
         print(loss)
 
     test()

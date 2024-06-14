@@ -26,30 +26,30 @@ class HRDAE3dOption(RDAE3dOption):
 
 
 def create_hrdae2d(opt: HRDAE2dOption) -> nn.Module:
-    motion_encoder1d = create_motion_encoder1d(
-        opt.latent_dim, opt.debug_show_dim, opt.motion_encoder1d
+    motion_encoder = create_motion_encoder1d(
+        opt.latent_dim, opt.debug_show_dim, opt.motion_encoder
     )
     return HRDAE2d(
         opt.in_channels,
         opt.out_channels,
         opt.latent_dim,
         opt.conv_params,
-        motion_encoder1d,
+        motion_encoder,
         opt.aggregation_method,
         opt.debug_show_dim,
     )
 
 
 def create_hrdae3d(opt: HRDAE3dOption) -> nn.Module:
-    motion_encoder2d = create_motion_encoder2d(
-        opt.latent_dim, opt.debug_show_dim, opt.motion_encoder2d
+    motion_encoder = create_motion_encoder2d(
+        opt.latent_dim, opt.debug_show_dim, opt.motion_encoder
     )
     return HRDAE3d(
         opt.in_channels,
         opt.out_channels,
         opt.latent_dim,
         opt.conv_params,
-        motion_encoder2d,
+        motion_encoder,
         opt.aggregation_method,
         opt.debug_show_dim,
     )
@@ -200,7 +200,7 @@ class HRDAE2d(nn.Module):
         out_channels: int,
         latent_dim: int,
         conv_params: list[dict[str, list[int]]],
-        motion_encoder1d: MotionEncoder1d,
+        motion_encoder: MotionEncoder1d,
         aggregation_method: str = "concat",
         debug_show_dim: bool = False,
     ) -> None:
@@ -211,7 +211,7 @@ class HRDAE2d(nn.Module):
             conv_params + [IdenticalConvBlockConvParams],
             debug_show_dim,
         )
-        self.motion_encoder = motion_encoder1d
+        self.motion_encoder = motion_encoder
         self.decoder = HierarchicalDecoder2d(
             out_channels,
             latent_dim,
@@ -241,7 +241,7 @@ class HRDAE3d(nn.Module):
         out_channels: int,
         latent_dim: int,
         conv_params: list[dict[str, list[int]]],
-        motion_encoder2d: MotionEncoder2d,
+        motion_encoder: MotionEncoder2d,
         aggregation_method: str = "concat",
         debug_show_dim: bool = False,
     ) -> None:
@@ -252,7 +252,7 @@ class HRDAE3d(nn.Module):
             conv_params + [IdenticalConvBlockConvParams],
             debug_show_dim,
         )
-        self.motion_encoder = motion_encoder2d
+        self.motion_encoder = motion_encoder
         self.decoder = HierarchicalDecoder3d(
             out_channels,
             latent_dim,
@@ -331,14 +331,14 @@ if __name__ == "__main__":
                 {"kernel_size": [3], "stride": [2], "padding": [1]},
                 {"kernel_size": [3], "stride": [2], "padding": [1]},
             ],
-            motion_encoder1d=MotionRNNEncoder1dOption(
+            motion_encoder=MotionRNNEncoder1dOption(
                 in_channels=1,
                 conv_params=[
                     {"kernel_size": [3], "stride": [2], "padding": [1]},
                     {"kernel_size": [3], "stride": [2], "padding": [1]},
                     {"kernel_size": [3], "stride": [2], "padding": [1]},
                 ],
-                rnn1d=ConvLSTM1dOption(
+                rnn=ConvLSTM1dOption(
                     num_layers=1,
                 ),
             ),
@@ -360,14 +360,14 @@ if __name__ == "__main__":
                 {"kernel_size": [3], "stride": [2], "padding": [1]},
                 {"kernel_size": [3], "stride": [2], "padding": [1]},
             ],
-            motion_encoder2d=MotionRNNEncoder2dOption(
+            motion_encoder=MotionRNNEncoder2dOption(
                 in_channels=1,
                 conv_params=[
                     {"kernel_size": [3], "stride": [2], "padding": [1]},
                     {"kernel_size": [3], "stride": [2], "padding": [1]},
                     {"kernel_size": [3], "stride": [2], "padding": [1]},
                 ],
-                rnn2d=ConvLSTM2dOption(
+                rnn=ConvLSTM2dOption(
                     num_layers=1,
                 ),
             ),

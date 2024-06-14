@@ -3,8 +3,8 @@ from dataclasses import dataclass
 from torch import Tensor, float32, nn, tensor
 
 from .option import LossOption
-from .pjc import (PJCLoss2dOption, PJCLoss3dOption, create_pjc_loss2d,
-                  create_pjc_loss3d)
+from .pjc import (PJC2dLossOption, PJC3dLossOption, create_pjc2d_loss,
+                  create_pjc3d_loss)
 from .weighted_mse import WeightedMSELossOption, create_weighted_mse_loss
 
 
@@ -18,10 +18,10 @@ def create_loss(opt: LossOption) -> nn.Module:
         return nn.MSELoss()
     if isinstance(opt, WeightedMSELossOption) and type(opt) is WeightedMSELossOption:
         return create_weighted_mse_loss(opt)
-    if isinstance(opt, PJCLoss2dOption) and type(opt) is PJCLoss2dOption:
-        return create_pjc_loss2d()
-    if isinstance(opt, PJCLoss3dOption) and type(opt) is PJCLoss3dOption:
-        return create_pjc_loss3d()
+    if isinstance(opt, PJC2dLossOption) and type(opt) is PJC2dLossOption:
+        return create_pjc2d_loss()
+    if isinstance(opt, PJC3dLossOption) and type(opt) is PJC3dLossOption:
+        return create_pjc3d_loss()
     raise NotImplementedError(f"{opt.__class__.__name__} is not implemented")
 
 
