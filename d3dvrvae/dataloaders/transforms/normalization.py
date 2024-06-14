@@ -2,8 +2,8 @@ from dataclasses import dataclass
 
 from torch import Tensor
 
-from .typing import Transform
 from .option import TransformOption
+from .typing import Transform
 
 
 @dataclass

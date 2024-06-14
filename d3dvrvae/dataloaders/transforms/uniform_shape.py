@@ -3,8 +3,8 @@ from dataclasses import dataclass, field
 from torch import Tensor, min
 from torch.nn.functional import pad
 
-from .typing import Transform
 from .option import TransformOption
+from .typing import Transform
 
 
 @dataclass

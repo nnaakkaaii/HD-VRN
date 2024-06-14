@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 
-from torch import Tensor, tensor, int64, gather
+from torch import Tensor, gather, int64, tensor
 from torch.utils.data import Dataset
 from torchvision import datasets
 
@@ -18,7 +18,7 @@ class MovingMNIST(datasets.MovingMNIST):
     PERIOD = 10
 
     def __init__(self, *args, **kwargs) -> None:
-        self.slice_index = kwargs.pop('slice_index')
+        self.slice_index = kwargs.pop("slice_index")
         super().__init__(*args, **kwargs)
 
     def __getitem__(self, idx: int) -> dict[str, Tensor]:
@@ -80,7 +80,8 @@ def create_moving_mnist_dataset(
     )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
+
     def test():
         from torchvision import transforms
 

@@ -146,20 +146,25 @@ class CT(Dataset):
 
 
 if __name__ == "__main__":
+
     def test():
         from torchvision import transforms
-        from ..transforms import create_transform, MinMaxNormalizationOption, UniformShape3dOption, Pool3dOption
+
+        from ..transforms import (MinMaxNormalizationOption, Pool3dOption,
+                                  UniformShape3dOption, create_transform)
 
         option = CTDatasetOption(
             root=Path("data"),
         )
         dataset = create_ct_dataset(
             option,
-            transform=transforms.Compose([
-                create_transform(MinMaxNormalizationOption()),
-                create_transform(UniformShape3dOption()),
-                create_transform(Pool3dOption()),
-            ]),
+            transform=transforms.Compose(
+                [
+                    create_transform(MinMaxNormalizationOption()),
+                    create_transform(UniformShape3dOption()),
+                    create_transform(Pool3dOption()),
+                ]
+            ),
             is_train=True,
         )
         data = dataset[0]

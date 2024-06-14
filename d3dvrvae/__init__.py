@@ -1,7 +1,8 @@
 from hydra.core.config_store import ConfigStore
 
 from .dataloaders import BasicDataLoaderOption
-from .dataloaders.datasets import CTDatasetOption, MNISTDatasetOption, MovingMNISTDatasetOption
+from .dataloaders.datasets import (CTDatasetOption, MNISTDatasetOption,
+                                   MovingMNISTDatasetOption)
 from .dataloaders.transforms import (Crop2dOption, MinMaxNormalizationOption,
                                      Normalize2dOption, Pad2dOption,
                                      Pool3dOption, RandomShift3dOption,
@@ -40,7 +41,9 @@ cs.store(
     group="config/experiment/dataloader/dataset", name="mnist", node=MNISTDatasetOption
 )
 cs.store(
-    group="config/experiment/dataloader/dataset", name="moving_mnist", node=MovingMNISTDatasetOption
+    group="config/experiment/dataloader/dataset",
+    name="moving_mnist",
+    node=MovingMNISTDatasetOption,
 )
 cs.store(
     group="config/experiment/dataloader/dataset",

@@ -3,8 +3,8 @@ from dataclasses import dataclass, field
 from torch import Tensor
 from torch.nn.functional import avg_pool3d
 
-from .typing import Transform
 from .option import TransformOption
+from .typing import Transform
 
 
 @dataclass
