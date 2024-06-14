@@ -5,6 +5,14 @@ conv_params:
     stride: [2]
     padding: [1]
     output_padding: [1]
+  - kernel_size: [3]
+    stride: [2]
+    padding: [1]
+    output_padding: [1]
+  - kernel_size: [3]
+    stride: [2]
+    padding: [1]
+    output_padding: [1]
 debug_show_dim: false
 defaults:
   - /config/experiment/model/network/autoencoder2d@_here_
