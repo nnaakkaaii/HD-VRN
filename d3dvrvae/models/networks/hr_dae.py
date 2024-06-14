@@ -1,28 +1,49 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
-# Hierarchical Recurrent Disentangled 3D Video Reconstruction Network (HRD3D-VRN)
+# Hierarchical Recurrent Disentangled AutoEncoder (HR-DAE)
 
 from dataclasses import dataclass
 
 from torch import Tensor, nn
 
-from .modules import (HierarchicalConvDecoder3d, HierarchicalConvEncoder3d,
-                      IdenticalConvBlock3d, IdenticalConvBlockConvParams,
-                      ResNetBranch)
-from .motion_encoder import MotionEncoder2d, create_motion_encoder2d
-from .rd3d_vrn import RD3DVRNOption
+from .modules import (HierarchicalConvDecoder2d, HierarchicalConvDecoder3d,
+                      HierarchicalConvEncoder2d, HierarchicalConvEncoder3d,
+                      IdenticalConvBlock2d, IdenticalConvBlock3d,
+                      IdenticalConvBlockConvParams, ResNetBranch)
+from .motion_encoder import MotionEncoder1d, create_motion_encoder1d, MotionEncoder2d, create_motion_encoder2d
+from .r_dae import RDAE2dOption, RDAE3dOption
 from .functions import aggregate
 
 
 @dataclass
-class HRD3DVRNOption(RD3DVRNOption):
+class HRDAE2dOption(RDAE2dOption):
     pass
 
 
-def create_hrd3dvrn(opt: HRD3DVRNOption) -> nn.Module:
+@dataclass
+class HRDAE3dOption(RDAE3dOption):
+    pass
+
+
+def create_hrdae2d(opt: HRDAE2dOption) -> nn.Module:
+    motion_encoder1d = create_motion_encoder1d(
+        opt.latent_dim, opt.debug_show_dim, opt.motion_encoder1d
+    )
+    return HRDAE2d(
+        opt.in_channels,
+        opt.out_channels,
+        opt.latent_dim,
+        opt.conv_params,
+        motion_encoder1d,
+        opt.aggregation_method,
+        opt.debug_show_dim,
+    )
+
+
+def create_hrdae3d(opt: HRDAE3dOption) -> nn.Module:
     motion_encoder2d = create_motion_encoder2d(
         opt.latent_dim, opt.debug_show_dim, opt.motion_encoder2d
     )
-    return HRD3DVRN(
+    return HRDAE3d(
         opt.in_channels,
         opt.out_channels,
         opt.latent_dim,
@@ -31,6 +52,23 @@ def create_hrd3dvrn(opt: HRD3DVRNOption) -> nn.Module:
         opt.aggregation_method,
         opt.debug_show_dim,
     )
+
+
+class HierarchicalContentEncoder2d(HierarchicalConvEncoder2d):
+    def __init__(
+            self,
+            in_channels: int,
+            latent_dim: int,
+            conv_params: list[dict[str, list[int]]],
+            debug_show_dim: bool = False,
+    ) -> None:
+        super().__init__(
+            in_channels,
+            latent_dim,
+            latent_dim,
+            conv_params,
+            debug_show_dim,
+        )
 
 
 class HierarchicalContentEncoder3d(HierarchicalConvEncoder3d):
@@ -48,6 +86,55 @@ class HierarchicalContentEncoder3d(HierarchicalConvEncoder3d):
             conv_params,
             debug_show_dim,
         )
+
+
+class HierarchicalDecoder2d(nn.Module):
+    def __init__(
+            self,
+            out_channels: int,
+            latent_dim: int,
+            conv_params: list[dict[str, list[int]]],
+            aggregation_method: str = "concat",
+            debug_show_dim: bool = False,
+    ) -> None:
+        super().__init__()
+        assert aggregation_method in ["concat", "sum"], f"aggregation_method: {aggregation_method} not implemented"
+
+        if aggregation_method == "concat":
+            latent_dim *= 2
+
+        self.dec = HierarchicalConvDecoder2d(
+            latent_dim,
+            out_channels,
+            latent_dim,
+            conv_params,
+            debug_show_dim,
+        )
+        # motion guided connection
+        # (Mutual Suppression Network for Video Prediction using Disentangled Features)
+        self.mgc = nn.ModuleList()
+        for _ in conv_params:
+            self.mgc.append(
+                nn.Sequential(
+                    ResNetBranch(
+                        IdenticalConvBlock2d(latent_dim, latent_dim),
+                        IdenticalConvBlock2d(latent_dim, latent_dim, act_norm=False),
+                    ),
+                    nn.GroupNorm(2, latent_dim),
+                    nn.LeakyReLU(0.2, inplace=True),
+                )
+            )
+        self.aggregation_method = aggregation_method
+
+    def forward(self, m: Tensor, c: Tensor, cs: list[Tensor]) -> Tensor:
+        assert len(self.mgc) == len(cs)
+
+        x = aggregate(m, c, method=self.aggregation_method)
+        for i, (mgc, c_) in enumerate(zip(self.mgc, cs)):
+            c_ = aggregate(m, c_, method=self.aggregation_method)
+            cs[i] = mgc(c_)
+
+        return self.dec(x, cs)
 
 
 class HierarchicalDecoder3d(nn.Module):
@@ -99,7 +186,48 @@ class HierarchicalDecoder3d(nn.Module):
         return self.dec(x, cs)
 
 
-class HRD3DVRN(nn.Module):
+class HRDAE2d(nn.Module):
+    def __init__(
+            self,
+            in_channels: int,
+            out_channels: int,
+            latent_dim: int,
+            conv_params: list[dict[str, list[int]]],
+            motion_encoder1d: MotionEncoder1d,
+            aggregation_method: str = "concat",
+            debug_show_dim: bool = False,
+    ) -> None:
+        super().__init__()
+        self.content_encoder = HierarchicalContentEncoder2d(
+            in_channels,
+            latent_dim,
+            conv_params + [IdenticalConvBlockConvParams],
+            debug_show_dim,
+            )
+        self.motion_encoder = motion_encoder1d
+        self.decoder = HierarchicalDecoder2d(
+            out_channels,
+            latent_dim,
+            conv_params[::-1],
+            aggregation_method,
+            debug_show_dim,
+        )
+
+    def forward(
+            self,
+            x_1d: Tensor,
+            x_2d_0: Tensor,
+    ) -> Tensor:
+        c, cs = self.content_encoder(x_2d_0)
+        m = self.motion_encoder(x_1d)
+        b, t, c_, h = m.size()
+        m = m.view(b * t, c_, h)
+        c = c.repeat(t, 1, 1, 1)
+        cs = [c_.repeat(t, 1, 1, 1) for c_ in cs]
+        return self.decoder(m, c, cs[::-1])
+
+
+class HRDAE3d(nn.Module):
     def __init__(
         self,
         in_channels: int,
@@ -182,10 +310,39 @@ if __name__ == "__main__":
     def test2():
         from torch import randn
 
-        from .motion_encoder import MotionRNNEncoder2dOption
-        from .rnn import ConvLSTM2dOption
+        from .motion_encoder import MotionRNNEncoder1dOption, MotionRNNEncoder2dOption
+        from .rnn import ConvLSTM1dOption, ConvLSTM2dOption
 
-        option = HRD3DVRNOption(
+        option = HRDAE2dOption(
+            in_channels=2,
+            out_channels=1,
+            latent_dim=16,
+            conv_params=[
+                {"kernel_size": [3], "stride": [2], "padding": [1]},
+                {"kernel_size": [3], "stride": [2], "padding": [1]},
+            ],
+            motion_encoder1d=MotionRNNEncoder1dOption(
+                in_channels=1,
+                conv_params=[
+                    {"kernel_size": [3], "stride": [2], "padding": [1]},
+                    {"kernel_size": [3], "stride": [2], "padding": [1]},
+                    {"kernel_size": [3], "stride": [2], "padding": [1]},
+                ],
+                rnn1d=ConvLSTM1dOption(
+                    num_layers=1,
+                ),
+            ),
+            aggregation_method="concat",
+            debug_show_dim=True,
+        )
+        net = create_hrdae2d(option)
+        x = net(
+            randn(8, 10, 1, 64),
+            randn(8, 2, 64, 64),
+        )
+        print(x.size())
+
+        option = HRDAE3dOption(
             in_channels=2,
             out_channels=1,
             latent_dim=16,
@@ -207,12 +364,12 @@ if __name__ == "__main__":
             aggregation_method="concat",
             debug_show_dim=True,
         )
-        net = create_hrd3dvrn(option)
+        net = create_hrdae3d(option)
         x = net(
             randn(8, 10, 1, 64, 64),
             randn(8, 2, 64, 64, 64),
         )
         print(x.size())
 
-    test1()
+    # test1()
     test2()

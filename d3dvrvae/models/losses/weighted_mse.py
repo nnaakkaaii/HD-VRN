@@ -22,12 +22,11 @@ class WeightedMSELoss(nn.Module):
         self.weight_dynamic = weight_dynamic
 
     def forward(self, input: Tensor, target: Tensor) -> Tensor:
-        b, n, d, w, h = input.size()
-        assert target.size() == (b, n, d, w, h)
+        assert input.size() == target.size()
 
         loss_static = mse_loss(input, target)
 
-        if n == 1:
+        if input.size(1) == 1:
             return loss_static
 
         input_dynamic = input[:, 1:] - input[:, :-1]
@@ -41,6 +40,15 @@ if __name__ == "__main__":
     from torch import randn
 
     def test():
+        wmse = WeightedMSELoss(weight_dynamic=0.5)
+        b, n, w, h = 32, 10, 128, 128
+
+        input = randn(b, n, w, h)
+        target = randn(b, n, w, h)
+
+        loss = wmse(input, target)
+        print(loss)
+
         wmse = WeightedMSELoss(weight_dynamic=0.5)
         b, n, d, w, h = 32, 10, 50, 128, 128
 
