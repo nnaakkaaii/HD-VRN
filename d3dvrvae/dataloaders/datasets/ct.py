@@ -106,10 +106,7 @@ class CT(Dataset):
         s = len(slice_idx)
         # (n, d, h, s)
         idx_expanded = (
-            slice_idx.unsqueeze(0)
-            .unsqueeze(1)
-            .unsqueeze(2)
-            .repeat(n, d, h, 1)
+            slice_idx.unsqueeze(0).unsqueeze(1).unsqueeze(2).repeat(n, d, h, 1)
         )
 
         # (n, d, h, s)

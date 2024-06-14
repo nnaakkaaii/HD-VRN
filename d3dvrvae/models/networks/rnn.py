@@ -1,18 +1,18 @@
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
 
-from torch import nn, Tensor
+from torch import Tensor, nn
 
-from .option import NetworkOption
 from . import modules as mdl
+from .option import NetworkOption
 
 
 class RNN2d(nn.Module, metaclass=ABCMeta):
     @abstractmethod
     def forward(
-            self,
-            x: Tensor,
-            last_states: list[tuple[Tensor, Tensor]] | Tensor | None = None,
+        self,
+        x: Tensor,
+        last_states: list[tuple[Tensor, Tensor]] | Tensor | None = None,
     ) -> tuple[Tensor, list[tuple[Tensor, Tensor]] | Tensor | None]:
         pass
 
@@ -23,8 +23,6 @@ class RNN2dOption(NetworkOption):
 
 
 def create_rnn2d(latent_dim: int, opt: RNN2dOption) -> RNN2d:
-    if isinstance(opt, NoRNN2dOption):
-        return create_no_rnn2d(latent_dim, opt)
     if isinstance(opt, ConvLSTM2dOption):
         return create_conv_lstm2d(latent_dim, opt)
     if isinstance(opt, GRU2dOption):
@@ -35,39 +33,19 @@ def create_rnn2d(latent_dim: int, opt: RNN2dOption) -> RNN2d:
 
 
 @dataclass
-class NoRNN2dOption(RNN2dOption):
-    pass
-
-
-def create_no_rnn2d(latent_dim: int, opt: NoRNN2dOption) -> RNN2d:
-    return NoRNN2d()
-
-
-class NoRNN2d(RNN2d):
-    def forward(
-            self,
-            x: Tensor,
-            last_states: list[tuple[Tensor, Tensor]] | Tensor | None = None,
-    ) -> tuple[Tensor, list[tuple[Tensor, Tensor]] | Tensor | None]:
-        return x, last_states
-
-
-@dataclass
 class ConvLSTM2dOption(RNN2dOption):
     num_layers: int = 3
 
 
-def create_conv_lstm2d(
-        latent_dim: int, opt: ConvLSTM2dOption
-) -> RNN2d:
+def create_conv_lstm2d(latent_dim: int, opt: ConvLSTM2dOption) -> RNN2d:
     return ConvLSTM2d(latent_dim, opt.num_layers)
 
 
 class ConvLSTM2d(RNN2d):
     def __init__(
-            self,
-            latent_dim: int,
-            num_layers: int,
+        self,
+        latent_dim: int,
+        num_layers: int,
     ) -> None:
         super().__init__()
         self.rnn = mdl.ConvLSTM2d(
@@ -79,13 +57,13 @@ class ConvLSTM2d(RNN2d):
         )
 
     def forward(
-            self,
-            x: Tensor,
-            last_states: list[tuple[Tensor, Tensor]] | Tensor | None = None,
+        self,
+        x: Tensor,
+        last_states: list[tuple[Tensor, Tensor]] | Tensor | None = None,
     ) -> tuple[Tensor, list[tuple[Tensor, Tensor]] | Tensor | None]:
         assert last_states is None or (
-                isinstance(last_states, list)
-                and all([isinstance(s, tuple) for s in last_states])
+            isinstance(last_states, list)
+            and all([isinstance(s, tuple) for s in last_states])
         )
         y, last_states = self.rnn(x, last_states)
         assert isinstance(last_states, list) and all(
@@ -106,10 +84,10 @@ def create_gru2d(latent_dim: int, opt: GRU2dOption) -> RNN2d:
 
 class GRU2d(RNN2d):
     def __init__(
-            self,
-            latent_dim: int,
-            num_layers: int,
-            image_size: tuple[int, int],
+        self,
+        latent_dim: int,
+        num_layers: int,
+        image_size: tuple[int, int],
     ) -> None:
         super().__init__()
         self.rnn = mdl.GRU2d(
@@ -120,9 +98,9 @@ class GRU2d(RNN2d):
         )
 
     def forward(
-            self,
-            x: Tensor,
-            last_states: list[tuple[Tensor, Tensor]] | Tensor | None = None,
+        self,
+        x: Tensor,
+        last_states: list[tuple[Tensor, Tensor]] | Tensor | None = None,
     ) -> tuple[Tensor, list[tuple[Tensor, Tensor]] | Tensor | None]:
         assert last_states is None or isinstance(last_states, Tensor)
         y, last_states = self.rnn(x, last_states)
@@ -146,12 +124,12 @@ def create_tcn2d(latent_dim: int, opt: TCN2dOption) -> RNN2d:
 
 class TCN2d(RNN2d):
     def __init__(
-            self,
-            latent_dim: int,
-            num_layers: int,
-            image_size: tuple[int, int],
-            kernel_size: int,
-            dropout: float = 0.0,
+        self,
+        latent_dim: int,
+        num_layers: int,
+        image_size: tuple[int, int],
+        kernel_size: int,
+        dropout: float = 0.0,
     ) -> None:
         super().__init__()
         self.rnn = mdl.TCN2d(
@@ -160,12 +138,12 @@ class TCN2d(RNN2d):
             kernel_size,
             image_size,
             dropout,
-            )
+        )
 
     def forward(
-            self,
-            x: Tensor,
-            last_states: list[tuple[Tensor, Tensor]] | Tensor | None = None,
+        self,
+        x: Tensor,
+        last_states: list[tuple[Tensor, Tensor]] | Tensor | None = None,
     ) -> tuple[Tensor, list[tuple[Tensor, Tensor]] | Tensor | None]:
         assert last_states is None
         y = self.rnn(x)

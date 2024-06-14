@@ -115,8 +115,10 @@ class FiveBranchAutoencoder3d(nn.Module):
 
 
 if __name__ == "__main__":
+
     def test():
         from torch import randn
+
         b, n, c, s, d, h, w = 32, 10, 1, 3, 32, 64, 64
         x_2d = randn(b, n, s, d, h)
         x_3d_0 = randn(b, 2, c, d, h, w)
