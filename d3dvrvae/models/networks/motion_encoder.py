@@ -219,6 +219,36 @@ class MotionGuidedEncoder2d(MotionNormalEncoder2d):
         return x
 
 
+@dataclass
+class MotionTSNEncoder2dOption(MotionNormalEncoder2dOption):
+    pass
+
+
+def create_motion_tsn_encoder2d(
+        latent_dim: int, debug_show_dim: bool, opt: MotionTSNEncoder2dOption
+) -> MotionEncoder2d:
+    return MotionTSNEncoder2d(
+        opt.in_channels,
+        latent_dim,
+        opt.conv_params,
+        debug_show_dim=debug_show_dim,
+    )
+
+
+class MotionTSNEncoder2d(MotionNormalEncoder2d):
+    def forward(
+            self,
+            x: Tensor,
+            x_0: Tensor | None = None,
+    ) -> Tensor:
+        # x: (b, t, c, d, h) - x_0: (b, s, d, h)
+        x -= x_0.unsqueeze(1)
+        x = super().forward(x, x_0)
+        if self.debug_show_dim:
+            print(f"{self.__class__.__name__}", x.size())
+        return x
+
+
 if __name__ == "__main__":
 
     def test():
@@ -273,6 +303,21 @@ if __name__ == "__main__":
         print("m output", m.size())
 
         me_net = MotionGuidedEncoder2d(
+            1,
+            16,
+            [
+                {"kernel_size": [3], "stride": [2], "padding": [1]},
+                {"kernel_size": [3], "stride": [2], "padding": [1]},
+                {"kernel_size": [3], "stride": [1], "padding": [1]},
+            ],
+            debug_show_dim=True,
+        )
+        x = randn(8, 10, 1, 64, 64)
+        m = me_net(x, randn(8, 1, 64, 64))
+        print("m input", x.size())
+        print("m output", m.size())
+
+        me_net = MotionTSNEncoder2d(
             1,
             16,
             [
