@@ -69,6 +69,7 @@ def objective(trial):
     motion_encoder_num_layers = trial.suggest_int("motion_encoder_num_layers", 0, 3)
     if motion_encoder_name == "rnn1d":
         rnn_name = trial.suggest_categorical("rnn", ["conv_lstm1d", "gru1d", "tcn1d"])
+        motion_encoder_name = f"{motion_encoder_name}/{rnn_name}"
         if rnn_name == "conv_lstm1d":
             rnn_option = ConvLSTM1dOption(
                 num_layers=trial.suggest_int("rnn_num_layers", 2, 4),
