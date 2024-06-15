@@ -8,9 +8,14 @@ from torch import Tensor, nn
 from torch.nn.functional import interpolate
 
 from .modules import ConvModule2d, ConvModule3d
-from .motion_encoder import (MotionEncoder1d, MotionEncoder1dOption,
-                             MotionEncoder2d, MotionEncoder2dOption,
-                             create_motion_encoder1d, create_motion_encoder2d)
+from .motion_encoder import (
+    MotionEncoder1d,
+    MotionEncoder1dOption,
+    MotionEncoder2d,
+    MotionEncoder2dOption,
+    create_motion_encoder1d,
+    create_motion_encoder2d,
+)
 from .option import NetworkOption
 
 
@@ -189,8 +194,7 @@ if __name__ == "__main__":
     def test():
         from torch import randn
 
-        from .motion_encoder import (MotionRNNEncoder1dOption,
-                                     MotionRNNEncoder2dOption)
+        from .motion_encoder import MotionRNNEncoder1dOption, MotionRNNEncoder2dOption
         from .rnn import ConvLSTM1dOption, ConvLSTM2dOption
 
         option = RAE2dOption(

@@ -6,12 +6,22 @@ from dataclasses import dataclass
 from torch import Tensor, nn
 
 from .functions import aggregate
-from .modules import (HierarchicalConvDecoder2d, HierarchicalConvDecoder3d,
-                      HierarchicalConvEncoder2d, HierarchicalConvEncoder3d,
-                      IdenticalConvBlock2d, IdenticalConvBlock3d,
-                      IdenticalConvBlockConvParams, ResNetBranch)
-from .motion_encoder import (MotionEncoder1d, MotionEncoder2d,
-                             create_motion_encoder1d, create_motion_encoder2d)
+from .modules import (
+    HierarchicalConvDecoder2d,
+    HierarchicalConvDecoder3d,
+    HierarchicalConvEncoder2d,
+    HierarchicalConvEncoder3d,
+    IdenticalConvBlock2d,
+    IdenticalConvBlock3d,
+    IdenticalConvBlockConvParams,
+    ResNetBranch,
+)
+from .motion_encoder import (
+    MotionEncoder1d,
+    MotionEncoder2d,
+    create_motion_encoder1d,
+    create_motion_encoder2d,
+)
 from .r_dae import RDAE2dOption, RDAE3dOption
 
 
@@ -325,8 +335,7 @@ if __name__ == "__main__":
     def test2():
         from torch import randn
 
-        from .motion_encoder import (MotionRNNEncoder1dOption,
-                                     MotionRNNEncoder2dOption)
+        from .motion_encoder import MotionRNNEncoder1dOption, MotionRNNEncoder2dOption
         from .rnn import ConvLSTM1dOption, ConvLSTM2dOption
 
         option = HRDAE2dOption(

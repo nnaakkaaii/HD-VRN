@@ -5,8 +5,7 @@ from omegaconf import MISSING
 from torch import Tensor, nn
 
 from .modules import ConvModule1d, ConvModule2d, ConvModule3d
-from .rnn import (RNN1d, RNN1dOption, RNN2d, RNN2dOption, create_rnn1d,
-                  create_rnn2d)
+from .rnn import RNN1d, RNN1dOption, RNN2d, RNN2dOption, create_rnn1d, create_rnn2d
 
 
 @dataclass
