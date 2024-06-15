@@ -1,4 +1,4 @@
 root: data
-slice_index: [16, 32, 48]
+slice_index: [32]
 defaults:
   - /config/experiment/dataloader/dataset/moving_mnist@_here_
