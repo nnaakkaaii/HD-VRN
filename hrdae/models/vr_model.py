@@ -86,7 +86,7 @@ class VRModel(Model):
 
                 if self.pred_diff:
                     assert self.phase != "all"
-                    xp -= xp_0
+                    xp -= xp_0.unsqueeze(1)
 
                 loss = self.criterion(y, xp, idx_expanded=idx_expanded)
                 loss.backward()
@@ -118,7 +118,7 @@ class VRModel(Model):
 
                     if self.pred_diff:
                         assert self.phase != "all"
-                        xp -= xp_0
+                        xp -= xp_0.unsqueeze(1)
 
                     loss = self.criterion(y, xp, idx_expanded=idx_expanded)
                     total_val_loss += loss.item()
@@ -138,7 +138,7 @@ class VRModel(Model):
 
                 if self.pred_diff:
                     assert self.phase != "all"
-                    y += xp_0
+                    y += xp_0.unsqueeze(1)
 
                 save_reconstructed_images(
                     xp.data.cpu().clone().detach().numpy(),
