@@ -15,6 +15,8 @@ def _save_images(
 
     # Original Images
     for i in range(10):
+        if i >= len(original):
+            break
         plt.subplot(2, 10, i + 1)
         plt.imshow(np.squeeze(original[i]), cmap="gray")
         plt.title("Original")
@@ -22,6 +24,8 @@ def _save_images(
 
     # Reconstructed Images
     for i in range(10):
+        if i >= len(reconstructed):
+            break
         plt.subplot(2, 10, i + 11)
         plt.imshow(np.squeeze(reconstructed[i]), cmap="gray")
         plt.title("Reconstructed")
