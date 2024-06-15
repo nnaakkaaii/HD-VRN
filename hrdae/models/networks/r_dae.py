@@ -216,11 +216,11 @@ class RDAE2d(nn.Module):
         c = self.content_encoder(x_2d_0)
         m = self.motion_encoder(x_1d, x_1d_0)
         b, t, c_, h = m.size()
-        m = m.view(b * t, c_, h)
+        m = m.reshape(b * t, c_, h)
         c = c.repeat(t, 1, 1, 1)
         y = self.decoder(m, c)
         _, c_, h, w = y.size()
-        y = y.view(b, t, c_, h, w)
+        y = y.reshape(b, t, c_, h, w)
         if self.activation is not None:
             y = self.activation(y)
         return y
@@ -264,7 +264,7 @@ class RDAE3d(nn.Module):
         c = self.content_encoder(x_3d_0)
         m = self.motion_encoder(x_2d, x_2d_0)
         b, t, c_, d, h = m.size()
-        m = m.view(b * t, c_, d, h)
+        m = m.reshape(b * t, c_, d, h)
         c = c.repeat(t, 1, 1, 1, 1)
         y = self.decoder(m, c)
         _, c_, d, h, w = y.size()

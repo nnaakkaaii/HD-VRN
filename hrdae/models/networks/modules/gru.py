@@ -25,9 +25,9 @@ class GRU1d(nn.Module):
         self, x: Tensor, last_states: Tensor | None = None
     ) -> tuple[Tensor, Tensor]:
         b, t, c, h = x.size()
-        x = x.view(b, t, c * h)
+        x = x.reshape(b, t, c * h)
         y, _last_states = self.rnn(x, last_states)
-        y = y.view(b, t, self.c, h)
+        y = y.reshape(b, t, self.c, h)
         return y, _last_states
 
 
@@ -57,7 +57,7 @@ class GRU2d(nn.Module):
         self, x: Tensor, last_states: Tensor | None = None
     ) -> tuple[Tensor, Tensor]:
         b, t, c, h, w = x.size()
-        x = x.view(b, t, c * h * w)
+        x = x.reshape(b, t, c * h * w)
         y, _last_states = self.rnn(x, last_states)
-        y = y.view(b, t, self.c, h, w)
+        y = y.reshape(b, t, self.c, h, w)
         return y, _last_states

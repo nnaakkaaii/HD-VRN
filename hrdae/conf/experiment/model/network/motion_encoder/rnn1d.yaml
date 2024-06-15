@@ -14,4 +14,4 @@ conv_params:
     output_padding: [1]
 defaults:
   - /config/experiment/model/network/motion_encoder/rnn1d@_here_
-  - rnn: conv_lstm1d
+  - rnn: gru1d

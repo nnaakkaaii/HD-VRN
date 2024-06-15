@@ -149,11 +149,11 @@ class RAE2d(nn.Module):
     ) -> Tensor:
         m = self.motion_encoder(x_1d, x_1d_0)
         b, t, c_, h = m.size()
-        m = m.view(b * t, c_, h, 1)
+        m = m.reshape(b * t, c_, h, 1)
         m = interpolate(m, size=self.upsample_size, mode="bilinear", align_corners=True)
         y = self.decoder(m)
         _, c_, h, w = y.size()
-        y = y.view(b, t, c_, h, w)
+        y = y.reshape(b, t, c_, h, w)
         if self.activation is not None:
             y = self.activation(y)
         return y

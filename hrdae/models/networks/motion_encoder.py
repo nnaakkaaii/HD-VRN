@@ -166,10 +166,10 @@ class MotionNormalEncoder1d(MotionEncoder1d):
         x_0: Tensor | None = None,
     ) -> Tensor:
         b, t, c, h = x.size()
-        x = x.view(b * t, c, h)
+        x = x.reshape(b * t, c, h)
         x = self.enc(x)
         _, c, h = x.size()
-        x = x.view(b, t, c, h)
+        x = x.reshape(b, t, c, h)
         if self.debug_show_dim:
             print(f"{self.__class__.__name__}", x.size())
         return x
@@ -201,10 +201,10 @@ class MotionNormalEncoder2d(MotionEncoder2d):
         x_0: Tensor | None = None,
     ) -> Tensor:
         b, t, c, d, h = x.size()
-        x = x.view(b * t, c, d, h)
+        x = x.reshape(b * t, c, d, h)
         x = self.enc(x)
         _, c, d, h = x.size()
-        x = x.view(b, t, c, d, h)
+        x = x.reshape(b, t, c, d, h)
         if self.debug_show_dim:
             print(f"{self.__class__.__name__}", x.size())
         return x
