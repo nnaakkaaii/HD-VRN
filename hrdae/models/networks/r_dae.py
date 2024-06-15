@@ -8,9 +8,14 @@ from torch import Tensor, nn
 
 from .functions import aggregate
 from .modules import ConvModule2d, ConvModule3d, IdenticalConvBlockConvParams
-from .motion_encoder import (MotionEncoder1d, MotionEncoder1dOption,
-                             MotionEncoder2d, MotionEncoder2dOption,
-                             create_motion_encoder1d, create_motion_encoder2d)
+from .motion_encoder import (
+    MotionEncoder1d,
+    MotionEncoder1dOption,
+    MotionEncoder2d,
+    MotionEncoder2dOption,
+    create_motion_encoder1d,
+    create_motion_encoder2d,
+)
 from .option import NetworkOption
 
 
@@ -197,14 +202,16 @@ class RDAE2d(nn.Module):
         self,
         x_1d: Tensor,
         x_2d_0: Tensor,
-        x_1d_0: Tensor,
+        x_1d_0: Tensor | None = None,
     ) -> Tensor:
         c = self.content_encoder(x_2d_0)
         m = self.motion_encoder(x_1d, x_1d_0)
         b, t, c_, h = m.size()
         m = m.view(b * t, c_, h)
         c = c.repeat(t, 1, 1, 1)
-        return self.decoder(m, c)
+        y = self.decoder(m, c)
+        _, c_, h, w = y.size()
+        return y.view(b, t, c_, h, w)
 
 
 class RDAE3d(nn.Module):
@@ -234,13 +241,20 @@ class RDAE3d(nn.Module):
             debug_show_dim,
         )
 
-    def forward(self, x_2d: Tensor, x_3d_0: Tensor, x_2d_0: Tensor) -> Tensor:
+    def forward(
+        self,
+        x_2d: Tensor,
+        x_3d_0: Tensor,
+        x_2d_0: Tensor | None = None,
+    ) -> Tensor:
         c = self.content_encoder(x_3d_0)
         m = self.motion_encoder(x_2d, x_2d_0)
         b, t, c_, d, h = m.size()
         m = m.view(b * t, c_, d, h)
         c = c.repeat(t, 1, 1, 1, 1)
-        return self.decoder(m, c)
+        y = self.decoder(m, c)
+        _, c_, d, h, w = y.size()
+        return y.view(b, t, c_, d, h, w)
 
 
 if __name__ == "__main__":
@@ -248,8 +262,7 @@ if __name__ == "__main__":
     def test():
         from torch import randn
 
-        from .motion_encoder import (MotionRNNEncoder1dOption,
-                                     MotionRNNEncoder2dOption)
+        from .motion_encoder import MotionRNNEncoder1dOption, MotionRNNEncoder2dOption
         from .rnn import ConvLSTM1dOption, ConvLSTM2dOption
 
         option = RDAE2dOption(
@@ -276,12 +289,7 @@ if __name__ == "__main__":
         )
         net = create_rdae2d(option)
         x = net(
-            randn(
-                8,
-                10,
-                1,
-                64,
-            ),
+            randn(8, 10, 1, 64),
             randn(8, 2, 64, 64),
         )
         print(x.size())

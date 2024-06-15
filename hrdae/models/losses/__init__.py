@@ -1,10 +1,10 @@
 from dataclasses import dataclass
+from typing import Any
 
 from torch import Tensor, float32, nn, tensor
 
 from .option import LossOption
-from .pjc import (PJC2dLossOption, PJC3dLossOption, create_pjc2d_loss,
-                  create_pjc3d_loss)
+from .pjc import PJC2dLossOption, PJC3dLossOption, create_pjc2d_loss, create_pjc3d_loss
 from .weighted_mse import WeightedMSELossOption, create_weighted_mse_loss
 
 
@@ -36,7 +36,7 @@ class LossMixer(nn.Module):
     def forward(self, input: Tensor, target: Tensor, **kwargs) -> Tensor:
         loss = tensor(0, device=input.device, dtype=float32)
         for f, coef in zip(self.loss, self.loss_coef):
-            kw = {}
+            kw: dict[str, Any] = {}
             if hasattr(f, "required_kwargs"):
                 kw |= {k: kwargs[k] for k in f.required_kwargs}
             loss += coef * f(input, target, **kw)

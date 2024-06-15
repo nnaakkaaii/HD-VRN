@@ -32,6 +32,7 @@ def _parse_for_3d(f: list[int]) -> tuple[int, int, int]:
 
 
 class ConvBlock1d(nn.Module):
+    conv: nn.Module
     def __init__(
         self,
         in_channels: int,
@@ -100,6 +101,7 @@ class IdenticalConvBlock1d(ConvBlock1d):
 
 
 class ConvBlock2d(nn.Module):
+    conv: nn.Module
     def __init__(
         self,
         in_channels: int,
@@ -168,6 +170,7 @@ class IdenticalConvBlock2d(ConvBlock2d):
 
 
 class ConvBlock3d(nn.Module):
+    conv: nn.Module
     def __init__(
         self,
         in_channels: int,
@@ -244,15 +247,15 @@ class ConvModuleBase(nn.Module):
         self, x: Tensor, hs: list[Tensor] | None = None
     ) -> tuple[Tensor, list[Tensor]]:
         if self.use_skip:
-            assert hs is not None and len(hs) == len(
-                self.layers
-            ), f"{len(hs)} != {len(self.layers)}"
+            assert hs is not None
+            assert len(hs) == len(self.layers)
         else:
             assert hs is None
 
         xs = []
         for i, layer in enumerate(self.layers):
             if self.use_skip:
+                assert hs is not None
                 x = cat([x, hs[i]], dim=1)
             x = layer(x)
             if self.debug_show_dim:

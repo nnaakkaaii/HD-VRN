@@ -77,14 +77,22 @@ class ConvLSTM1d(nn.Module):
 
         self._check_kernel_size_consistency(kernel_size)
 
-        kernel_size = self._extend_for_multilayer(kernel_size, num_layers)
-        hidden_dim = self._extend_for_multilayer(hidden_dim, num_layers)
-        if not len(kernel_size) == len(hidden_dim) == num_layers:
+        _kernel_size: list[int] = []
+        if isinstance(kernel_size, list):
+            _kernel_size = kernel_size
+        else:
+            _kernel_size = [kernel_size]
+        _hidden_dim: list[int] = []
+        if isinstance(hidden_dim, list):
+            _hidden_dim = hidden_dim
+        else:
+            _hidden_dim = [hidden_dim]
+        if not len(_kernel_size) == len(_hidden_dim) == num_layers:
             raise ValueError("Inconsistent list length")
 
         self.input_dim = input_dim
-        self.hidden_dim = hidden_dim
-        self.kernel_size = kernel_size
+        self.hidden_dim = _hidden_dim
+        self.kernel_size = _kernel_size
         self.num_layers = num_layers
         self.batch_first = batch_first
         self.bias = bias
@@ -113,10 +121,10 @@ class ConvLSTM1d(nn.Module):
             # (t, b, c, h) -> (b, t, c, h)
             input_tensor = input_tensor.permute(1, 0, 2, 3)
 
-        b, _, _, h = input_tensor.size()
+        b, _, _, h_ = input_tensor.size()
 
         if hidden_state is None:
-            hidden_state = self._init_hidden(batch_size=b, image_size=h)
+            hidden_state = self._init_hidden(batch_size=b, image_size=h_)
 
         last_state_list = []
 
@@ -157,14 +165,6 @@ class ConvLSTM1d(nn.Module):
         ):
             return
         raise ValueError("`kernel_size` must be int or list of ints")
-
-    @staticmethod
-    def _extend_for_multilayer(
-        param: int | tuple[int, int] | list[int | tuple[int, int]], num_layers: int
-    ) -> list[int | tuple[int, int]]:
-        if not isinstance(param, list):
-            param = [param] * num_layers
-        return param
 
 
 class ConvLSTMCell2d(nn.Module):
@@ -248,14 +248,22 @@ class ConvLSTM2d(nn.Module):
 
         self._check_kernel_size_consistency(kernel_size)
 
-        kernel_size = self._extend_for_multilayer(kernel_size, num_layers)
-        hidden_dim = self._extend_for_multilayer(hidden_dim, num_layers)
-        if not len(kernel_size) == len(hidden_dim) == num_layers:
+        _kernel_size: list[tuple[int, int]] = []
+        if isinstance(kernel_size, list):
+            _kernel_size = kernel_size
+        else:
+            _kernel_size = [kernel_size]
+        _hidden_dim: list[int] = []
+        if isinstance(hidden_dim, list):
+            _hidden_dim = hidden_dim
+        else:
+            _hidden_dim = [hidden_dim]
+        if not len(_kernel_size) == len(_hidden_dim) == num_layers:
             raise ValueError("Inconsistent list length")
 
         self.input_dim = input_dim
-        self.hidden_dim = hidden_dim
-        self.kernel_size = kernel_size
+        self.hidden_dim = _hidden_dim
+        self.kernel_size = _kernel_size
         self.num_layers = num_layers
         self.batch_first = batch_first
         self.bias = bias
@@ -284,10 +292,10 @@ class ConvLSTM2d(nn.Module):
             # (t, b, c, h, w) -> (b, t, c, h, w)
             input_tensor = input_tensor.permute(1, 0, 2, 3, 4)
 
-        b, _, _, h, w = input_tensor.size()
+        b, _, _, h_, w = input_tensor.size()
 
         if hidden_state is None:
-            hidden_state = self._init_hidden(batch_size=b, image_size=(h, w))
+            hidden_state = self._init_hidden(batch_size=b, image_size=(h_, w))
 
         last_state_list = []
 
@@ -321,7 +329,7 @@ class ConvLSTM2d(nn.Module):
 
     @staticmethod
     def _check_kernel_size_consistency(
-        kernel_size: int | tuple[int, int] | list[int | tuple[int, int]]
+        kernel_size: tuple[int, int] | list[tuple[int, int]]
     ) -> None:
         if isinstance(kernel_size, tuple):
             return
@@ -330,14 +338,6 @@ class ConvLSTM2d(nn.Module):
         ):
             return
         raise ValueError("`kernel_size` must be tuple or list of tuples")
-
-    @staticmethod
-    def _extend_for_multilayer(
-        param: int | tuple[int, int] | list[int | tuple[int, int]], num_layers: int
-    ) -> list[int | tuple[int, int]]:
-        if not isinstance(param, list):
-            param = [param] * num_layers
-        return param
 
 
 if __name__ == "__main__":

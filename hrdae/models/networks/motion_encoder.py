@@ -5,8 +5,7 @@ from omegaconf import MISSING
 from torch import Tensor, nn
 
 from .modules import ConvModule1d, ConvModule2d, ConvModule3d
-from .rnn import (RNN1d, RNN1dOption, RNN2d, RNN2dOption, create_rnn1d,
-                  create_rnn2d)
+from .rnn import RNN1d, RNN1dOption, RNN2d, RNN2dOption, create_rnn1d, create_rnn2d
 
 
 @dataclass
@@ -506,6 +505,7 @@ class MotionTSNEncoder1d(MotionNormalEncoder1d):
         x_0: Tensor | None = None,
     ) -> Tensor:
         # x: (b, t, c, h) - x_0: (b, s, h)
+        assert x_0 is not None
         x -= x_0.unsqueeze(1)
         x = super().forward(x, x_0)
         if self.debug_show_dim:
@@ -520,6 +520,7 @@ class MotionTSNEncoder2d(MotionNormalEncoder2d):
         x_0: Tensor | None = None,
     ) -> Tensor:
         # x: (b, t, c, d, h) - x_0: (b, s, d, h)
+        assert x_0 is not None
         x -= x_0.unsqueeze(1)
         x = super().forward(x, x_0)
         if self.debug_show_dim:

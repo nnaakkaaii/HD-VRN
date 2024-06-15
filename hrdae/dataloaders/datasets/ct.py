@@ -154,8 +154,12 @@ if __name__ == "__main__":
     def test():
         from torchvision import transforms
 
-        from ..transforms import (MinMaxNormalizationOption, Pool3dOption,
-                                  UniformShape3dOption, create_transform)
+        from ..transforms import (
+            MinMaxNormalizationOption,
+            Pool3dOption,
+            UniformShape3dOption,
+            create_transform,
+        )
 
         option = CTDatasetOption(
             root=Path("data"),

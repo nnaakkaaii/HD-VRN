@@ -1,8 +1,14 @@
 from torch import Tensor, nn
 
-from .conv_block import (ConvBlock1d, ConvBlock2d, ConvBlock3d, ConvModuleBase,
-                         IdenticalConvBlock1d, IdenticalConvBlock2d,
-                         IdenticalConvBlock3d)
+from .conv_block import (
+    ConvBlock1d,
+    ConvBlock2d,
+    ConvBlock3d,
+    ConvModuleBase,
+    IdenticalConvBlock1d,
+    IdenticalConvBlock2d,
+    IdenticalConvBlock3d,
+)
 
 
 class HierarchicalConvEncoder1d(ConvModuleBase):

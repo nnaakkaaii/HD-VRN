@@ -1,34 +1,61 @@
 from hydra.core.config_store import ConfigStore
 
 from .dataloaders import BasicDataLoaderOption
-from .dataloaders.datasets import (CTDatasetOption, MNISTDatasetOption,
-                                   MovingMNISTDatasetOption)
-from .dataloaders.transforms import (Crop2dOption, MinMaxNormalizationOption,
-                                     Normalize2dOption, Pad2dOption,
-                                     Pool3dOption, RandomShift3dOption,
-                                     ToTensorOption, UniformShape3dOption)
+from .dataloaders.datasets import (
+    CTDatasetOption,
+    MNISTDatasetOption,
+    MovingMNISTDatasetOption,
+)
+from .dataloaders.transforms import (
+    Crop2dOption,
+    MinMaxNormalizationOption,
+    Normalize2dOption,
+    Pad2dOption,
+    Pool3dOption,
+    RandomShift3dOption,
+    ToTensorOption,
+    UniformShape3dOption,
+)
 from .models import BasicModelOption, VRModelOption
-from .models.losses import (MSELossOption, PJC2dLossOption, PJC3dLossOption,
-                            WeightedMSELossOption)
-from .models.networks import (AutoEncoder2dNetworkOption,
-                              Discriminator2dOption, Discriminator3dOption,
-                              FiveBranchAutoencoder2dOption,
-                              FiveBranchAutoencoder3dOption, HRDAE2dOption,
-                              HRDAE3dOption, RAE2dOption, RAE3dOption,
-                              RDAE2dOption, RDAE3dOption)
-from .models.networks.motion_encoder import (MotionConv2dEncoder1dOption,
-                                             MotionConv3dEncoder2dOption,
-                                             MotionGuidedEncoder1dOption,
-                                             MotionGuidedEncoder2dOption,
-                                             MotionNormalEncoder1dOption,
-                                             MotionNormalEncoder2dOption,
-                                             MotionRNNEncoder1dOption,
-                                             MotionRNNEncoder2dOption,
-                                             MotionTSNEncoder1dOption,
-                                             MotionTSNEncoder2dOption)
-from .models.networks.rnn import (ConvLSTM1dOption, ConvLSTM2dOption,
-                                  GRU1dOption, GRU2dOption, TCN1dOption,
-                                  TCN2dOption)
+from .models.losses import (
+    MSELossOption,
+    PJC2dLossOption,
+    PJC3dLossOption,
+    WeightedMSELossOption,
+)
+from .models.networks import (
+    AutoEncoder2dNetworkOption,
+    Discriminator2dOption,
+    Discriminator3dOption,
+    FiveBranchAutoencoder2dOption,
+    FiveBranchAutoencoder3dOption,
+    HRDAE2dOption,
+    HRDAE3dOption,
+    RAE2dOption,
+    RAE3dOption,
+    RDAE2dOption,
+    RDAE3dOption,
+)
+from .models.networks.motion_encoder import (
+    MotionConv2dEncoder1dOption,
+    MotionConv3dEncoder2dOption,
+    MotionGuidedEncoder1dOption,
+    MotionGuidedEncoder2dOption,
+    MotionNormalEncoder1dOption,
+    MotionNormalEncoder2dOption,
+    MotionRNNEncoder1dOption,
+    MotionRNNEncoder2dOption,
+    MotionTSNEncoder1dOption,
+    MotionTSNEncoder2dOption,
+)
+from .models.networks.rnn import (
+    ConvLSTM1dOption,
+    ConvLSTM2dOption,
+    GRU1dOption,
+    GRU2dOption,
+    TCN1dOption,
+    TCN2dOption,
+)
 from .models.optimizers import AdamOptimizerOption
 from .models.schedulers import OneCycleLRSchedulerOption
 from .option import Option, TestExpOption, TrainExpOption

@@ -10,7 +10,7 @@ from .typing import Transform
 
 @dataclass
 class RandomShift3dOption(TransformOption):
-    max_shifts: list[int, int, int] = field(default_factory=lambda: [5, 30, 30])
+    max_shifts: list[int] = field(default_factory=lambda: [5, 30, 30])
 
 
 def create_random_shift3d(opt: RandomShift3dOption) -> Transform:
@@ -20,7 +20,7 @@ def create_random_shift3d(opt: RandomShift3dOption) -> Transform:
 class RandomShift3d:
     def __init__(
         self,
-        ds: list[int, int, int],
+        ds: list[int],
     ) -> None:
         self.dz, self.dx, self.dy = ds
 

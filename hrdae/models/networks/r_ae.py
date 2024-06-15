@@ -8,9 +8,14 @@ from torch import Tensor, nn
 from torch.nn.functional import interpolate
 
 from .modules import ConvModule2d, ConvModule3d
-from .motion_encoder import (MotionEncoder1d, MotionEncoder1dOption,
-                             MotionEncoder2d, MotionEncoder2dOption,
-                             create_motion_encoder1d, create_motion_encoder2d)
+from .motion_encoder import (
+    MotionEncoder1d,
+    MotionEncoder1dOption,
+    MotionEncoder2d,
+    MotionEncoder2dOption,
+    create_motion_encoder1d,
+    create_motion_encoder2d,
+)
 from .option import NetworkOption
 
 
@@ -135,14 +140,16 @@ class RAE2d(nn.Module):
     def forward(
         self,
         x_1d: Tensor,
-        x_2d_0: Tensor,
-        x_1d_0: Tensor,
+        x_2d_0: Tensor | None = None,
+        x_1d_0: Tensor | None = None,
     ) -> Tensor:
         m = self.motion_encoder(x_1d, x_1d_0)
         b, t, c_, h = m.size()
         m = m.view(b * t, c_, h, 1)
         m = interpolate(m, size=self.upsample_size, mode="bilinear", align_corners=True)
-        return self.decoder(m)
+        y = self.decoder(m)
+        _, c_, h, w = y.size()
+        return y.view(b, t, c_, h, w)
 
 
 class RAE3d(nn.Module):
@@ -168,8 +175,8 @@ class RAE3d(nn.Module):
     def forward(
         self,
         x_2d: Tensor,
-        x_3d_0: Tensor,
-        x_2d_0: Tensor,
+        x_3d_0: Tensor | None = None,
+        x_2d_0: Tensor | None = None,
     ) -> Tensor:
         m = self.motion_encoder(x_2d, x_2d_0)
         b, t, c_, d, h = m.size()
@@ -177,7 +184,9 @@ class RAE3d(nn.Module):
         m = interpolate(
             m, size=self.upsample_size, mode="trilinear", align_corners=True
         )
-        return self.decoder(m)
+        y = self.decoder(m)
+        _, c_, d, h, w = y.size()
+        return y.view(b, t, c_, d, h, w)
 
 
 if __name__ == "__main__":
@@ -185,8 +194,7 @@ if __name__ == "__main__":
     def test():
         from torch import randn
 
-        from .motion_encoder import (MotionRNNEncoder1dOption,
-                                     MotionRNNEncoder2dOption)
+        from .motion_encoder import MotionRNNEncoder1dOption, MotionRNNEncoder2dOption
         from .rnn import ConvLSTM1dOption, ConvLSTM2dOption
 
         option = RAE2dOption(

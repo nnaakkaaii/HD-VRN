@@ -28,8 +28,8 @@ def create_basic_dataloader(
     dataset = create_dataset(opt.dataset, transform, is_train)
 
     if is_train:
-        train_size = int(opt.train_val_ratio * len(dataset))
-        val_size = len(dataset) - train_size
+        train_size = int(opt.train_val_ratio * len(dataset))  # type: ignore
+        val_size = len(dataset) - train_size  # type: ignore
         train_dataset, val_dataset = random_split(
             dataset,
             [train_size, val_size],
