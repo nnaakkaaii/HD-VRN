@@ -1,6 +1,0 @@
-num_layers: 3
-image_size: 8
-kernel_size: 4
-dropout: 0.1
-defaults:
-  - /config/experiment/model/network/motion_encoder/rnn/tcn1d@_here_

@@ -1,4 +1,0 @@
-num_layers: 3
-image_size: [4, 8]
-defaults:
-  - /config/experiment/model/network/motion_encoder/rnn/gru2d@_here_
