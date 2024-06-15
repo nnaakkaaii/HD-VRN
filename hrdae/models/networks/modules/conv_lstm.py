@@ -81,12 +81,12 @@ class ConvLSTM1d(nn.Module):
         if isinstance(kernel_size, list):
             _kernel_size = kernel_size
         else:
-            _kernel_size = [kernel_size]
+            _kernel_size = [kernel_size] * num_layers
         _hidden_dim: list[int] = []
         if isinstance(hidden_dim, list):
             _hidden_dim = hidden_dim
         else:
-            _hidden_dim = [hidden_dim]
+            _hidden_dim = [hidden_dim] * num_layers
         if not len(_kernel_size) == len(_hidden_dim) == num_layers:
             raise ValueError("Inconsistent list length")
 
@@ -252,12 +252,12 @@ class ConvLSTM2d(nn.Module):
         if isinstance(kernel_size, list):
             _kernel_size = kernel_size
         else:
-            _kernel_size = [kernel_size]
+            _kernel_size = [kernel_size] * num_layers
         _hidden_dim: list[int] = []
         if isinstance(hidden_dim, list):
             _hidden_dim = hidden_dim
         else:
-            _hidden_dim = [hidden_dim]
+            _hidden_dim = [hidden_dim] * num_layers
         if not len(_kernel_size) == len(_hidden_dim) == num_layers:
             raise ValueError("Inconsistent list length")
 
