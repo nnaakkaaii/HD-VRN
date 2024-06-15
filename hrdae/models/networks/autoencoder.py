@@ -9,7 +9,6 @@ from .option import NetworkOption
 
 @dataclass
 class AutoEncoder2dNetworkOption(NetworkOption):
-    in_channels: int = 1
     latent_dim: int = 64
     conv_params: list[dict[str, list[int]]] = field(
         default_factory=lambda: [
@@ -19,9 +18,11 @@ class AutoEncoder2dNetworkOption(NetworkOption):
     debug_show_dim: bool = False
 
 
-def create_autoencoder2d(opt: AutoEncoder2dNetworkOption) -> nn.Module:
+def create_autoencoder2d(
+    out_channels: int, opt: AutoEncoder2dNetworkOption
+) -> nn.Module:
     return AutoEncoder2d(
-        in_channels=opt.in_channels,
+        in_channels=out_channels,
         latent_dim=opt.latent_dim,
         conv_params=opt.conv_params,
         activation=opt.activation,

@@ -1,4 +1,4 @@
-task_name: mmnist-hrdae2d-conv2d
+task_name: mmnist-hrdae2d-guided1d
 defaults:
   - config_schema
   - experiment: train

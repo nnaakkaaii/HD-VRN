@@ -25,10 +25,6 @@ from .models.losses import (
 )
 from .models.networks import (
     AutoEncoder2dNetworkOption,
-    Discriminator2dOption,
-    Discriminator3dOption,
-    FiveBranchAutoencoder2dOption,
-    FiveBranchAutoencoder3dOption,
     HRDAE2dOption,
     HRDAE3dOption,
     RAE2dOption,
@@ -128,26 +124,6 @@ cs.store(
     group="config/experiment/model/network",
     name="autoencoder2d",
     node=AutoEncoder2dNetworkOption,
-)
-cs.store(
-    group="config/experiment/model/network",
-    name="discriminator2d",
-    node=Discriminator2dOption,
-)
-cs.store(
-    group="config/experiment/model/network",
-    name="discriminator3d",
-    node=Discriminator3dOption,
-)
-cs.store(
-    group="config/experiment/model/network",
-    name="fb_autoencoder2d",
-    node=FiveBranchAutoencoder2dOption,
-)
-cs.store(
-    group="config/experiment/model/network",
-    name="fb_autoencoder3d",
-    node=FiveBranchAutoencoder3dOption,
 )
 cs.store(group="config/experiment/model/network", name="hrdae2d", node=HRDAE2dOption)
 cs.store(group="config/experiment/model/network", name="hrdae3d", node=HRDAE3dOption)

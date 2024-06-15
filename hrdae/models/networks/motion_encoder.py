@@ -18,6 +18,17 @@ class MotionEncoder2dOption:
     pass
 
 
+def check_in_channels(
+    in_channels: int, opt: MotionEncoder1dOption | MotionEncoder2dOption
+) -> None:
+    if in_channels == 1:
+        return
+    assert type(opt) is not MotionGuidedEncoder1dOption
+    assert type(opt) is not MotionGuidedEncoder2dOption
+    assert type(opt) is not MotionTSNEncoder1dOption
+    assert type(opt) is not MotionTSNEncoder2dOption
+
+
 def create_motion_encoder1d(
     latent_dim: int, debug_show_dim: bool, opt: MotionEncoder1dOption
 ) -> "MotionEncoder1d":

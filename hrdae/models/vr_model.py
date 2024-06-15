@@ -153,7 +153,8 @@ def create_vr_model(
     n_epoch: int,
     steps_per_epoch: int,
 ) -> Model:
-    network = create_network(opt.network)
+    in_channels = 2 if opt.phase == "all" else 1
+    network = create_network(in_channels, 1, opt.network)
     optimizer = create_optimizer(
         opt.optimizer,
         network.parameters(),

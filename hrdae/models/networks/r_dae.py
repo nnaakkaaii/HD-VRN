@@ -20,14 +20,13 @@ from .motion_encoder import (
     MotionEncoder2dOption,
     create_motion_encoder1d,
     create_motion_encoder2d,
+    check_in_channels,
 )
 from .option import NetworkOption
 
 
 @dataclass
 class RDAE2dOption(NetworkOption):
-    in_channels: int = 2
-    out_channels: int = 1
     latent_dim: int = 64
     conv_params: list[dict[str, list[int]]] = field(
         default_factory=lambda: [{"kernel_size": [3], "stride": [2], "padding": [1]}]
@@ -40,8 +39,6 @@ class RDAE2dOption(NetworkOption):
 
 @dataclass
 class RDAE3dOption(NetworkOption):
-    in_channels: int = 2
-    out_channels: int = 1
     latent_dim: int = 64
     conv_params: list[dict[str, list[int]]] = field(
         default_factory=lambda: [{"kernel_size": [3], "stride": [2], "padding": [1]}]
@@ -52,13 +49,14 @@ class RDAE3dOption(NetworkOption):
     debug_show_dim: bool = False
 
 
-def create_rdae2d(opt: RDAE2dOption) -> nn.Module:
+def create_rdae2d(in_channels: int, out_channels: int, opt: RDAE2dOption) -> nn.Module:
+    check_in_channels(in_channels, opt.motion_encoder)
     motion_encoder = create_motion_encoder1d(
         opt.latent_dim, opt.debug_show_dim, opt.motion_encoder
     )
     return RDAE2d(
-        opt.in_channels,
-        opt.out_channels,
+        in_channels,
+        out_channels,
         opt.latent_dim,
         opt.conv_params,
         motion_encoder,
@@ -68,13 +66,14 @@ def create_rdae2d(opt: RDAE2dOption) -> nn.Module:
     )
 
 
-def create_rdae3d(opt: RDAE3dOption) -> nn.Module:
+def create_rdae3d(in_channels: int, out_channels: int, opt: RDAE3dOption) -> nn.Module:
+    check_in_channels(in_channels, opt.motion_encoder)
     motion_encoder = create_motion_encoder2d(
         opt.latent_dim, opt.debug_show_dim, opt.motion_encoder
     )
     return RDAE3d(
-        opt.in_channels,
-        opt.out_channels,
+        in_channels,
+        out_channels,
         opt.latent_dim,
         opt.conv_params,
         motion_encoder,
