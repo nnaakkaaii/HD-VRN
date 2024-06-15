@@ -5,6 +5,6 @@ pred_diff: false
 defaults:
   - /config/experiment/model/vr@_here_
   - loss@loss.wmse: wmse
-  - network: hrdae2d
+  - network: hrdae3d
   - optimizer: adam
   - scheduler: onecyclelr
