@@ -1,3 +1,0 @@
-num_layers: 3
-defaults:
-  - /config/experiment/model/network/motion_encoder/rnn/conv_lstm1d@_here_
