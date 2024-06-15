@@ -135,14 +135,16 @@ class RAE2d(nn.Module):
     def forward(
         self,
         x_1d: Tensor,
-        x_2d_0: Tensor,
-        x_1d_0: Tensor,
+        x_2d_0: Tensor | None = None,
+        x_1d_0: Tensor | None = None,
     ) -> Tensor:
         m = self.motion_encoder(x_1d, x_1d_0)
         b, t, c_, h = m.size()
         m = m.view(b * t, c_, h, 1)
         m = interpolate(m, size=self.upsample_size, mode="bilinear", align_corners=True)
-        return self.decoder(m)
+        y = self.decoder(m)
+        _, c_, h, w = y.size()
+        return y.view(b, t, c_, h, w)
 
 
 class RAE3d(nn.Module):
@@ -168,8 +170,8 @@ class RAE3d(nn.Module):
     def forward(
         self,
         x_2d: Tensor,
-        x_3d_0: Tensor,
-        x_2d_0: Tensor,
+        x_3d_0: Tensor | None = None,
+        x_2d_0: Tensor | None = None,
     ) -> Tensor:
         m = self.motion_encoder(x_2d, x_2d_0)
         b, t, c_, d, h = m.size()
@@ -177,7 +179,9 @@ class RAE3d(nn.Module):
         m = interpolate(
             m, size=self.upsample_size, mode="trilinear", align_corners=True
         )
-        return self.decoder(m)
+        y = self.decoder(m)
+        _, c_, d, h, w = y.size()
+        return y.view(b, t, c_, d, h, w)
 
 
 if __name__ == "__main__":

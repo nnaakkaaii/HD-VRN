@@ -224,7 +224,7 @@ class HRDAE2d(nn.Module):
         self,
         x_1d: Tensor,
         x_2d_0: Tensor,
-        x_1d_0: Tensor,
+        x_1d_0: Tensor | None = None,
     ) -> Tensor:
         c, cs = self.content_encoder(x_2d_0)
         m = self.motion_encoder(x_1d, x_1d_0)
@@ -232,7 +232,9 @@ class HRDAE2d(nn.Module):
         m = m.view(b * t, c_, h)
         c = c.repeat(t, 1, 1, 1)
         cs = [c_.repeat(t, 1, 1, 1) for c_ in cs]
-        return self.decoder(m, c, cs[::-1])
+        y = self.decoder(m, c, cs[::-1])
+        _, c_, h, w = y.size()
+        return y.view(b, t, c_, h, w)
 
 
 class HRDAE3d(nn.Module):
@@ -266,7 +268,7 @@ class HRDAE3d(nn.Module):
         self,
         x_2d: Tensor,
         x_3d_0: Tensor,
-        x_2d_0: Tensor,
+        x_2d_0: Tensor | None = None,
     ) -> Tensor:
         c, cs = self.content_encoder(x_3d_0)
         m = self.motion_encoder(x_2d, x_2d_0)
@@ -274,7 +276,9 @@ class HRDAE3d(nn.Module):
         m = m.view(b * t, c_, h, w)
         c = c.repeat(t, 1, 1, 1, 1)
         cs = [c_.repeat(t, 1, 1, 1, 1) for c_ in cs]
-        return self.decoder(m, c, cs[::-1])
+        y = self.decoder(m, c, cs[::-1])
+        _, c_, d, h, w = y.size()
+        return y.view(b, t, c_, d, h, w)
 
 
 if __name__ == "__main__":
