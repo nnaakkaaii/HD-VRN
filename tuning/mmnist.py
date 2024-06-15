@@ -2,6 +2,7 @@ import json
 from dataclasses import asdict
 from pathlib import Path
 from typing import Any
+from uuid import uuid4
 
 from hrdae.option import TrainExpOption
 from hrdae.dataloaders.transforms import MinMaxNormalizationOption
@@ -75,6 +76,10 @@ def objective(trial):
     else:
         network_name = trial.suggest_categorical("network", ["hrdae2d", "rae2d", "rdae2d"])
     if hasattr(args, "motion_encoder_name") and args.motion_encoder_name in ["conv2d", "guided1d", "normal1d", "rnn1d", "tsn1d"]:
+        if phase == "all":
+            pred_diff = False
+        else:
+            pred_diff = trial.suggest_categorical("pred_diff", [True, False])
         motion_encoder_name = args.motion_encoder_name
     elif phase == "all":
         pred_diff = False
@@ -204,7 +209,7 @@ def objective(trial):
         scheduler=scheduler_option,
     )
 
-    result_dir = Path(f"results/tuning/mmnist/{network_name}/{motion_encoder_name}/{trial.number}")
+    result_dir = Path(f"results/tuning/mmnist/{network_name}/{motion_encoder_name}/{trial.number}-{uuid4()[:8]}")
     train_option = TrainExpOption(
         result_dir=result_dir,
         dataloader=dataloader_option,
