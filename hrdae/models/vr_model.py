@@ -76,9 +76,9 @@ class VRModel(Model):
                     break
 
                 xm = data["x-"].to(self.device)
-                xm_0 = data["x-" + self.phase].to(self.device)
+                xm_0 = data["x-_" + self.phase].to(self.device)
                 xp = data["x+"].to(self.device)
-                xp_0 = data["x+" + self.phase].to(self.device)
+                xp_0 = data["x+_" + self.phase].to(self.device)
                 idx_expanded = data["idx_expanded"].to(self.device)
 
                 self.optimizer.zero_grad()
@@ -110,9 +110,9 @@ class VRModel(Model):
                         break
 
                     xm = data["x-"].to(self.device)
-                    xm_0 = data["x-" + self.phase].to(self.device)
+                    xm_0 = data["x-_" + self.phase].to(self.device)
                     xp = data["x+"].to(self.device)
-                    xp_0 = data["x+" + self.phase].to(self.device)
+                    xp_0 = data["x+_" + self.phase].to(self.device)
                     idx_expanded = data["idx_expanded"].to(self.device)
                     y = self.network(xm, xp_0, xm_0)
 
@@ -130,9 +130,9 @@ class VRModel(Model):
                 data = next(iter(val_loader))
 
                 xm = data["x-"].to(self.device)
-                xm_0 = data["x-" + self.phase].to(self.device)
+                xm_0 = data["x-_" + self.phase].to(self.device)
                 xp = data["x+"].to(self.device)
-                xp_0 = data["x+" + self.phase].to(self.device)
+                xp_0 = data["x+_" + self.phase].to(self.device)
 
                 y = self.network(xm, xp_0, xm_0)
 
