@@ -1,6 +1,7 @@
 import json
 from dataclasses import asdict
 from pathlib import Path
+from typing import Any
 
 from hrdae.option import TrainExpOption
 from hrdae.dataloaders.transforms import MinMaxNormalizationOption
@@ -35,6 +36,14 @@ def interleave_arrays(
     return result
 
 
+def default(item: Any):
+    match item:
+        case Path():
+            return str(item)
+        case _:
+            raise TypeError(type(item))
+
+
 def objective(trial):
     dataset_option = MovingMNISTDatasetOption(
         root="data",
@@ -63,8 +72,10 @@ def objective(trial):
     phase = trial.suggest_categorical("phase", ["0", "t", "all"])
     network_name = trial.suggest_categorical("network", ["hrdae2d", "rae2d", "rdae2d"])
     if phase == "all":
-        motion_encoder_name = trial.suggest_categorical("motion_encoder", ["conv2d", "normal1d", "rnn1d"])
+        pred_diff = False
+        motion_encoder_name = trial.suggest_categorical("motion_encoder_all", ["conv2d", "normal1d", "rnn1d"])
     else:
+        pred_diff = trial.suggest_categorical("pred_diff", [True, False])
         motion_encoder_name = trial.suggest_categorical("motion_encoder", ["conv2d", "guided1d", "normal1d", "rnn1d", "tsn1d"])
     motion_encoder_num_layers = trial.suggest_int("motion_encoder_num_layers", 0, 3)
     if motion_encoder_name == "rnn1d":
@@ -130,7 +141,7 @@ def objective(trial):
         )
     else:
         raise RuntimeError("unreachable")
-    latent_dim = int(trial.suggest_discrete_uniform("latent_dim", 16, 64, 8))
+    latent_dim = trial.suggest_int("latent_dim", 16, 64, step=8)
     content_encoder_num_layers = trial.suggest_int("content_encoder_encoder_num_layers", 0, 3)
     if network_name == "rae2d":
         network_option = RAE2dOption(
@@ -168,33 +179,33 @@ def objective(trial):
         raise RuntimeError("unreachable")
 
     optimizer_option = AdamOptimizerOption(
-        lr=trial.suggest_loguniform("lr", 1e-5, 1e-2),
+        lr=trial.suggest_float("lr", 1e-5, 1e-2, log=True),
     )
 
     scheduler_option = OneCycleLRSchedulerOption(
-        max_lr=trial.suggest_loguniform("max_lr", 1e-3, 1e-2),
+        max_lr=trial.suggest_float("max_lr", 1e-3, 1e-2, log=True),
     )
 
     model_option = VRModelOption(
         loss_coef={"wmse": 1.0},
         phase=phase,
-        pred_diff=trial.suggest_categorical("pred_diff", [True, False]),
+        pred_diff=pred_diff,
         loss=loss_option,
         network=network_option,
         optimizer=optimizer_option,
         scheduler=scheduler_option,
     )
 
-    result_dir = Path(f"result/tuning/mmnist/{network_name}/{motion_encoder_name}/{trial.number}")
+    result_dir = Path(f"results/tuning/mmnist/{network_name}/{motion_encoder_name}/{trial.number}")
     train_option = TrainExpOption(
         result_dir=result_dir,
         dataloader=dataloader_option,
         model=model_option,
-        n_epoch=50,
+        n_epoch=1,
     )
     result_dir.mkdir(parents=True, exist_ok=True)
     with open(result_dir / "config.json", "w") as f:
-        json.dump(asdict(train_option), f, indent=2)
+        json.dump(asdict(train_option), f, indent=2, default=default)
 
     train_loader, val_loader = create_dataloader(
         dataloader_option,
@@ -210,6 +221,7 @@ def objective(trial):
         val_loader,
         n_epoch=train_option.n_epoch,
         result_dir=result_dir,
+        debug=False,
     )
 
 
@@ -218,7 +230,7 @@ if __name__ == "__main__":
 
     study = optuna.create_study(
         study_name="tuning",
-        storage="sqlite:///result/tuning.db",
+        storage="sqlite:///results/tuning.db",
         load_if_exists=True,
     )
     study.optimize(objective, n_trials=100)
