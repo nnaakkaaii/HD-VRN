@@ -1,9 +1,12 @@
 from torch import nn
 
 from .autoencoder import AutoEncoder2dNetworkOption, create_autoencoder2d
-from .discriminator import Discriminator3dOption, create_discriminator3d, Discriminator2dOption, create_discriminator2d
-from .fb_autoencoder import (FiveBranchAutoencoder3dOption,
-                             create_fb_autoencoder3d, FiveBranchAutoencoder2dOption, FiveBranchAutoencoder2d)
+from .discriminator import (Discriminator2dOption, Discriminator3dOption,
+                            create_discriminator2d, create_discriminator3d)
+from .fb_autoencoder import (FiveBranchAutoencoder2d,
+                             FiveBranchAutoencoder2dOption,
+                             FiveBranchAutoencoder3dOption,
+                             create_fb_autoencoder3d)
 from .hr_dae import (HRDAE2dOption, HRDAE3dOption, create_hrdae2d,
                      create_hrdae3d)
 from .option import NetworkOption

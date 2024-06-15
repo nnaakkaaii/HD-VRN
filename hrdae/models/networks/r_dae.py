@@ -234,12 +234,7 @@ class RDAE3d(nn.Module):
             debug_show_dim,
         )
 
-    def forward(
-        self,
-        x_2d: Tensor,
-        x_3d_0: Tensor,
-        x_2d_0: Tensor
-    ) -> Tensor:
+    def forward(self, x_2d: Tensor, x_3d_0: Tensor, x_2d_0: Tensor) -> Tensor:
         c = self.content_encoder(x_3d_0)
         m = self.motion_encoder(x_2d, x_2d_0)
         b, t, c_, d, h = m.size()

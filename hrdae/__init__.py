@@ -11,8 +11,7 @@ from .models import BasicModelOption, VRModelOption
 from .models.losses import (MSELossOption, PJC2dLossOption, PJC3dLossOption,
                             WeightedMSELossOption)
 from .models.networks import (AutoEncoder2dNetworkOption,
-                              Discriminator2dOption,
-                              Discriminator3dOption,
+                              Discriminator2dOption, Discriminator3dOption,
                               FiveBranchAutoencoder2dOption,
                               FiveBranchAutoencoder3dOption, HRDAE2dOption,
                               HRDAE3dOption, RAE2dOption, RAE3dOption,

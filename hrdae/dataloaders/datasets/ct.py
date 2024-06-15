@@ -5,7 +5,7 @@ from typing import Callable
 
 import numpy as np
 from omegaconf import MISSING
-from torch import Tensor, from_numpy, gather, int64, tensor, where, cat
+from torch import Tensor, cat, from_numpy, gather, int64, tensor, where
 from torch.utils.data import Dataset
 from tqdm import tqdm
 
