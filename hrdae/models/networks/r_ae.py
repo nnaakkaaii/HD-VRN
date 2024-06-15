@@ -7,7 +7,7 @@ from omegaconf import MISSING
 from torch import Tensor, nn
 from torch.nn.functional import interpolate
 
-from .modules import ConvModule2d, ConvModule3d
+from .modules import ConvModule2d, ConvModule3d, create_activation
 from .motion_encoder import (
     MotionEncoder1d,
     MotionEncoder1dOption,
@@ -55,6 +55,7 @@ def create_rae2d(opt: RAE2dOption) -> nn.Module:
         opt.conv_params,
         motion_encoder,
         opt.upsample_size,
+        opt.activation,
         opt.debug_show_dim,
     )
 
@@ -69,6 +70,7 @@ def create_rae3d(opt: RAE3dOption) -> nn.Module:
         opt.conv_params,
         motion_encoder,
         opt.upsample_size,
+        opt.activation,
         opt.debug_show_dim,
     )
 
@@ -125,6 +127,7 @@ class RAE2d(nn.Module):
         conv_params: list[dict[str, list[int]]],
         motion_encoder: MotionEncoder1d,
         upsample_size: list[int],
+        activation: str,
         debug_show_dim: bool = False,
     ) -> None:
         super().__init__()
@@ -136,6 +139,7 @@ class RAE2d(nn.Module):
             debug_show_dim,
         )
         self.upsample_size = upsample_size
+        self.activation = create_activation(activation)
 
     def forward(
         self,
@@ -149,7 +153,10 @@ class RAE2d(nn.Module):
         m = interpolate(m, size=self.upsample_size, mode="bilinear", align_corners=True)
         y = self.decoder(m)
         _, c_, h, w = y.size()
-        return y.view(b, t, c_, h, w)
+        y = y.view(b, t, c_, h, w)
+        if self.activation is not None:
+            y = self.activation(y)
+        return y
 
 
 class RAE3d(nn.Module):
@@ -160,6 +167,7 @@ class RAE3d(nn.Module):
         conv_params: list[dict[str, list[int]]],
         motion_encoder: MotionEncoder2d,
         upsample_size: list[int],
+        activation: str,
         debug_show_dim: bool = False,
     ) -> None:
         super().__init__()
@@ -171,6 +179,7 @@ class RAE3d(nn.Module):
             debug_show_dim,
         )
         self.upsample_size = upsample_size
+        self.activation = create_activation(activation)
 
     def forward(
         self,
@@ -186,4 +195,7 @@ class RAE3d(nn.Module):
         )
         y = self.decoder(m)
         _, c_, d, h, w = y.size()
-        return y.view(b, t, c_, d, h, w)
+        y = y.view(b, t, c_, d, h, w)
+        if self.activation is not None:
+            y = self.activation(y)
+        return y

@@ -1,3 +1,5 @@
+from torch import nn
+
 from .conv_block import (
     ConvBlock1d,
     ConvBlock2d,
@@ -25,6 +27,19 @@ from .gru import GRU1d, GRU2d
 from .resnet_block import ResNetBranch
 from .tcn import TCN1d, TCN2d
 
+
+def create_activation(name: str) -> nn.Module | None:
+    if name == "none":
+        return None
+    if name == "relu":
+        return nn.ReLU()
+    if name == "sigmoid":
+        return nn.Sigmoid()
+    if name == "tanh":
+        return nn.Tanh()
+    raise NotImplementedError(f"Activation function {name} is not implemented.")
+
+
 __all__ = [
     "ConvBlock1d",
     "ConvBlock2d",
@@ -49,4 +64,5 @@ __all__ = [
     "ResNetBranch",
     "TCN1d",
     "TCN2d",
+    "create_activation",
 ]

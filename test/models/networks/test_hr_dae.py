@@ -216,6 +216,7 @@ def test_hrdae2d():
             ]
             * 2,
         ),
+        activation="sigmoid",
     )
     out = net(
         randn((b, n, s, h)),
@@ -252,6 +253,7 @@ def test_hrdae3d():
             ]
             * 2,
         ),
+        activation="sigmoid",
     )
     out = net(
         randn((b, n, s, d, h)),

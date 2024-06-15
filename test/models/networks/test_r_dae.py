@@ -195,6 +195,7 @@ def test_rdae2d():
             ]
             * 2,
         ),
+        activation="sigmoid",
     )
     out = net(
         randn((b, n, s, h)),
@@ -219,6 +220,7 @@ def test_rdae3d():
             }
         ]
         * 2,
+        activation="sigmoid",
         motion_encoder=MotionNormalEncoder2d(
             s,
             latent,

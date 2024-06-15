@@ -86,6 +86,7 @@ def test_rae2d():
             * 2,
         ),
         upsample_size=[h // 4, w // 4],
+        activation="sigmoid",
     )
     out = net(
         randn((b, n, s, h)),
@@ -122,6 +123,7 @@ def test_rae3d():
             * 2,
         ),
         upsample_size=[d // 4, h // 4, w // 4],
+        activation="sigmoid",
     )
     out = net(
         randn((b, n, s, d, h)),

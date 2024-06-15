@@ -36,6 +36,7 @@ conv_params_3d:
     padding: [1]
     output_padding: [1]
 weighted: false
+activation: sigmoid
 debug_show_dim: false
 defaults:
   - /config/experiment/model/network/fb_autoencoder3d@_here_

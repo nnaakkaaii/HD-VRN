@@ -15,6 +15,7 @@ from .modules import (
     IdenticalConvBlock3d,
     IdenticalConvBlockConvParams,
     ResNetBranch,
+    create_activation,
 )
 from .motion_encoder import (
     MotionEncoder1d,
@@ -45,6 +46,7 @@ def create_hrdae2d(opt: HRDAE2dOption) -> nn.Module:
         opt.latent_dim,
         opt.conv_params,
         motion_encoder,
+        opt.activation,
         opt.aggregation_method,
         opt.debug_show_dim,
     )
@@ -60,6 +62,7 @@ def create_hrdae3d(opt: HRDAE3dOption) -> nn.Module:
         opt.latent_dim,
         opt.conv_params,
         motion_encoder,
+        opt.activation,
         opt.aggregation_method,
         opt.debug_show_dim,
     )
@@ -211,6 +214,7 @@ class HRDAE2d(nn.Module):
         latent_dim: int,
         conv_params: list[dict[str, list[int]]],
         motion_encoder: MotionEncoder1d,
+        activation: str,
         aggregation_method: str = "concat",
         debug_show_dim: bool = False,
     ) -> None:
@@ -229,6 +233,7 @@ class HRDAE2d(nn.Module):
             aggregation_method,
             debug_show_dim,
         )
+        self.activation = create_activation(activation)
 
     def forward(
         self,
@@ -244,7 +249,10 @@ class HRDAE2d(nn.Module):
         cs = [c_.repeat(t, 1, 1, 1) for c_ in cs]
         y = self.decoder(m, c, cs[::-1])
         _, c_, h, w = y.size()
-        return y.view(b, t, c_, h, w)
+        y = y.view(b, t, c_, h, w)
+        if self.activation is not None:
+            y = self.activation(y)
+        return y
 
 
 class HRDAE3d(nn.Module):
@@ -255,6 +263,7 @@ class HRDAE3d(nn.Module):
         latent_dim: int,
         conv_params: list[dict[str, list[int]]],
         motion_encoder: MotionEncoder2d,
+        activation: str,
         aggregation_method: str = "concat",
         debug_show_dim: bool = False,
     ) -> None:
@@ -273,6 +282,7 @@ class HRDAE3d(nn.Module):
             aggregation_method,
             debug_show_dim,
         )
+        self.activation = create_activation(activation)
 
     def forward(
         self,
@@ -288,4 +298,7 @@ class HRDAE3d(nn.Module):
         cs = [c_.repeat(t, 1, 1, 1, 1) for c_ in cs]
         y = self.decoder(m, c, cs[::-1])
         _, c_, d, h, w = y.size()
-        return y.view(b, t, c_, d, h, w)
+        y = y.view(b, t, c_, d, h, w)
+        if self.activation is not None:
+            y = self.activation(y)
+        return y

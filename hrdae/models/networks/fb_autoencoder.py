@@ -2,11 +2,12 @@ from dataclasses import dataclass, field
 
 from torch import Tensor, cat, nn
 
-from .modules import ConvModule1d, ConvModule2d, ConvModule3d
+from .modules import ConvModule1d, ConvModule2d, ConvModule3d, create_activation
+from .option import NetworkOption
 
 
 @dataclass
-class FiveBranchAutoencoder2dOption:
+class FiveBranchAutoencoder2dOption(NetworkOption):
     in_channels_1d: int = 1
     in_channels_2d: int = 1
     latent_dim: int = 64
@@ -25,7 +26,7 @@ class FiveBranchAutoencoder2dOption:
 
 
 @dataclass
-class FiveBranchAutoencoder3dOption:
+class FiveBranchAutoencoder3dOption(NetworkOption):
     in_channels_2d: int = 1
     in_channels_3d: int = 1
     latent_dim: int = 64
@@ -50,6 +51,7 @@ def create_fb_autoencoder2d(opt: FiveBranchAutoencoder2dOption) -> nn.Module:
         latent_dim=opt.latent_dim,
         conv_params_1d=opt.conv_params_1d,
         conv_params_2d=opt.conv_params_2d,
+        activation=opt.activation,
         debug_show_dim=opt.debug_show_dim,
     )
 
@@ -61,6 +63,7 @@ def create_fb_autoencoder3d(opt: FiveBranchAutoencoder3dOption) -> nn.Module:
         latent_dim=opt.latent_dim,
         conv_params_2d=opt.conv_params_2d,
         conv_params_3d=opt.conv_params_3d,
+        activation=opt.activation,
         debug_show_dim=opt.debug_show_dim,
     )
 
@@ -73,6 +76,7 @@ class FiveBranchAutoencoder2d(nn.Module):
         latent_dim: int,
         conv_params_1d: list[dict[str, list[int]]],
         conv_params_2d: list[dict[str, list[int]]],
+        activation: str,
         debug_show_dim: bool,
     ) -> None:
         super().__init__()
@@ -101,6 +105,7 @@ class FiveBranchAutoencoder2d(nn.Module):
             transpose=True,
             debug_show_dim=debug_show_dim,
         )
+        self.activation = create_activation(activation)
 
     def forward(
         self,
@@ -141,6 +146,10 @@ class FiveBranchAutoencoder2d(nn.Module):
         # decode
         out = self.decoder_2d(latent)
         out = out.view(b, n, c, h, w)
+
+        if self.activation is not None:
+            out = self.activation(out)
+
         return out
 
 
@@ -152,6 +161,7 @@ class FiveBranchAutoencoder3d(nn.Module):
         latent_dim: int,
         conv_params_2d: list[dict[str, list[int]]],
         conv_params_3d: list[dict[str, list[int]]],
+        activation: str,
         debug_show_dim: bool,
     ) -> None:
         super().__init__()
@@ -180,6 +190,7 @@ class FiveBranchAutoencoder3d(nn.Module):
             transpose=True,
             debug_show_dim=debug_show_dim,
         )
+        self.activation = create_activation(activation)
 
     def forward(
         self,
@@ -220,4 +231,8 @@ class FiveBranchAutoencoder3d(nn.Module):
         # decode
         out = self.decoder_3d(latent)
         out = out.view(b, n, c, d, h, w)
+
+        if self.activation is not None:
+            out = self.activation(out)
+
         return out

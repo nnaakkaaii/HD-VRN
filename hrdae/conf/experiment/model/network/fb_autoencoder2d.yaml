@@ -28,6 +28,7 @@ conv_params_2d:
     padding: [1]
     output_padding: [1]
 weighted: false
+activation: sigmoid
 debug_show_dim: false
 defaults:
   - /config/experiment/model/network/fb_autoencoder2d@_here_

@@ -15,6 +15,7 @@ conv_params:
     padding: [1]
     output_padding: [1]
 aggregation_method: concat
+activation: sigmoid
 debug_show_dim: false
 defaults:
   - /config/experiment/model/network/rae2d@_here_

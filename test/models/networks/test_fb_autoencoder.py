@@ -36,6 +36,7 @@ def test_five_branch_autoencoder2d():
             },
         ]
         * 2,
+        activation="sigmoid",
         debug_show_dim=True,
     )
     out = model(x_1d, x_2d_0, x_1d_0)
@@ -72,6 +73,7 @@ def test_five_branch_autoencoder3d():
             },
         ]
         * 2,
+        activation="sigmoid",
         debug_show_dim=True,
     )
     out = model(x_2d, x_3d_0, x_2d_0)

@@ -3,4 +3,4 @@ from dataclasses import dataclass
 
 @dataclass
 class NetworkOption:
-    pass
+    activation: str = "sigmoid"  # "none" | "sigmoid" | "tanh" | "relu"

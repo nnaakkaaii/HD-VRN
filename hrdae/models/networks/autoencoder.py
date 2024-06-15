@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 
 from torch import Tensor, nn
 
-from .modules import ConvModule2d
+from .modules import ConvModule2d, create_activation
 from .option import NetworkOption
 
 
@@ -24,6 +24,7 @@ def create_autoencoder2d(opt: AutoEncoder2dNetworkOption) -> nn.Module:
         in_channels=opt.in_channels,
         latent_dim=opt.latent_dim,
         conv_params=opt.conv_params,
+        activation=opt.activation,
         debug_show_dim=opt.debug_show_dim,
     )
 
@@ -34,6 +35,7 @@ class AutoEncoder2d(nn.Module):
         in_channels: int,
         latent_dim: int,
         conv_params: list[dict[str, list[int]]],
+        activation: str,
         debug_show_dim: bool,
     ) -> None:
         super().__init__()
@@ -54,12 +56,15 @@ class AutoEncoder2d(nn.Module):
             transpose=True,
             debug_show_dim=debug_show_dim,
         )
+        self.activation = create_activation(activation)
 
         self.__debug_show_dim = debug_show_dim
 
     def forward(self, x: Tensor) -> tuple[Tensor, Tensor]:
         y_latent = self.encoder(x)
         y = self.decoder(y_latent)
+        if self.activation is not None:
+            y = self.activation(y)
 
         if self.__debug_show_dim:
             print("Input", x.size())

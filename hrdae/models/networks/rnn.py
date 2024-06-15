@@ -4,7 +4,6 @@ from dataclasses import dataclass, field
 from torch import Tensor, nn
 
 from . import modules as mdl
-from .option import NetworkOption
 
 
 class RNN1d(nn.Module, metaclass=ABCMeta):
@@ -28,12 +27,12 @@ class RNN2d(nn.Module, metaclass=ABCMeta):
 
 
 @dataclass
-class RNN1dOption(NetworkOption):
+class RNN1dOption:
     pass
 
 
 @dataclass
-class RNN2dOption(NetworkOption):
+class RNN2dOption:
     pass
 
 

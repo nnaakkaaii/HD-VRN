@@ -7,7 +7,12 @@ from omegaconf import MISSING
 from torch import Tensor, nn
 
 from .functions import aggregate
-from .modules import ConvModule2d, ConvModule3d, IdenticalConvBlockConvParams
+from .modules import (
+    ConvModule2d,
+    ConvModule3d,
+    IdenticalConvBlockConvParams,
+    create_activation,
+)
 from .motion_encoder import (
     MotionEncoder1d,
     MotionEncoder1dOption,
@@ -57,6 +62,7 @@ def create_rdae2d(opt: RDAE2dOption) -> nn.Module:
         opt.latent_dim,
         opt.conv_params,
         motion_encoder,
+        opt.activation,
         opt.aggregation_method,
         opt.debug_show_dim,
     )
@@ -72,6 +78,7 @@ def create_rdae3d(opt: RDAE3dOption) -> nn.Module:
         opt.latent_dim,
         opt.conv_params,
         motion_encoder,
+        opt.activation,
         opt.aggregation_method,
         opt.debug_show_dim,
     )
@@ -179,6 +186,7 @@ class RDAE2d(nn.Module):
         latent_dim: int,
         conv_params: list[dict[str, list[int]]],
         motion_encoder: MotionEncoder1d,
+        activation: str,
         aggregation_method: str = "concat",
         debug_show_dim: bool = False,
     ) -> None:
@@ -197,6 +205,7 @@ class RDAE2d(nn.Module):
             aggregation_method,
             debug_show_dim,
         )
+        self.activation = create_activation(activation)
 
     def forward(
         self,
@@ -211,7 +220,10 @@ class RDAE2d(nn.Module):
         c = c.repeat(t, 1, 1, 1)
         y = self.decoder(m, c)
         _, c_, h, w = y.size()
-        return y.view(b, t, c_, h, w)
+        y = y.view(b, t, c_, h, w)
+        if self.activation is not None:
+            y = self.activation(y)
+        return y
 
 
 class RDAE3d(nn.Module):
@@ -222,6 +234,7 @@ class RDAE3d(nn.Module):
         latent_dim: int,
         conv_params: list[dict[str, list[int]]],
         motion_encoder: MotionEncoder2d,
+        activation: str,
         aggregation_method: str = "concat",
         debug_show_dim: bool = False,
     ) -> None:
@@ -240,6 +253,7 @@ class RDAE3d(nn.Module):
             aggregation_method,
             debug_show_dim,
         )
+        self.activation = create_activation(activation)
 
     def forward(
         self,
@@ -254,73 +268,7 @@ class RDAE3d(nn.Module):
         c = c.repeat(t, 1, 1, 1, 1)
         y = self.decoder(m, c)
         _, c_, d, h, w = y.size()
-        return y.view(b, t, c_, d, h, w)
-
-
-if __name__ == "__main__":
-
-    def test():
-        from torch import randn
-
-        from .motion_encoder import MotionRNNEncoder1dOption, MotionRNNEncoder2dOption
-        from .rnn import ConvLSTM1dOption, ConvLSTM2dOption
-
-        option = RDAE2dOption(
-            in_channels=2,
-            out_channels=1,
-            latent_dim=16,
-            conv_params=[
-                {"kernel_size": [3], "stride": [2], "padding": [1]},
-                {"kernel_size": [3], "stride": [2], "padding": [1]},
-            ],
-            motion_encoder=MotionRNNEncoder1dOption(
-                in_channels=1,
-                conv_params=[
-                    {"kernel_size": [3], "stride": [2], "padding": [1]},
-                    {"kernel_size": [3], "stride": [2], "padding": [1]},
-                    {"kernel_size": [3], "stride": [2], "padding": [1]},
-                ],
-                rnn=ConvLSTM1dOption(
-                    num_layers=1,
-                ),
-            ),
-            aggregation_method="sum",
-            debug_show_dim=True,
-        )
-        net = create_rdae2d(option)
-        x = net(
-            randn(8, 10, 1, 64),
-            randn(8, 2, 64, 64),
-        )
-        print(x.size())
-
-        option = RDAE3dOption(
-            in_channels=2,
-            out_channels=1,
-            latent_dim=16,
-            conv_params=[
-                {"kernel_size": [3], "stride": [2], "padding": [1]},
-                {"kernel_size": [3], "stride": [2], "padding": [1]},
-            ],
-            motion_encoder=MotionRNNEncoder2dOption(
-                in_channels=1,
-                conv_params=[
-                    {"kernel_size": [3], "stride": [2], "padding": [1]},
-                    {"kernel_size": [3], "stride": [2], "padding": [1]},
-                    {"kernel_size": [3], "stride": [2], "padding": [1]},
-                ],
-                rnn=ConvLSTM2dOption(
-                    num_layers=1,
-                ),
-            ),
-            aggregation_method="sum",
-            debug_show_dim=True,
-        )
-        net = create_rdae3d(option)
-        x = net(
-            randn(8, 10, 1, 64, 64),
-            randn(8, 2, 64, 64, 64),
-        )
-        print(x.size())
-
-    test()
+        y = y.view(b, t, c_, d, h, w)
+        if self.activation is not None:
+            y = self.activation(y)
+        return y
