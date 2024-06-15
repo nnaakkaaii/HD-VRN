@@ -116,21 +116,21 @@ class FiveBranchAutoencoder2d(nn.Module):
         b, n, s, h = x_1d.size()
         _, _, c, _, w = x_2d_0.size()
 
-        x_1d = x_1d.view(b * n, s, h)
-        x_2d_0 = x_2d_0.view(b * 2, c, h, w)
-        x_1d_0 = x_1d_0.view(b * 2, s, h)
+        x_1d = x_1d.reshape(b * n, s, h)
+        x_2d_0 = x_2d_0.reshape(b * 2, c, h, w)
+        x_1d_0 = x_1d_0.reshape(b * 2, s, h)
 
         # encode
         x_1d = self.encoder_1d(x_1d)
         _, c_, h_ = x_1d.size()
-        x_1d = x_1d.view(b * n, 1 * c_, h_, 1)
+        x_1d = x_1d.reshape(b * n, 1 * c_, h_, 1)
 
         x_2d_0 = self.encoder_2d(x_2d_0)
         _, _, _, w_ = x_2d_0.size()
-        x_2d_0 = x_2d_0.view(b, 2 * c_, h_, w_)
+        x_2d_0 = x_2d_0.reshape(b, 2 * c_, h_, w_)
 
         x_1d_0 = self.encoder_1d(x_1d_0)
-        x_1d_0 = x_1d_0.view(b, 2 * c_, h_, 1)
+        x_1d_0 = x_1d_0.reshape(b, 2 * c_, h_, 1)
 
         # expand
         # (b * n, 1 * c_, h_, 1) -> (b * n, 1 * c_, h_, w_)
@@ -145,7 +145,7 @@ class FiveBranchAutoencoder2d(nn.Module):
 
         # decode
         out = self.decoder_2d(latent)
-        out = out.view(b, n, c, h, w)
+        out = out.reshape(b, n, c, h, w)
 
         if self.activation is not None:
             out = self.activation(out)
