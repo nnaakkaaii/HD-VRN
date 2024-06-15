@@ -3,12 +3,12 @@ from omegaconf import DictConfig, OmegaConf
 
 from .dataloaders import create_dataloader
 from .models import create_model
-from .option import TrainExpOption, process_options, save_options
+from .option import Option, TrainExpOption, process_options, save_options
 
 
 @hydra.main(version_base=None, config_path="conf", config_name="config")
 def main(cfg: DictConfig):
-    opt = OmegaConf.to_object(cfg)
+    opt: Option = OmegaConf.to_object(cfg)  # type: ignore
     opt = process_options(opt)
     save_options(opt, opt.experiment.result_dir)
     if (

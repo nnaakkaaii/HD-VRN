@@ -26,9 +26,9 @@ class GRU1d(nn.Module):
     ) -> tuple[Tensor, Tensor]:
         b, t, c, h = x.size()
         x = x.view(b, t, c * h)
-        y, last_states = self.rnn(x, last_states)
+        y, _last_states = self.rnn(x, last_states)
         y = y.view(b, t, self.c, h)
-        return y, last_states
+        return y, _last_states
 
 
 class GRU2d(nn.Module):
@@ -58,9 +58,9 @@ class GRU2d(nn.Module):
     ) -> tuple[Tensor, Tensor]:
         b, t, c, h, w = x.size()
         x = x.view(b, t, c * h * w)
-        y, last_states = self.rnn(x, last_states)
+        y, _last_states = self.rnn(x, last_states)
         y = y.view(b, t, self.c, h, w)
-        return y, last_states
+        return y, _last_states
 
 
 if __name__ == "__main__":
