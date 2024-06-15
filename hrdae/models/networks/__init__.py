@@ -25,6 +25,8 @@ def create_network(opt: NetworkOption) -> nn.Module:
         and type(opt) is AutoEncoder2dNetworkOption
     ):
         return create_autoencoder2d(opt)
+    if isinstance(opt, Discriminator2dOption) and type(opt) is Discriminator2dOption:
+        return create_discriminator2d(opt)
     if isinstance(opt, Discriminator3dOption) and type(opt) is Discriminator3dOption:
         return create_discriminator3d(opt)
     if (
@@ -45,3 +47,21 @@ def create_network(opt: NetworkOption) -> nn.Module:
     if isinstance(opt, RDAE3dOption) and type(opt) is RDAE3dOption:
         return create_rdae3d(opt)
     raise NotImplementedError(f"network {opt.__class__.__name__} not implemented")
+
+
+__all__ = [
+    "AutoEncoder2dNetworkOption",
+    "Discriminator2dOption",
+    "Discriminator3dOption",
+    "FiveBranchAutoencoder2d",
+    "FiveBranchAutoencoder2dOption",
+    "FiveBranchAutoencoder3dOption",
+    "HRDAE2dOption",
+    "HRDAE3dOption",
+    "RAE2dOption",
+    "RAE3dOption",
+    "RDAE2dOption",
+    "RDAE3dOption",
+    "NetworkOption",
+    "create_network",
+]

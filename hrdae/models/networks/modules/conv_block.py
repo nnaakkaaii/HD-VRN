@@ -33,6 +33,7 @@ def _parse_for_3d(f: list[int]) -> tuple[int, int, int]:
 
 class ConvBlock1d(nn.Module):
     conv: nn.Module
+
     def __init__(
         self,
         in_channels: int,
@@ -102,6 +103,7 @@ class IdenticalConvBlock1d(ConvBlock1d):
 
 class ConvBlock2d(nn.Module):
     conv: nn.Module
+
     def __init__(
         self,
         in_channels: int,
@@ -171,6 +173,7 @@ class IdenticalConvBlock2d(ConvBlock2d):
 
 class ConvBlock3d(nn.Module):
     conv: nn.Module
+
     def __init__(
         self,
         in_channels: int,
