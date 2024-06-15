@@ -10,7 +10,7 @@ def _save_images(
     save_path: Path,
 ) -> None:
     # (b, 1, h, w)
-    save_path.mkdir(parents=True, exist_ok=True)
+    save_path.parent.mkdir(parents=True, exist_ok=True)
     plt.figure(figsize=(20, 4))
 
     # Original Images
