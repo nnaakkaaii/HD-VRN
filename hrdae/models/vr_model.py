@@ -141,8 +141,8 @@ class VRModel(Model):
                     y += xp_0
 
                 save_reconstructed_images(
-                    xp.data.cpu().clone().detach().numpy()[:10],
-                    y.data.cpu().clone().detach().numpy()[:10],
+                    xp.data.cpu().clone().detach().numpy(),
+                    y.data.cpu().clone().detach().numpy(),
                     epoch,
                     result_dir / "logs" / "reconstructed",
                 )
