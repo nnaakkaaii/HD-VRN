@@ -1,3 +1,3 @@
 weight_dynamic: 1.0
 defaults:
-  - /config/experiment/model/loss/mse@_here_
+  - /config/experiment/model/loss/wmse@_here_

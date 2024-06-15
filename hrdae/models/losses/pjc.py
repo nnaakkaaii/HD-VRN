@@ -3,14 +3,16 @@ from dataclasses import dataclass
 from torch import Tensor, gather, nn
 from torch.nn.functional import mse_loss
 
+from .option import LossOption
+
 
 @dataclass
-class PJC2dLossOption:
+class PJC2dLossOption(LossOption):
     pass
 
 
 @dataclass
-class PJC3dLossOption:
+class PJC3dLossOption(LossOption):
     pass
 
 

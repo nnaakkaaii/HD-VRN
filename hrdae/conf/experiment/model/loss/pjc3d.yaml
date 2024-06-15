@@ -1,2 +1,2 @@
 defaults:
-  - /config/experiment/model/loss/mse@_here_
+  - /config/experiment/model/loss/pjc3d@_here_

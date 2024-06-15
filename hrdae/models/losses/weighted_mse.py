@@ -3,9 +3,11 @@ from dataclasses import dataclass
 from torch import Tensor, nn
 from torch.nn.functional import mse_loss
 
+from .option import LossOption
+
 
 @dataclass
-class WeightedMSELossOption:
+class WeightedMSELossOption(LossOption):
     weight_dynamic: float = 1.0
 
 
