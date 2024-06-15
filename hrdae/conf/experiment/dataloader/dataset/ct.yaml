@@ -1,6 +1,0 @@
-root: data
-threshold: 0.1
-min_occupancy: 0.2
-in_memory: true
-defaults:
-  - /config/experiment/dataloader/dataset/ct@_here_
