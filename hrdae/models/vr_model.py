@@ -1,3 +1,4 @@
+import json
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -28,6 +29,11 @@ class VRModelOption(ModelOption):
     pred_diff: bool = False
 
 
+def save_model(model: nn.Module, filepath: Path):
+    model_to_save = model.module if isinstance(model, torch.nn.DataParallel) else model
+    torch.save(model_to_save.state_dict(), filepath)
+
+
 class VRModel(Model):
     def __init__(
         self,
@@ -49,6 +55,7 @@ class VRModel(Model):
         if torch.cuda.is_available():
             print("GPU is enabled")
             self.device = torch.device("cuda:0")
+            self.network = nn.DataParallel(network).to(self.device)
         else:
             print("GPU is not enabled")
             self.device = torch.device("cpu")
@@ -65,9 +72,8 @@ class VRModel(Model):
         if debug:
             max_iter = 5
 
-        self.network.to(self.device)
-
         least_val_loss = float("inf")
+        training_history: dict[str, list[dict[str, int | float]]] = {"history": []}
 
         for epoch in range(n_epoch):
             self.network.train()
@@ -130,6 +136,15 @@ class VRModel(Model):
 
                 if avg_val_loss < least_val_loss:
                     least_val_loss = avg_val_loss
+                    save_model(self.network, result_dir / "best_model.pth")
+
+            training_history["history"].append(
+                {
+                    "epoch": int(epoch + 1),
+                    "train_loss": float(running_loss),
+                    "val_loss": float(avg_val_loss),
+                }
+            )
 
             if epoch % 10 == 0:
                 data = next(iter(val_loader))
@@ -151,6 +166,9 @@ class VRModel(Model):
                     epoch,
                     result_dir / "logs" / "reconstructed",
                 )
+
+        with open(result_dir / "training_history.json", "w") as f:
+            json.dump(training_history, f)
 
         return least_val_loss
 

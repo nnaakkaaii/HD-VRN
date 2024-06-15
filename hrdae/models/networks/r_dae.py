@@ -1,9 +1,8 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # Recurrent Disentangled AutoEncoder (R-DAE)
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
-from omegaconf import MISSING
 from torch import Tensor, nn
 
 from .functions import aggregate
@@ -15,38 +14,22 @@ from .modules import (
 )
 from .motion_encoder import (
     MotionEncoder1d,
-    MotionEncoder1dOption,
     MotionEncoder2d,
-    MotionEncoder2dOption,
     create_motion_encoder1d,
     create_motion_encoder2d,
     check_in_channels,
 )
-from .option import NetworkOption
+from .r_ae import RAE2dOption, RAE3dOption
 
 
 @dataclass
-class RDAE2dOption(NetworkOption):
-    latent_dim: int = 64
-    conv_params: list[dict[str, list[int]]] = field(
-        default_factory=lambda: [{"kernel_size": [3], "stride": [2], "padding": [1]}]
-        * 3,
-    )
-    motion_encoder: MotionEncoder1dOption = MISSING
+class RDAE2dOption(RAE2dOption):
     aggregation_method: str = "concat"
-    debug_show_dim: bool = False
 
 
 @dataclass
-class RDAE3dOption(NetworkOption):
-    latent_dim: int = 64
-    conv_params: list[dict[str, list[int]]] = field(
-        default_factory=lambda: [{"kernel_size": [3], "stride": [2], "padding": [1]}]
-        * 3,
-    )
-    motion_encoder: MotionEncoder2dOption = MISSING
+class RDAE3dOption(RAE3dOption):
     aggregation_method: str = "concat"
-    debug_show_dim: bool = False
 
 
 def create_rdae2d(in_channels: int, out_channels: int, opt: RDAE2dOption) -> nn.Module:
