@@ -45,26 +45,26 @@ def save_reconstructed_images(
         b, _, _, _, _ = original.shape
         for bi in range(0, b, 5):
             _save_images(
-                original[b],  # (t, 1, h, w)
-                reconstructed[b],  # (t, 1, h, w)
+                original[bi],  # (t, 1, h, w)
+                reconstructed[bi],  # (t, 1, h, w)
                 save_dir / f"epoch_{epoch}_batch_{bi}.png",
             )
     elif len(original.shape) == 6:
         b, _, _, d, h, w = original.shape
         for bi in range(0, b, 5):
             _save_images(
-                original[b, :, :, :, w // 2],  # (t, 1, d, h)
-                reconstructed[b, :, :, :, w // 2],  # (t, 1, d, h)
+                original[bi, :, :, :, w // 2],  # (t, 1, d, h)
+                reconstructed[bi, :, :, :, w // 2],  # (t, 1, d, h)
                 save_dir / f"epoch_{epoch}_batch_{bi}_axis_x.png",
             )
             _save_images(
-                original[b, :, :, h // 2],  # (t, 1, d, w)
-                reconstructed[b, :, :, h // 2],  # (t, 1, d, w)
+                original[bi, :, :, h // 2],  # (t, 1, d, w)
+                reconstructed[bi, :, :, h // 2],  # (t, 1, d, w)
                 save_dir / f"epoch_{epoch}_batch_{bi}_axis_y.png",
             )
             _save_images(
-                original[b, :, d // 2],  # (t, 1, h, w)
-                reconstructed[b, :, d // 2],  # (t, 1, h, w)
+                original[bi, :, d // 2],  # (t, 1, h, w)
+                reconstructed[bi, :, d // 2],  # (t, 1, h, w)
                 save_dir / f"epoch_{epoch}_batch_{bi}_axis_z.png",
             )
     else:
