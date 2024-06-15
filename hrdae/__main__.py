@@ -1,15 +1,22 @@
+from datetime import datetime
+
 import hydra
 from omegaconf import DictConfig, OmegaConf
 
 from .dataloaders import create_dataloader
 from .models import create_model
-from .option import Option, TrainExpOption, process_options, save_options
+from .option import Option, TrainExpOption, save_options
 
 
 @hydra.main(version_base=None, config_path="conf", config_name="config")
 def main(cfg: DictConfig):
     opt: Option = OmegaConf.to_object(cfg)  # type: ignore
-    opt = process_options(opt)
+    opt.experiment.result_dir = (
+        opt.experiment.result_dir
+        / opt.experiment.dataloader.__class__.__name__
+        / opt.experiment.model.__class__.__name__
+        / datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    )
     save_options(opt, opt.experiment.result_dir)
     if (
         isinstance(opt.experiment, TrainExpOption)

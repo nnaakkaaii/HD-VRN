@@ -9,7 +9,6 @@ from .models import ModelOption
 
 @dataclass
 class ExpOption:
-    run_name: str = MISSING
     result_dir: Path = field(default_factory=Path)
     debug: bool = False
 
@@ -29,16 +28,7 @@ class TestExpOption(ExpOption):
 
 @dataclass
 class Option:
-    task_name: str = MISSING
-
     experiment: ExpOption = MISSING
-
-
-def process_options(opt: Option) -> Option:
-    opt.experiment.result_dir = (
-        opt.experiment.result_dir / opt.task_name / opt.experiment.run_name
-    )
-    return opt
 
 
 def save_options(opt: Option, save_dir: Path) -> None:

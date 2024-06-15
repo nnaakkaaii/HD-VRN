@@ -17,4 +17,4 @@ activation: sigmoid
 debug_show_dim: false
 defaults:
   - /config/experiment/model/network/hrdae2d@_here_
-  - motion_encoder: guided1d
+  - motion_encoder: rnn1d

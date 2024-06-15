@@ -13,5 +13,5 @@ class Model(metaclass=ABCMeta):
         n_epoch: int,
         result_dir: Path,
         debug: bool,
-    ) -> None:
+    ) -> float:
         pass

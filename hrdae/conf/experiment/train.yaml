@@ -1,6 +1,5 @@
-run_name: 2024-06-16-0158
 result_dir: results
-n_epoch: 30
+n_epoch: 100
 debug: false
 defaults:
   - /config/experiment/train@_here_

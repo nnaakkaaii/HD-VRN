@@ -52,12 +52,14 @@ class BasicModel(Model):
         n_epoch: int,
         result_dir: Path,
         debug: bool,
-    ) -> None:
+    ) -> float:
         max_iter = None
         if debug:
             max_iter = 5
 
         self.network.to(self.device)
+
+        least_val_loss = float("inf")
 
         for epoch in range(n_epoch):
             self.network.train()
@@ -105,6 +107,9 @@ class BasicModel(Model):
                 avg_val_loss = total_val_loss / len(val_loader)
                 print(f"Epoch: {epoch+1}, Val Loss: {avg_val_loss:.6f}")
 
+                if avg_val_loss < least_val_loss:
+                    least_val_loss = avg_val_loss
+
             if epoch % 10 == 0:
                 data = next(iter(val_loader))
 
@@ -119,6 +124,8 @@ class BasicModel(Model):
                     epoch,
                     result_dir / "logs" / "reconstructed",
                 )
+
+        return least_val_loss
 
 
 def create_basic_model(
