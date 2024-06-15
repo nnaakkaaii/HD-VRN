@@ -31,7 +31,7 @@ def test_normal_content_encoder2d():
         ]
         * 2,
         debug_show_dim=False,
-        )
+    )
     c = net(x)
     assert c.size() == (b, latent, h // 4, w // 4)
 
@@ -87,7 +87,7 @@ def test_normal_decoder2d__concat():
         * 2,
         aggregation_method="concat",
         debug_show_dim=False,
-        )
+    )
     x = net(m, c)
     assert x.size() == (b * n, c_, h, w)
 
@@ -112,7 +112,7 @@ def test_normal_decoder2d__sum():
         * 2,
         aggregation_method="sum",
         debug_show_dim=False,
-        )
+    )
     x = net(m, c)
     assert x.size() == (b * n, 1, h, w)
 
@@ -137,7 +137,7 @@ def test_normal_decoder3d__concat():
         * 2,
         aggregation_method="concat",
         debug_show_dim=False,
-        )
+    )
     x = net(m, c)
     assert x.size() == (b * n, c_, d, h, w)
 
@@ -162,7 +162,7 @@ def test_normal_decoder3d__sum():
         * 2,
         aggregation_method="sum",
         debug_show_dim=False,
-        )
+    )
     x = net(m, c)
     assert x.size() == (b * n, c_, d, h, w)
 
@@ -194,8 +194,8 @@ def test_rdae2d():
                 }
             ]
             * 2,
-            ),
-        )
+        ),
+    )
     out = net(
         randn((b, n, s, h)),
         randn((b, 2, h, w)),
@@ -230,8 +230,8 @@ def test_rdae3d():
                 }
             ]
             * 2,
-            ),
-        )
+        ),
+    )
     out = net(
         randn((b, n, s, d, h)),
         randn((b, 2, d, h, w)),

@@ -30,7 +30,7 @@ def test_decoder2d():
         ]
         * 2,
         debug_show_dim=False,
-        )
+    )
     x = net(m)
     assert x.size() == (b * n, c_, h, w)
 
@@ -53,7 +53,7 @@ def test_decoder3d():
         ]
         * 2,
         debug_show_dim=False,
-        )
+    )
     x = net(m)
     assert x.size() == (b * n, c_, d, h, w)
 
@@ -84,9 +84,9 @@ def test_rae2d():
                 }
             ]
             * 2,
-            ),
+        ),
         upsample_size=[h // 4, w // 4],
-        )
+    )
     out = net(
         randn((b, n, s, h)),
         randn((b, 2, h, w)),
@@ -120,9 +120,9 @@ def test_rae3d():
                 }
             ]
             * 2,
-            ),
+        ),
         upsample_size=[d // 4, h // 4, w // 4],
-        )
+    )
     out = net(
         randn((b, n, s, d, h)),
         randn((b, 2, d, h, w)),
