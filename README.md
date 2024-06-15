@@ -13,3 +13,4 @@ Hierarchical Recurrent Disentangled AutoEncoder for 3D Video Reconstruction & Fr
 #### Hierarchical Recurrent Disentangled AutoEncoder (HR-DAE)
 
 1. [RNN1d - ConvLSTM1d](https://github.com/nnaakkaaii/HR-DAE/tree/exp/mmnist/hrdae2d/rnn1d/conv_lstm1d)
+1. [RNN1d - GRU1d](https://github.com/nnaakkaaii/HR-DAE/tree/exp/mmnist/hrdae2d/rnn1d/gru1d)
