@@ -61,23 +61,3 @@ class GRU2d(nn.Module):
         y, _last_states = self.rnn(x, last_states)
         y = y.view(b, t, self.c, h, w)
         return y, _last_states
-
-
-if __name__ == "__main__":
-
-    def test():
-        from torch import randn
-
-        x = randn((32, 10, 64, 4))
-        gru1d = GRU1d(64, 256, 3, 4)
-        y, last_states = gru1d(x)
-        print(y.size())
-        print(last_states.size())
-
-        x = randn((32, 10, 64, 4, 4))
-        gru2d = GRU2d(64, 256, 3, [4, 4])
-        y, last_states = gru2d(x)
-        print(y.size())
-        print(last_states.size())
-
-    test()

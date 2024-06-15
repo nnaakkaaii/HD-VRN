@@ -36,28 +36,3 @@ class WeightedMSELoss(nn.Module):
         loss_dynamic = mse_loss(input_dynamic, target_dynamic)
 
         return loss_static + self.weight_dynamic * loss_dynamic
-
-
-if __name__ == "__main__":
-    from torch import randn
-
-    def test():
-        wmse = WeightedMSELoss(weight_dynamic=0.5)
-        b, n, w, h = 32, 10, 128, 128
-
-        input = randn(b, n, w, h)
-        target = randn(b, n, w, h)
-
-        loss = wmse(input, target)
-        print(loss)
-
-        wmse = WeightedMSELoss(weight_dynamic=0.5)
-        b, n, d, w, h = 32, 10, 50, 128, 128
-
-        input = randn(b, n, d, w, h)
-        target = randn(b, n, d, w, h)
-
-        loss = wmse(input, target)
-        print(loss)
-
-    test()

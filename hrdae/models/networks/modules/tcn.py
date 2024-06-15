@@ -75,21 +75,3 @@ class TCN2d(nn.Module):
         x = self.tcn(x)
         x = x.view(b, t, self.c, h, w)
         return x
-
-
-if __name__ == "__main__":
-
-    def test():
-        from torch import randn
-
-        x = randn((32, 10, 64, 4))
-        tcn1d = TCN1d(64, [256, 256, 256], 3, 4)
-        x = tcn1d(x)
-        print(x.size())
-
-        x = randn((32, 10, 64, 4, 4))
-        tcn2d = TCN2d(64, [256, 256, 256], 3, (4, 4))
-        x = tcn2d(x)
-        print(x.size())
-
-    test()

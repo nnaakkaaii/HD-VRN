@@ -338,27 +338,3 @@ class ConvLSTM2d(nn.Module):
         ):
             return
         raise ValueError("`kernel_size` must be tuple or list of tuples")
-
-
-if __name__ == "__main__":
-
-    def test():
-        from torch import randn
-
-        x = randn((32, 10, 64, 4))
-        convlstm = ConvLSTM1d(64, 256, 3, 3, True, True)
-        y, last_states = convlstm(x)
-        h = last_states[0][0]
-        print(y.size())
-        print(len(last_states))
-        print(h.size())
-
-        x = randn((32, 10, 64, 4, 4))
-        convlstm = ConvLSTM2d(64, 256, (3, 3), 3, True, True)
-        y, last_states = convlstm(x)
-        h = last_states[0][0]
-        print(y.size())
-        print(len(last_states))
-        print(h.size())
-
-    test()
