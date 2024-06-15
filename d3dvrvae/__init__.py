@@ -93,7 +93,7 @@ cs.store(
     node=Pool3dOption,
 )
 cs.store(group="config/experiment/model", name="basic", node=BasicModelOption)
-cs.store(group="config/experiment/vr", name="vr", node=VRModelOption)
+cs.store(group="config/experiment/model", name="vr", node=VRModelOption)
 cs.store(group="config/experiment/model/loss", name="mse", node=MSELossOption)
 cs.store(group="config/experiment/model/loss", name="pjc2d", node=PJC2dLossOption)
 cs.store(group="config/experiment/model/loss", name="pjc3d", node=PJC3dLossOption)
