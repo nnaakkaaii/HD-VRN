@@ -1,5 +1,4 @@
-# Path: conf/experiment/test.yaml
-run_name: 87ea8a07-06ba-4230-9087-5a867165cdbd
+run_name: 0482c896-0be1-4fdf-b06b-67d7f4ae7621
 result_dir: results
 defaults:
   - /config/experiment/test@_here_

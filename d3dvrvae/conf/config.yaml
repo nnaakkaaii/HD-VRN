@@ -1,4 +1,4 @@
-task_name: mnist_autoencoder
+task_name: moving_mnist_hrdae2d
 defaults:
   - config_schema
   - experiment: train

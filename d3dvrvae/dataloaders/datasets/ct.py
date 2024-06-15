@@ -5,7 +5,7 @@ from typing import Callable
 
 import numpy as np
 from omegaconf import MISSING
-from torch import Tensor, from_numpy, gather, int64, tensor, where
+from torch import Tensor, from_numpy, gather, int64, tensor, where, cat
 from torch.utils.data import Dataset
 from tqdm import tqdm
 
@@ -123,23 +123,29 @@ class CT(Dataset):
         # (d, h, s) -> (b, d, h, s) -> (b, s, d, h)
         x_2d_0 = x_2d_0.unsqueeze(0).permute(0, 3, 1, 2)
         x_2d_t = x_2d_t.unsqueeze(0).permute(0, 3, 1, 2)
+        # (b, 2 * s, d, h)
+        x_2d_all = cat([x_2d_0, x_2d_t], dim=1)
         # (n, d, h, w) -> (b, n, c, d, h, w)
         x_3d = x_3d.unsqueeze(0).unsqueeze(2)
         # (d, h, w) -> (b, c, d, h, w)
         x_3d_0 = x_3d_0.unsqueeze(0).unsqueeze(1)
         x_3d_t = x_3d_t.unsqueeze(0).unsqueeze(1)
+        # (b, 2 * c, d, h, w)
+        x_3d_all = cat([x_3d_0, x_3d_t], dim=1)
         # (s,) -> (b, s)
         slice_idx = slice_idx.unsqueeze(0)
         # (n, d, h, s) -> (b, n, d, h, s) -> (b, n, s, d, h)
         idx_expanded = idx_expanded.unsqueeze(0).permute(0, 1, 4, 2, 3)
 
         return {
-            "x_2d": x_2d,  # (b, n, s, d, h)
-            "x_2d_0": x_2d_0,  # (b, s, d, h)
-            "x_2d_t": x_2d_t,  # (b, s, d, h)
-            "x_3d": x_3d,  # (b, n, c, d, h, w)
-            "x_3d_0": x_3d_0,  # (b, c, d, h, w)
-            "x_3d_t": x_3d_t,  # (b, c, d, h, w)
+            "x-": x_2d,  # (b, n, s, d, h)
+            "x-_0": x_2d_0,  # (b, s, d, h)
+            "x-_t": x_2d_t,  # (b, s, d, h)
+            "x-_all": x_2d_all,  # (b, 2 * s, d, h)
+            "x+": x_3d,  # (b, n, c, d, h, w)
+            "x+_0": x_3d_0,  # (b, c, d, h, w)
+            "x+_t": x_3d_t,  # (b, c, d, h, w)
+            "x+_all": x_3d_all,  # (b, 2 * c, d, h, w)
             "slice_idx": slice_idx,  # (b, s)
             "idx_expanded": idx_expanded,  # (b, n, s, d, h)
         }

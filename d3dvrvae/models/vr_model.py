@@ -17,26 +17,34 @@ from .typing import Model
 
 
 @dataclass
-class BasicModelOption(ModelOption):
+class VRModelOption(ModelOption):
     network: NetworkOption = MISSING
     optimizer: OptimizerOption = MISSING
     scheduler: SchedulerOption = MISSING
     loss: dict[str, LossOption] = MISSING
     loss_coef: dict[str, float] = MISSING
 
+    phase: str = "all"  # "all", "0", "t"
+    pred_diff: bool = False
 
-class BasicModel(Model):
+
+class VRModel(Model):
     def __init__(
         self,
         network: nn.Module,
         optimizer: Optimizer,
         scheduler: LRScheduler,
         criterion: nn.Module,
+        phase: str = "all",  # "all", "0", "t"
+        pred_diff: bool = False,
     ) -> None:
         self.network = network
         self.optimizer = optimizer
         self.scheduler = scheduler
         self.criterion = criterion
+
+        self.phase = phase
+        self.pred_diff = pred_diff
 
         if torch.cuda.is_available():
             print("GPU is enabled")
@@ -64,17 +72,23 @@ class BasicModel(Model):
             running_loss = 0.0
 
             for idx, data in enumerate(train_loader):
-                assert "x" in data and "t" in data, 'Data must have keys "x" and "t"'
-
                 if max_iter and max_iter <= idx:
                     break
 
-                x = data["x"].to(self.device)
-                t = data["t"].to(self.device)
+                xm = data["x-"].to(self.device)
+                xm_0 = data["x-"+self.phase].to(self.device)
+                xp = data["x+"].to(self.device)
+                xp_0 = data["x+"+self.phase].to(self.device)
+                idx_expanded = data["idx_expanded"].to(self.device)
 
                 self.optimizer.zero_grad()
-                y, _ = self.network(x)
-                loss = self.criterion(t, y)
+                y = self.network(xm, xp_0, xm_0)
+
+                if self.pred_diff:
+                    assert self.phase != "all"
+                    xp -= xp_0
+
+                loss = self.criterion(y, xp, idx_expanded=idx_expanded)
                 loss.backward()
                 self.optimizer.step()
 
@@ -95,11 +109,18 @@ class BasicModel(Model):
                     if max_iter and max_iter <= idx:
                         break
 
-                    x = data["x"].to(self.device)
-                    t = data["t"].to(self.device)
+                    xm = data["x-"].to(self.device)
+                    xm_0 = data["x-"+self.phase].to(self.device)
+                    xp = data["x+"].to(self.device)
+                    xp_0 = data["x+"+self.phase].to(self.device)
+                    idx_expanded = data["idx_expanded"].to(self.device)
+                    y = self.network(xm, xp_0, xm_0)
 
-                    y, _ = self.network(x)
-                    loss = self.criterion(t, y)
+                    if self.pred_diff:
+                        assert self.phase != "all"
+                        xp -= xp_0
+
+                    loss = self.criterion(y, xp, idx_expanded=idx_expanded)
                     total_val_loss += loss.item()
 
                 avg_val_loss = total_val_loss / len(val_loader)
@@ -108,21 +129,27 @@ class BasicModel(Model):
             if epoch % 10 == 0:
                 data = next(iter(val_loader))
 
-                x = data["x"].to(self.device)
-                t = data["t"].to(self.device)
+                xm = data["x-"].to(self.device)
+                xm_0 = data["x-"+self.phase].to(self.device)
+                xp = data["x+"].to(self.device)
+                xp_0 = data["x+"+self.phase].to(self.device)
 
-                y, _ = self.network(x)
+                y = self.network(xm, xp_0, xm_0)
+
+                if self.pred_diff:
+                    assert self.phase != "all"
+                    y += xp_0
 
                 save_reconstructed_images(
-                    t.data.cpu().clone().detach().numpy()[:10],
+                    xp.data.cpu().clone().detach().numpy()[:10],
                     y.data.cpu().clone().detach().numpy()[:10],
                     epoch,
                     result_dir / "logs" / "reconstructed",
                 )
 
 
-def create_basic_model(
-    opt: BasicModelOption,
+def create_vr_model(
+    opt: VRModelOption,
     n_epoch: int,
     steps_per_epoch: int,
 ) -> Model:
@@ -140,4 +167,11 @@ def create_basic_model(
     criterion = LossMixer(
         {k: create_loss(v) for k, v in opt.loss.items()}, opt.loss_coef
     )
-    return BasicModel(network, optimizer, scheduler, criterion)
+    return VRModel(
+        network,
+        optimizer,
+        scheduler,
+        criterion,
+        opt.phase,
+        opt.pred_diff,
+    )

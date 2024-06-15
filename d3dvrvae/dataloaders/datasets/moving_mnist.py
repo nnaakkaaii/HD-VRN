@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 
-from torch import Tensor, gather, int64, tensor
+from torch import Tensor, gather, int64, tensor, cat
 from torch.utils.data import Dataset
 from torchvision import datasets
 
@@ -44,23 +44,29 @@ class MovingMNIST(datasets.MovingMNIST):
         # (h, s) -> (b, h, s) -> (b, s, h)
         x_1d_0 = x_1d_0.unsqueeze(0).permute(0, 2, 1)
         x_1d_t = x_1d_t.unsqueeze(0).permute(0, 2, 1)
+        # (b, 2 * s, h)
+        x_1d_all = cat([x_1d_0, x_1d_t], dim=1)
         # (n, h, w) -> (b, n, c, h, w)
         x_2d = x_2d.unsqueeze(0).unsqueeze(2)
         # (h, w) -> (b, c, h, w)
         x_2d_0 = x_2d_0.unsqueeze(0).unsqueeze(1)
         x_2d_t = x_2d_t.unsqueeze(0).unsqueeze(1)
+        # (b, 2 * c, h, w)
+        x_2d_all = cat([x_2d_0, x_2d_t], dim=1)
         # (s,) -> (b, s)
         slice_idx = slice_idx.unsqueeze(0)
         # (n, h, s) -> (b, n, h, s) -> (b, n, s, h)
         idx_expanded = idx_expanded.unsqueeze(0).permute(0, 1, 3, 2)
 
         return {
-            "x_1d": x_1d,  # (b, n, s, h)
-            "x_1d_0": x_1d_0,  # (b, s, h)
-            "x_1d_t": x_1d_t,  # (b, s, h)
-            "x_2d": x_2d,  # (b, n, c, h, w)
-            "x_2d_0": x_2d_0,  # (b, c, h, w)
-            "x_2d_t": x_2d_t,  # (b, c, h, w)
+            "x-": x_1d,  # (b, n, s, h)
+            "x-_0": x_1d_0,  # (b, s, h)
+            "x-_t": x_1d_t,  # (b, s, h)
+            "x-_all": x_1d_all,  # (b, 2 * s, h)
+            "x+": x_2d,  # (b, n, c, h, w)
+            "x+_0": x_2d_0,  # (b, c, h, w)
+            "x+_t": x_2d_t,  # (b, c, h, w)
+            "x+_all": x_2d_all,  # (b, 2 * c, h, w)
             "slice_idx": slice_idx,  # (b, s)
             "idx_expanded": idx_expanded,  # (b, n, s, h)
         }

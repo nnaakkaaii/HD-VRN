@@ -1,0 +1,10 @@
+loss_coef:
+  wmse: 0.5
+  pjc2d: 0.5
+defaults:
+  - /config/experiment/model/vr@_here_
+  - loss@loss.wmse: wmse
+  - loss@loss.pjc2d: pjc2d
+  - network: hrdae2d
+  - optimizer: adam
+  - scheduler: onecyclelr

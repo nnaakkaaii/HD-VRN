@@ -7,7 +7,7 @@ from .dataloaders.transforms import (Crop2dOption, MinMaxNormalizationOption,
                                      Normalize2dOption, Pad2dOption,
                                      Pool3dOption, RandomShift3dOption,
                                      ToTensorOption, UniformShape3dOption)
-from .models import BasicModelOption
+from .models import BasicModelOption, VRModelOption
 from .models.losses import (MSELossOption, PJC2dLossOption, PJC3dLossOption,
                             WeightedMSELossOption)
 from .models.networks import (AutoEncoder2dNetworkOption,
@@ -93,6 +93,7 @@ cs.store(
     node=Pool3dOption,
 )
 cs.store(group="config/experiment/model", name="basic", node=BasicModelOption)
+cs.store(group="config/experiment/vr", name="vr", node=VRModelOption)
 cs.store(group="config/experiment/model/loss", name="mse", node=MSELossOption)
 cs.store(group="config/experiment/model/loss", name="pjc2d", node=PJC2dLossOption)
 cs.store(group="config/experiment/model/loss", name="pjc3d", node=PJC3dLossOption)
