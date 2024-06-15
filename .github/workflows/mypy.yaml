@@ -19,9 +19,4 @@ jobs:
         pip install mypy
     - name: Run mypy
       run: |
-        mypy . > mypy_report.txt
-    - name: Upload mypy report
-      uses: actions/upload-artifact@v2
-      with:
-        name: mypy_report
-        path: mypy_report.txt
+        mypy .

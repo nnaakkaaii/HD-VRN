@@ -19,9 +19,4 @@ jobs:
         pip install flake8
     - name: Run flake8
       run: |
-        flake8 hrdae/ > flake8_report.txt
-    - name: Upload flake8 report
-      uses: actions/upload-artifact@v2
-      with:
-        name: flake8_report
-        path: flake8_report.txt
+        flake8 hrdae/
