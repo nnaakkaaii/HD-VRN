@@ -82,23 +82,3 @@ def create_moving_mnist_dataset(
         download=True,
         transform=transform,
     )
-
-
-if __name__ == "__main__":
-
-    def test():
-        from torchvision import transforms
-
-        option = MovingMNISTDatasetOption(
-            root="data",
-        )
-        dataset = create_moving_mnist_dataset(
-            option,
-            transform=transforms.Compose([]),
-            is_train=True,
-        )
-        data = dataset[0]
-        for k, v in data.items():
-            print(k, v.shape)
-
-    test()

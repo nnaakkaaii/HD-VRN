@@ -10,10 +10,11 @@ from torch.utils.data import Dataset
 from tqdm import tqdm
 
 from ..transforms import Transform
+from .option import DatasetOption
 
 
 @dataclass
-class CTDatasetOption:
+class CTDatasetOption(DatasetOption):
     root: Path = MISSING
     threshold: float = 0.1
     min_occupancy: float = 0.2
@@ -99,6 +100,7 @@ class CT(Dataset):
             if self.transform is not None:
                 x_3d = self.transform(x_3d)
 
+        x_3d = x_3d.float()
         n, d, h, w = x_3d.size()
         assert n == self.PERIOD, f"expected {self.PERIOD} but got {n}"
 
@@ -147,36 +149,3 @@ class CT(Dataset):
             "slice_idx": slice_idx,  # (s)
             "idx_expanded": idx_expanded,  # (n, s, d, h)
         }
-
-
-if __name__ == "__main__":
-
-    def test():
-        from torchvision import transforms
-
-        from ..transforms import (
-            MinMaxNormalizationOption,
-            Pool3dOption,
-            UniformShape3dOption,
-            create_transform,
-        )
-
-        option = CTDatasetOption(
-            root=Path("data"),
-        )
-        dataset = create_ct_dataset(
-            option,
-            transform=transforms.Compose(
-                [
-                    create_transform(MinMaxNormalizationOption()),
-                    create_transform(UniformShape3dOption()),
-                    create_transform(Pool3dOption()),
-                ]
-            ),
-            is_train=True,
-        )
-        data = dataset[0]
-        for k, v in data.items():
-            print(k, v.shape)
-
-    test()
