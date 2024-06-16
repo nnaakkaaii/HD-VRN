@@ -33,9 +33,9 @@ class TCN1d(nn.Module):
 
     def forward(self, x: Tensor) -> Tensor:
         b, t, c, h = x.size()
-        x = x.view(b, t, c * h)
+        x = x.reshape(b, t, c * h)
         x = self.tcn(x)
-        x = x.view(b, t, self.c, h)
+        x = x.reshape(b, t, self.c, h)
         return x
 
 
@@ -71,7 +71,8 @@ class TCN2d(nn.Module):
 
     def forward(self, x: Tensor) -> Tensor:
         b, t, c, h, w = x.size()
-        x = x.view(b, t, c * h * w)
+        print(b, t, c, h, w)
+        x = x.reshape(b, t, c * h * w)
         x = self.tcn(x)
-        x = x.view(b, t, self.c, h, w)
+        x = x.reshape(b, t, self.c, h, w)
         return x

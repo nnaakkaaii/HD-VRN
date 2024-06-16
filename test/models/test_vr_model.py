@@ -67,25 +67,25 @@ class FakeNetwork(nn.Module):
         b, n, _, h = xm.size()
         _, _, _, w = xp_0.size()
         # xm (40, 1, 32)
-        xm = xm.view(b * n, 1, h)
+        xm = xm.reshape(b * n, 1, h)
         # ym (40, 4, 4)
         ym = self.conv1d(xm)
         # ym (4, 10, 4, 4, 1)
-        ym = ym.view(b, n, c, h // 8, 1)
+        ym = ym.reshape(b, n, c, h // 8, 1)
 
         # yp_0 (4, 4, 4, 4)
         yp_0 = self.conv2d(xp_0)
         # yp_0 (4, 1, 4, 4, 4)
-        yp_0 = yp_0.view(b, 1, c, h // 8, w // 8)
+        yp_0 = yp_0.reshape(b, 1, c, h // 8, w // 8)
 
         # y (4, 10, 4, 4, 4)
         y = ym + yp_0
         # y (40, 4, 4, 4)
-        y = y.view(b * n, c, h // 8, w // 8)
+        y = y.reshape(b * n, c, h // 8, w // 8)
 
         # x (40, 1, 32, 32)
         x = self.deconv2d(y)
-        return x.view(b, n, 1, h, w)
+        return x.reshape(b, n, 1, h, w)
 
 
 def test_vr_model__phase_0():

@@ -59,7 +59,7 @@ def objective(trial):
         slice_index=[48, 80],
         threshold=0.1,
         min_occupancy=0.2,
-        in_memory=True,
+        in_memory=False,
     )
 
     transform_option = {
@@ -69,7 +69,7 @@ def objective(trial):
     }
 
     dataloader_option = BasicDataLoaderOption(
-        batch_size=16,
+        batch_size=2,
         train_val_ratio=0.8,
         dataset=dataset_option,
         transform_order_train=["random_shift3d"],
@@ -160,7 +160,7 @@ def objective(trial):
         motion_encoder_option = MotionConv3dEncoder2dOption(
             in_channels=2,
             conv_params=interleave_arrays(
-                [{"kernel_size": [3], "stride": [1, 2], "padding": [1]}] * 3,
+                [{"kernel_size": [3], "stride": [1, 2, 2], "padding": [1]}] * 3,
                 [{"kernel_size": [3], "stride": [1], "padding": [1]}]
                 * motion_encoder_num_layers,
             ),

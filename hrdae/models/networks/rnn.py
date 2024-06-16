@@ -203,6 +203,7 @@ class GRU2d(RNN2d):
         last_states: list[tuple[Tensor, Tensor]] | Tensor | None = None,
     ) -> tuple[Tensor, list[tuple[Tensor, Tensor]] | Tensor | None]:
         assert last_states is None or isinstance(last_states, Tensor)
+        print(x.size(), last_states.size() if isinstance(last_states, Tensor) else None)
         y, last_states = self.rnn(x, last_states)
         assert isinstance(last_states, Tensor)
         return y, last_states

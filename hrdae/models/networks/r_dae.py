@@ -250,7 +250,7 @@ class RDAE3d(nn.Module):
         c = c.repeat(t, 1, 1, 1, 1)
         y = self.decoder(m, c)
         _, c_, d, h, w = y.size()
-        y = y.view(b, t, c_, d, h, w)
+        y = y.reshape(b, t, c_, d, h, w)
         if self.activation is not None:
             y = self.activation(y)
         return y
