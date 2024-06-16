@@ -233,9 +233,7 @@ def create_tcn1d(latent_dim: int, opt: TCN1dOption) -> RNN1d:
 
 def create_tcn2d(latent_dim: int, opt: TCN2dOption) -> RNN2d:
     image_size = (opt.image_size[0], opt.image_size[1])
-    return TCN2d(
-        latent_dim, opt.num_layers, image_size, opt.kernel_size, opt.dropout
-    )
+    return TCN2d(latent_dim, opt.num_layers, image_size, opt.kernel_size, opt.dropout)
 
 
 class TCN1d(RNN1d):

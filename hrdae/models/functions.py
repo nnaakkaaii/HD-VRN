@@ -67,7 +67,7 @@ def save_reconstructed_images(
                 save_dir / f"epoch_{epoch}_batch_{bi}_axis_y.png",
             )
             _save_images(
-                original[bi, :,  :, d // 2],  # (t, 1, h, w)
+                original[bi, :, :, d // 2],  # (t, 1, h, w)
                 reconstructed[bi, :, :, d // 2],  # (t, 1, h, w)
                 save_dir / f"epoch_{epoch}_batch_{bi}_axis_z.png",
             )

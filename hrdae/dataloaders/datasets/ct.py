@@ -49,8 +49,10 @@ def create_ct_dataset(
     if len(opt.slice_index) == 0:
         slice_indexer = BasicSliceIndexer(opt.threshold, opt.min_occupancy)
     else:
+
         def slice_indexer(_: Tensor) -> Tensor:
             return tensor(opt.slice_index, dtype=int64)
+
     return CT(
         root=opt.root,
         slice_indexer=slice_indexer,
