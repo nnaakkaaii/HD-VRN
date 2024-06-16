@@ -6,10 +6,7 @@ from uuid import uuid4
 
 from hrdae.option import TrainExpOption
 from hrdae.dataloaders.transforms import (
-    MinMaxNormalizationOption,
     RandomShift3dOption,
-    UniformShape3dOption,
-    Pool3dOption,
 )
 from hrdae.dataloaders.datasets import CTDatasetOption
 from hrdae.dataloaders import create_dataloader, BasicDataLoaderOption
@@ -66,15 +63,8 @@ def objective(trial):
     )
 
     transform_option = {
-        "min_max_normalization": MinMaxNormalizationOption(),
         "random_shift3d": RandomShift3dOption(
-            max_shifts=[5, 30, 30],
-        ),
-        "uniform_shape3d": UniformShape3dOption(
-            target_shape=[64, 512, 512],
-        ),
-        "pool3d": Pool3dOption(
-            pool_size=[1, 4, 4],
+            max_shifts=[2, 4, 4],
         ),
     }
 
@@ -82,17 +72,8 @@ def objective(trial):
         batch_size=16,
         train_val_ratio=0.8,
         dataset=dataset_option,
-        transform_order_train=[
-            "min_max_normalization",
-            "random_shift3d",
-            "uniform_shape3d",
-            "pool3d",
-        ],
-        transform_order_val=[
-            "min_max_normalization",
-            "uniform_shape3d",
-            "pool3d",
-        ],
+        transform_order_train=["random_shift3d"],
+        transform_order_val=[],
         transform=transform_option,
     )
 
