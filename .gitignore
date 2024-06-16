@@ -2,6 +2,11 @@ outputs/
 results/
 data/
 playground/
+logs/
+scripts/
+
+*.out
+*.d000*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
