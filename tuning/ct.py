@@ -265,7 +265,7 @@ def objective(trial):
         result_dir=result_dir,
         dataloader=dataloader_option,
         model=model_option,
-        n_epoch=1,
+        n_epoch=50,
     )
     result_dir.mkdir(parents=True, exist_ok=True)
     with open(result_dir / "config.json", "w") as f:
