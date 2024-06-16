@@ -7,6 +7,7 @@ from uuid import uuid4
 from hrdae.option import TrainExpOption
 from hrdae.dataloaders.transforms import (
     RandomShift3dOption,
+    Pool3dOption,
 )
 from hrdae.dataloaders.datasets import CTDatasetOption
 from hrdae.dataloaders import create_dataloader, BasicDataLoaderOption
@@ -62,18 +63,25 @@ def objective(trial):
         in_memory=False,
     )
 
+    pool_size = [2, 2, 2]
+    d, h, w = 64 // pool_size[0], 128 // pool_size[1], 128 // pool_size[2]
     transform_option = {
         "random_shift3d": RandomShift3dOption(
             max_shifts=[2, 4, 4],
         ),
+        "pool3d": Pool3dOption(
+            pool_size=pool_size,
+        ),
     }
+    num_reducible_layers = trial.suggest_int("num_reducible_layers", 1, 3)
+    d_, h_, w_ = d // 2 ** num_reducible_layers, h // 2 ** num_reducible_layers, w // 2 ** num_reducible_layers
 
     dataloader_option = BasicDataLoaderOption(
         batch_size=16,
         train_val_ratio=0.8,
         dataset=dataset_option,
-        transform_order_train=["random_shift3d"],
-        transform_order_val=[],
+        transform_order_train=["random_shift3d", "pool3d"],
+        transform_order_val=["pool3d"],
         transform=transform_option,
     )
 
@@ -116,7 +124,7 @@ def objective(trial):
         motion_encoder_name = trial.suggest_categorical(
             "motion_encoder", ["conv3d", "guided2d", "normal2d", "rnn2d", "tsn2d"]
         )
-    motion_encoder_num_layers = trial.suggest_int("motion_encoder_num_layers", 0, 3)
+    motion_encoder_num_layers = trial.suggest_int("motion_encoder_num_layers", 0, 6)
     if motion_encoder_name == "rnn2d":
         if args.rnn_name in [
             "conv_lstm2d",
@@ -129,19 +137,20 @@ def objective(trial):
                 "rnn", ["conv_lstm2d", "gru2d", "tcn2d"]
             )
         motion_encoder_name = f"{motion_encoder_name}/{rnn_name}"
+        rnn_num_layers = trial.suggest_int("rnn_num_layers", 1, 4)
         if rnn_name == "conv_lstm2d":
             rnn_option = ConvLSTM2dOption(
-                num_layers=trial.suggest_int("rnn_num_layers", 2, 4),
+                num_layers=rnn_num_layers,
             )
         elif rnn_name == "gru2d":
             rnn_option = GRU2dOption(
-                num_layers=trial.suggest_int("rnn_num_layers", 2, 4),
-                image_size=[4, 8],
+                num_layers=rnn_num_layers,
+                image_size=[d_, h_],
             )
         elif rnn_name == "tcn2d":
             rnn_option = TCN2dOption(
-                num_layers=trial.suggest_int("rnn_num_layers", 2, 4),
-                image_size=[4, 8],
+                num_layers=rnn_num_layers,
+                image_size=[d_, h_],
                 kernel_size=4,
                 dropout=0.1,
             )
@@ -150,7 +159,8 @@ def objective(trial):
         motion_encoder_option = MotionRNNEncoder2dOption(
             in_channels=2,
             conv_params=interleave_arrays(
-                [{"kernel_size": [3], "stride": [2], "padding": [1]}] * 4,
+                [{"kernel_size": [3], "stride": [2], "padding": [1]}]
+                * num_reducible_layers,
                 [{"kernel_size": [3], "stride": [1], "padding": [1]}]
                 * motion_encoder_num_layers,
             ),
@@ -160,7 +170,8 @@ def objective(trial):
         motion_encoder_option = MotionConv3dEncoder2dOption(
             in_channels=2,
             conv_params=interleave_arrays(
-                [{"kernel_size": [3], "stride": [1, 2, 2], "padding": [1]}] * 4,
+                [{"kernel_size": [3], "stride": [1, 2, 2], "padding": [1]}]
+                * num_reducible_layers,
                 [{"kernel_size": [3], "stride": [1], "padding": [1]}]
                 * motion_encoder_num_layers,
             ),
@@ -169,7 +180,8 @@ def objective(trial):
         motion_encoder_option = MotionGuidedEncoder2dOption(
             in_channels=2,
             conv_params=interleave_arrays(
-                [{"kernel_size": [3], "stride": [2], "padding": [1]}] * 4,
+                [{"kernel_size": [3], "stride": [2], "padding": [1]}]
+                * num_reducible_layers,
                 [{"kernel_size": [3], "stride": [1], "padding": [1]}]
                 * motion_encoder_num_layers,
             ),
@@ -178,7 +190,8 @@ def objective(trial):
         motion_encoder_option = MotionNormalEncoder2dOption(
             in_channels=2,
             conv_params=interleave_arrays(
-                [{"kernel_size": [3], "stride": [2], "padding": [1]}] * 4,
+                [{"kernel_size": [3], "stride": [2], "padding": [1]}]
+                * num_reducible_layers,
                 [{"kernel_size": [3], "stride": [1], "padding": [1]}]
                 * motion_encoder_num_layers,
             ),
@@ -187,38 +200,41 @@ def objective(trial):
         motion_encoder_option = MotionTSNEncoder2dOption(
             in_channels=2,
             conv_params=interleave_arrays(
-                [{"kernel_size": [3], "stride": [2], "padding": [1]}] * 4,
+                [{"kernel_size": [3], "stride": [2], "padding": [1]}]
+                * num_reducible_layers,
                 [{"kernel_size": [3], "stride": [1], "padding": [1]}]
                 * motion_encoder_num_layers,
             ),
         )
     else:
         raise RuntimeError("unreachable")
-    latent_dim = trial.suggest_int("latent_dim", 16, 64, step=8)
+    latent_dim = trial.suggest_int("latent_dim", 16, 256, step=16)
     content_encoder_num_layers = trial.suggest_int(
-        "content_encoder_encoder_num_layers", 0, 3
+        "content_encoder_encoder_num_layers", 0, 5
     )
     if network_name == "rae3d":
         network_option = RAE3dOption(
             latent_dim=latent_dim,
             conv_params=interleave_arrays(
-                [{"kernel_size": [3], "stride": [2], "padding": [1]}] * 4,
+                [{"kernel_size": [3], "stride": [2], "padding": [1]}]
+                * num_reducible_layers,
                 [{"kernel_size": [3], "stride": [1], "padding": [1]}]
                 * content_encoder_num_layers,
             ),
             motion_encoder=motion_encoder_option,
-            upsample_size=[4, 8, 8],
+            upsample_size=[d_, h_, w_],
         )
     elif network_name == "rdae3d":
         network_option = RDAE3dOption(
             latent_dim=latent_dim,
             conv_params=interleave_arrays(
-                [{"kernel_size": [3], "stride": [2], "padding": [1]}] * 4,
+                [{"kernel_size": [3], "stride": [2], "padding": [1]}]
+                * num_reducible_layers,
                 [{"kernel_size": [3], "stride": [1], "padding": [1]}]
                 * content_encoder_num_layers,
             ),
             motion_encoder=motion_encoder_option,
-            upsample_size=[4, 8, 8],
+            upsample_size=[d_, h_, w_],
             aggregation_method=trial.suggest_categorical(
                 "aggregation_method", ["concat", "sum"]
             ),
@@ -227,12 +243,13 @@ def objective(trial):
         network_option = HRDAE3dOption(
             latent_dim=latent_dim,
             conv_params=interleave_arrays(
-                [{"kernel_size": [3], "stride": [2], "padding": [1]}] * 4,
+                [{"kernel_size": [3], "stride": [2], "padding": [1]}]
+                * num_reducible_layers,
                 [{"kernel_size": [3], "stride": [1], "padding": [1]}]
                 * content_encoder_num_layers,
             ),
             motion_encoder=motion_encoder_option,
-            upsample_size=[4, 8, 8],
+            upsample_size=[d_, h_, w_],
             aggregation_method=trial.suggest_categorical(
                 "aggregation_method", ["concat", "sum"]
             ),
@@ -265,7 +282,7 @@ def objective(trial):
         result_dir=result_dir,
         dataloader=dataloader_option,
         model=model_option,
-        n_epoch=50,
+        n_epoch=100,
     )
     result_dir.mkdir(parents=True, exist_ok=True)
     with open(result_dir / "config.json", "w") as f:
