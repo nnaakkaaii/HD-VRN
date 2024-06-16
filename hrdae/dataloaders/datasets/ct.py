@@ -88,7 +88,7 @@ class CT(Dataset):
         self.in_memory = in_memory
 
     def __len__(self) -> int:
-        return len(self.data)
+        return len(self.paths)
 
     def __getitem__(self, index: int) -> dict[str, Tensor]:
         if len(self.data) > 0:
