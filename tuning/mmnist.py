@@ -77,7 +77,7 @@ def objective(trial):
     }
 
     phase = trial.suggest_categorical("phase", ["0", "t", "all"])
-    if hasattr(args, "network_name") and args.network_name in [
+    if args.network_name in [
         "hrdae2d",
         "rae2d",
         "rdae2d",
@@ -87,7 +87,7 @@ def objective(trial):
         network_name = trial.suggest_categorical(
             "network", ["hrdae2d", "rae2d", "rdae2d"]
         )
-    if hasattr(args, "motion_encoder_name") and args.motion_encoder_name in [
+    if args.motion_encoder_name in [
         "conv2d",
         "guided1d",
         "normal1d",
@@ -111,7 +111,7 @@ def objective(trial):
         )
     motion_encoder_num_layers = trial.suggest_int("motion_encoder_num_layers", 0, 3)
     if motion_encoder_name == "rnn1d":
-        if hasattr(args, "rnn_name") and args.rnn_name in [
+        if args.rnn_name in [
             "conv_lstm1d",
             "gru1d",
             "tcn1d",
@@ -294,11 +294,28 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     study_name = "mmnist"
-    if hasattr(args, "network_name"):
+    if args.network_name is not None:
+        assert args.network_name in [
+            "hrdae2d",
+            "rae2d",
+            "rdae2d",
+        ]
         study_name += f"_{args.network_name}"
-    if hasattr(args, "motion_encoder_name"):
+    if args.motion_encoder_name is not None:
+        assert args.motion_encoder_name in [
+            "conv2d",
+            "guided1d",
+            "normal1d",
+            "rnn1d",
+            "tsn1d",
+        ]
         study_name += f"_{args.motion_encoder_name}"
-    if hasattr(args, "rnn_name"):
+    if args.rnn_name is not None:
+        assert args.rnn_name in [
+            "conv_lstm1d",
+            "gru1d",
+            "tcn1d",
+        ]
         study_name += f"_{args.rnn_name}"
     study = optuna.create_study(
         study_name=study_name,
