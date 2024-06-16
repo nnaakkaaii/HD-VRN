@@ -71,7 +71,6 @@ class TCN2d(nn.Module):
 
     def forward(self, x: Tensor) -> Tensor:
         b, t, c, h, w = x.size()
-        print(b, t, c, h, w)
         x = x.reshape(b, t, c * h * w)
         x = self.tcn(x)
         x = x.reshape(b, t, self.c, h, w)

@@ -69,7 +69,7 @@ def objective(trial):
     }
 
     dataloader_option = BasicDataLoaderOption(
-        batch_size=2,
+        batch_size=16,
         train_val_ratio=0.8,
         dataset=dataset_option,
         transform_order_train=["random_shift3d"],
@@ -150,7 +150,7 @@ def objective(trial):
         motion_encoder_option = MotionRNNEncoder2dOption(
             in_channels=2,
             conv_params=interleave_arrays(
-                [{"kernel_size": [3], "stride": [2], "padding": [1]}] * 3,
+                [{"kernel_size": [3], "stride": [2], "padding": [1]}] * 4,
                 [{"kernel_size": [3], "stride": [1], "padding": [1]}]
                 * motion_encoder_num_layers,
             ),
@@ -160,7 +160,7 @@ def objective(trial):
         motion_encoder_option = MotionConv3dEncoder2dOption(
             in_channels=2,
             conv_params=interleave_arrays(
-                [{"kernel_size": [3], "stride": [1, 2, 2], "padding": [1]}] * 3,
+                [{"kernel_size": [3], "stride": [1, 2, 2], "padding": [1]}] * 4,
                 [{"kernel_size": [3], "stride": [1], "padding": [1]}]
                 * motion_encoder_num_layers,
             ),
@@ -169,7 +169,7 @@ def objective(trial):
         motion_encoder_option = MotionGuidedEncoder2dOption(
             in_channels=2,
             conv_params=interleave_arrays(
-                [{"kernel_size": [3], "stride": [2], "padding": [1]}] * 3,
+                [{"kernel_size": [3], "stride": [2], "padding": [1]}] * 4,
                 [{"kernel_size": [3], "stride": [1], "padding": [1]}]
                 * motion_encoder_num_layers,
             ),
@@ -178,7 +178,7 @@ def objective(trial):
         motion_encoder_option = MotionNormalEncoder2dOption(
             in_channels=2,
             conv_params=interleave_arrays(
-                [{"kernel_size": [3], "stride": [2], "padding": [1]}] * 3,
+                [{"kernel_size": [3], "stride": [2], "padding": [1]}] * 4,
                 [{"kernel_size": [3], "stride": [1], "padding": [1]}]
                 * motion_encoder_num_layers,
             ),
@@ -187,7 +187,7 @@ def objective(trial):
         motion_encoder_option = MotionTSNEncoder2dOption(
             in_channels=2,
             conv_params=interleave_arrays(
-                [{"kernel_size": [3], "stride": [2], "padding": [1]}] * 3,
+                [{"kernel_size": [3], "stride": [2], "padding": [1]}] * 4,
                 [{"kernel_size": [3], "stride": [1], "padding": [1]}]
                 * motion_encoder_num_layers,
             ),
@@ -202,7 +202,7 @@ def objective(trial):
         network_option = RAE3dOption(
             latent_dim=latent_dim,
             conv_params=interleave_arrays(
-                [{"kernel_size": [3], "stride": [2], "padding": [1]}] * 3,
+                [{"kernel_size": [3], "stride": [2], "padding": [1]}] * 4,
                 [{"kernel_size": [3], "stride": [1], "padding": [1]}]
                 * content_encoder_num_layers,
             ),
@@ -213,7 +213,7 @@ def objective(trial):
         network_option = RDAE3dOption(
             latent_dim=latent_dim,
             conv_params=interleave_arrays(
-                [{"kernel_size": [3], "stride": [2], "padding": [1]}] * 3,
+                [{"kernel_size": [3], "stride": [2], "padding": [1]}] * 4,
                 [{"kernel_size": [3], "stride": [1], "padding": [1]}]
                 * content_encoder_num_layers,
             ),
@@ -227,7 +227,7 @@ def objective(trial):
         network_option = HRDAE3dOption(
             latent_dim=latent_dim,
             conv_params=interleave_arrays(
-                [{"kernel_size": [3], "stride": [2], "padding": [1]}] * 3,
+                [{"kernel_size": [3], "stride": [2], "padding": [1]}] * 4,
                 [{"kernel_size": [3], "stride": [1], "padding": [1]}]
                 * content_encoder_num_layers,
             ),
@@ -265,7 +265,7 @@ def objective(trial):
         result_dir=result_dir,
         dataloader=dataloader_option,
         model=model_option,
-        n_epoch=50,
+        n_epoch=1,
     )
     result_dir.mkdir(parents=True, exist_ok=True)
     with open(result_dir / "config.json", "w") as f:

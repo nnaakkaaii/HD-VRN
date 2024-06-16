@@ -11,6 +11,10 @@ from hrdae.models.networks.hr_dae import (
 from hrdae.models.networks.motion_encoder import (
     MotionNormalEncoder1d,
     MotionNormalEncoder2d,
+    MotionRNNEncoder2d,
+)
+from hrdae.models.networks.rnn import (
+    TCN2d,
 )
 
 
@@ -252,6 +256,49 @@ def test_hrdae3d():
                 }
             ]
             * 2,
+            ),
+        activation="sigmoid",
+        )
+    out = net(
+        randn((b, n, s, d, h)),
+        randn((b, 2, d, h, w)),
+    )
+    assert out.size() == (b, n, c, d, h, w)
+
+
+def test_hrdae3d__tcn2d():
+    b, n, c, s, d, h, w = 8, 10, 1, 3, 8, 16, 16
+    latent = 32
+
+    net = HRDAE3d(
+        2,
+        c,
+        latent,
+        [
+            {
+                "kernel_size": [3],
+                "stride": [2],
+                "padding": [1],
+            }
+        ]
+        * 2,
+        motion_encoder=MotionRNNEncoder2d(
+            s,
+            latent,
+            [
+                {
+                    "kernel_size": [3],
+                    "stride": [2],
+                    "padding": [1],
+                }
+            ]
+            * 2,
+            TCN2d(
+                latent,
+                2,
+                (2, 4),
+                3,
+            )
         ),
         activation="sigmoid",
     )
