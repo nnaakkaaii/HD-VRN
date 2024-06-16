@@ -16,6 +16,7 @@ from .option import DatasetOption
 @dataclass
 class CTDatasetOption(DatasetOption):
     root: Path = MISSING
+    slice_index: list[int] = MISSING
     threshold: float = 0.1
     min_occupancy: float = 0.2
     in_memory: bool = False
@@ -44,9 +45,15 @@ class BasicSliceIndexer:
 def create_ct_dataset(
     opt: CTDatasetOption, transform: Transform, is_train: bool
 ) -> Dataset:
+    slice_indexer: Callable[[Tensor], Tensor]
+    if len(opt.slice_index) == 0:
+        slice_indexer = BasicSliceIndexer(opt.threshold, opt.min_occupancy)
+    else:
+        def slice_indexer(_: Tensor) -> Tensor:
+            return tensor(opt.slice_index, dtype=int64)
     return CT(
         root=opt.root,
-        slice_indexer=BasicSliceIndexer(opt.threshold, opt.min_occupancy),
+        slice_indexer=slice_indexer,
         transform=transform,
         in_memory=opt.in_memory,
         is_train=is_train,

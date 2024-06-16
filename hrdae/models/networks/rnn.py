@@ -219,7 +219,7 @@ class TCN1dOption(RNN1dOption):
 @dataclass
 class TCN2dOption(RNN2dOption):
     num_layers: int = 3
-    image_size: tuple[int, int] = (64, 64)
+    image_size: list[int] = field(default_factory=lambda: [64, 64])
     kernel_size: int = 3
     dropout: float = 0.0
 
@@ -231,8 +231,9 @@ def create_tcn1d(latent_dim: int, opt: TCN1dOption) -> RNN1d:
 
 
 def create_tcn2d(latent_dim: int, opt: TCN2dOption) -> RNN2d:
+    image_size = (opt.image_size[0], opt.image_size[1])
     return TCN2d(
-        latent_dim, opt.num_layers, opt.image_size, opt.kernel_size, opt.dropout
+        latent_dim, opt.num_layers, image_size, opt.kernel_size, opt.dropout
     )
 
 
