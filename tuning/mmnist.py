@@ -249,8 +249,15 @@ if __name__ == "__main__":
     parser.add_argument("--rnn_name", type=str)
     args = parser.parse_args()
 
+    study_name = "mmnist"
+    if hasattr(args, "network_name"):
+        study_name += f"_{args.network_name}"
+    if hasattr(args, "motion_encoder_name"):
+        study_name += f"_{args.motion_encoder_name}"
+    if hasattr(args, "rnn_name"):
+        study_name += f"_{args.rnn_name}"
     study = optuna.create_study(
-        study_name="mmnist",
+        study_name=study_name,
         storage="sqlite:///results/tuning/mmnist/sqlite.db",
         load_if_exists=True,
     )
@@ -258,4 +265,4 @@ if __name__ == "__main__":
     print(study.best_params)
     print(study.best_value)
     print(study.best_trial)
-    study.trials_dataframe().to_csv("result/tuning/mmnist/trials.csv")
+    study.trials_dataframe().to_csv("results/tuning/mmnist/trials.csv")
