@@ -55,7 +55,7 @@ def default(item: Any):
 
 
 def objective(trial):
-    pool_size = [4, 4, 4]
+    pool_size = args.pool_size
     d, h, w = 64 // pool_size[0], 128 // pool_size[1], 128 // pool_size[2]
 
     dataset_option = CTDatasetOption(
@@ -78,7 +78,7 @@ def objective(trial):
     d_, h_, w_ = d // 2 ** num_reducible_layers, h // 2 ** num_reducible_layers, w // 2 ** num_reducible_layers
 
     dataloader_option = BasicDataLoaderOption(
-        batch_size=32,
+        batch_size=args.batch_size,
         train_val_ratio=0.8,
         dataset=dataset_option,
         transform_order_train=["random_shift3d", "pool3d"],
@@ -88,7 +88,7 @@ def objective(trial):
 
     loss_option = {
         "wmse": WeightedMSELossOption(
-            weight_dynamic=1.0,
+            weight_dynamic=10.0,
         ),
     }
 
@@ -316,6 +316,8 @@ if __name__ == "__main__":
     parser.add_argument("--network_name", type=str, default="hrdae3d")
     parser.add_argument("--motion_encoder_name", type=str, default="rnn2d")
     parser.add_argument("--rnn_name", type=str, default="tcn2d")
+    parser.add_argument("--pool_size", nargs="+", type=int, default=[4, 4, 4])
+    parser.add_argument("--batch_size", type=int, default=1)
     args = parser.parse_args()
 
     study_name = "ct"
@@ -341,7 +343,7 @@ if __name__ == "__main__":
             "gru2d",
             "tcn2d",
         ]
-        study_name += f"_{args.rnn_name}"
+        study_name += f"_{args.rnn_name}_p444_w10"
     study = optuna.create_study(
         study_name=study_name,
         storage="sqlite:///results/tuning/ct/sqlite.db",
