@@ -1,5 +1,6 @@
 import json
 from dataclasses import asdict
+from multiprocessing.dummy import active_children
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
@@ -213,8 +214,10 @@ def objective(trial):
     content_encoder_num_layers = trial.suggest_int(
         "content_encoder_encoder_num_layers", 0, 5
     )
+    activation = trial.suggest_categorical("activation", ["sigmoid", "relu", "tanh", "none"])
     if network_name == "rae3d":
         network_option = RAE3dOption(
+            activation=activation,
             latent_dim=latent_dim,
             conv_params=interleave_arrays(
                 [{"kernel_size": [3], "stride": [2], "padding": [1]}]
@@ -227,6 +230,7 @@ def objective(trial):
         )
     elif network_name == "rdae3d":
         network_option = RDAE3dOption(
+            activation=activation,
             latent_dim=latent_dim,
             conv_params=interleave_arrays(
                 [{"kernel_size": [3], "stride": [2], "padding": [1]}]
@@ -242,6 +246,7 @@ def objective(trial):
         )
     elif network_name == "hrdae3d":
         network_option = HRDAE3dOption(
+            activation=activation,
             latent_dim=latent_dim,
             conv_params=interleave_arrays(
                 [{"kernel_size": [3], "stride": [2], "padding": [1]}]
