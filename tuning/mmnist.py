@@ -24,8 +24,8 @@ from hrdae.models.networks.motion_encoder import (
 
 
 def interleave_arrays(
-    an: list[dict[str, list[int]]],
-    am: list[dict[str, list[int]]],
+        an: list[dict[str, list[int]]],
+        am: list[dict[str, list[int]]],
 ) -> list[dict[str, list[int]]]:
     result = []
     slots = len(an) - 1
@@ -54,7 +54,7 @@ def default(item: Any):
 def objective(trial):
     dataset_option = MovingMNISTDatasetOption(
         root="data",
-        slice_index=[8, 16, 24, 32, 40, 48, 56],
+        slice_index=[16, 32, 48],
     )
 
     transform_option = {
@@ -62,7 +62,7 @@ def objective(trial):
     }
 
     dataloader_option = BasicDataLoaderOption(
-        batch_size=256,
+        batch_size=64,
         train_val_ratio=0.8,
         dataset=dataset_option,
         transform_order_train=["min_max_normalization"],
@@ -76,7 +76,7 @@ def objective(trial):
         ),
     }
 
-    phase = trial.suggest_categorical("phase", ["0", "t", "all"])
+    phase = trial.suggest_categorical("phase", ["0", "all"])
     if args.network_name in [
         "hrdae2d",
         "rae2d",
@@ -147,7 +147,7 @@ def objective(trial):
                 [{"kernel_size": [3], "stride": [2], "padding": [1]}] * 3,
                 [{"kernel_size": [3], "stride": [1], "padding": [1]}]
                 * motion_encoder_num_layers,
-            ),
+                ),
             rnn=rnn_option,
         )
     elif motion_encoder_name == "conv2d":
@@ -157,7 +157,7 @@ def objective(trial):
                 [{"kernel_size": [3], "stride": [1, 2], "padding": [1]}] * 3,
                 [{"kernel_size": [3], "stride": [1], "padding": [1]}]
                 * motion_encoder_num_layers,
-            ),
+                ),
         )
     elif motion_encoder_name == "guided1d":
         motion_encoder_option = MotionGuidedEncoder1dOption(
@@ -166,7 +166,7 @@ def objective(trial):
                 [{"kernel_size": [3], "stride": [2], "padding": [1]}] * 3,
                 [{"kernel_size": [3], "stride": [1], "padding": [1]}]
                 * motion_encoder_num_layers,
-            ),
+                ),
         )
     elif motion_encoder_name == "normal1d":
         motion_encoder_option = MotionNormalEncoder1dOption(
@@ -175,7 +175,7 @@ def objective(trial):
                 [{"kernel_size": [3], "stride": [2], "padding": [1]}] * 3,
                 [{"kernel_size": [3], "stride": [1], "padding": [1]}]
                 * motion_encoder_num_layers,
-            ),
+                ),
         )
     elif motion_encoder_name == "tsn1d":
         motion_encoder_option = MotionTSNEncoder1dOption(
@@ -184,7 +184,7 @@ def objective(trial):
                 [{"kernel_size": [3], "stride": [2], "padding": [1]}] * 3,
                 [{"kernel_size": [3], "stride": [1], "padding": [1]}]
                 * motion_encoder_num_layers,
-            ),
+                ),
         )
     else:
         raise RuntimeError("unreachable")
@@ -199,7 +199,7 @@ def objective(trial):
                 [{"kernel_size": [3], "stride": [2], "padding": [1]}] * 3,
                 [{"kernel_size": [3], "stride": [1], "padding": [1]}]
                 * content_encoder_num_layers,
-            ),
+                ),
             motion_encoder=motion_encoder_option,
             upsample_size=[8, 8],
         )
@@ -210,7 +210,7 @@ def objective(trial):
                 [{"kernel_size": [3], "stride": [2], "padding": [1]}] * 3,
                 [{"kernel_size": [3], "stride": [1], "padding": [1]}]
                 * content_encoder_num_layers,
-            ),
+                ),
             motion_encoder=motion_encoder_option,
             upsample_size=[8, 8],
             aggregation_method=trial.suggest_categorical(
@@ -224,7 +224,7 @@ def objective(trial):
                 [{"kernel_size": [3], "stride": [2], "padding": [1]}] * 3,
                 [{"kernel_size": [3], "stride": [1], "padding": [1]}]
                 * content_encoder_num_layers,
-            ),
+                ),
             motion_encoder=motion_encoder_option,
             upsample_size=[8, 8],
             aggregation_method=trial.suggest_categorical(
@@ -259,7 +259,7 @@ def objective(trial):
         result_dir=result_dir,
         dataloader=dataloader_option,
         model=model_option,
-        n_epoch=150,
+        n_epoch=100,
     )
     result_dir.mkdir(parents=True, exist_ok=True)
     with open(result_dir / "config.json", "w") as f:
@@ -290,8 +290,8 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--network_name", type=str, default="hrdae2d")
-    parser.add_argument("--motion_encoder_name", type=str)
-    parser.add_argument("--rnn_name", type=str)
+    parser.add_argument("--motion_encoder_name", type=str, default="rnn1d")
+    parser.add_argument("--rnn_name", type=str, default="tcn1d")
     args = parser.parse_args()
 
     study_name = "mmnist"
