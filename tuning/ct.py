@@ -110,18 +110,18 @@ def objective(trial):
         "rnn2d",
         "tsn2d",
     ]:
-        if phase == "all":
-            pred_diff = False
-        else:
-            pred_diff = trial.suggest_categorical("pred_diff", [True, False])
+        # if phase == "all":
+        #     pred_diff = False
+        # else:
+        #     pred_diff = trial.suggest_categorical("pred_diff", [True, False])
         motion_encoder_name = args.motion_encoder_name
     elif phase == "all":
-        pred_diff = False
+        # pred_diff = False
         motion_encoder_name = trial.suggest_categorical(
             "motion_encoder_all", ["conv3d", "normal2d", "rnn2d"]
         )
     else:
-        pred_diff = trial.suggest_categorical("pred_diff", [True, False])
+        # pred_diff = trial.suggest_categorical("pred_diff", [True, False])
         motion_encoder_name = trial.suggest_categorical(
             "motion_encoder", ["conv3d", "guided2d", "normal2d", "rnn2d", "tsn2d"]
         )
@@ -269,7 +269,7 @@ def objective(trial):
     model_option = VRModelOption(
         loss_coef={"wmse": 1.0},
         phase=phase,
-        pred_diff=pred_diff,
+        pred_diff=False,
         loss=loss_option,
         network=network_option,
         optimizer=optimizer_option,
@@ -344,7 +344,7 @@ if __name__ == "__main__":
             "gru2d",
             "tcn2d",
         ]
-        study_name += f"_{args.rnn_name}_p{'-'.join(args.pool_size)}_w{args.weight}"
+        study_name += f"_{args.rnn_name}_p{'-'.join(map(str, args.pool_size))}_w{args.weight}"
     study = optuna.create_study(
         study_name=study_name,
         storage="sqlite:///results/tuning/ct/sqlite.db",
