@@ -344,7 +344,7 @@ if __name__ == "__main__":
             "gru2d",
             "tcn2d",
         ]
-        study_name += f"_{args.rnn_name}_p444_w10"
+        study_name += f"_{args.rnn_name}_p{'-'.join(args.pool_size)}_w{args.weight}"
     study = optuna.create_study(
         study_name=study_name,
         storage="sqlite:///results/tuning/ct/sqlite.db",
