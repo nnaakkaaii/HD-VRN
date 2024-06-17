@@ -88,7 +88,7 @@ def objective(trial):
 
     loss_option = {
         "wmse": WeightedMSELossOption(
-            weight_dynamic=10.0,
+            weight_dynamic=args.weight,
         ),
     }
 
@@ -317,6 +317,7 @@ if __name__ == "__main__":
     parser.add_argument("--motion_encoder_name", type=str, default="rnn2d")
     parser.add_argument("--rnn_name", type=str, default="tcn2d")
     parser.add_argument("--pool_size", nargs="+", type=int, default=[4, 4, 4])
+    parser.add_argument("--weight", type=float, default=2)
     parser.add_argument("--batch_size", type=int, default=1)
     args = parser.parse_args()
 
