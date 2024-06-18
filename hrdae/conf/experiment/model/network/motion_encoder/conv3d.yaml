@@ -1,0 +1,24 @@
+in_channels: 2
+conv_params:
+  - kernel_size: [3]
+    stride: [1, 2, 2]
+    padding: [1]
+    output_padding: [0, 1, 1]
+  - kernel_size: [3]
+    stride: [1, 2, 2]
+    padding: [1]
+    output_padding: [0, 1, 1]
+  - kernel_size: [3]
+    stride: [1, 2, 2]
+    padding: [1]
+    output_padding: [0, 1, 1]
+  - kernel_size: [3]
+    stride: [1, 2, 2]
+    padding: [1]
+    output_padding: [0, 1, 1]
+  - kernel_size: [3]
+    stride: [1, 2, 2]
+    padding: [1]
+    output_padding: [0, 1, 1]
+defaults:
+  - /config/experiment/model/network/motion_encoder/conv3d@_here_
