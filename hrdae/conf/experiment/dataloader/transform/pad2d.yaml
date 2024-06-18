@@ -1,3 +1,0 @@
-pad_size: 36
-defaults:
-  - /config/experiment/dataloader/transform/pad2d@_here_
