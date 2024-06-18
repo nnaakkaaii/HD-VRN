@@ -60,9 +60,10 @@ def objective(trial):
     transform_option = {
         "min_max_normalization": MinMaxNormalizationOption(),
     }
+    num_reducible_layers = 4
 
     dataloader_option = BasicDataLoaderOption(
-        batch_size=64,
+        batch_size=args.batch_size,
         train_val_ratio=0.8,
         dataset=dataset_option,
         transform_order_train=["min_max_normalization"],
@@ -72,11 +73,12 @@ def objective(trial):
 
     loss_option = {
         "wmse": WeightedMSELossOption(
-            weight_dynamic=1.0,
+            weight_dynamic=args.weight,
         ),
     }
 
-    phase = trial.suggest_categorical("phase", ["0", "all"])
+    # phase = trial.suggest_categorical("phase", ["0", "all"])
+    phase = "all"
     if args.network_name in [
         "hrdae2d",
         "rae2d",
@@ -109,7 +111,8 @@ def objective(trial):
         motion_encoder_name = trial.suggest_categorical(
             "motion_encoder", ["conv2d", "guided1d", "normal1d", "rnn1d", "tsn1d"]
         )
-    motion_encoder_num_layers = trial.suggest_int("motion_encoder_num_layers", 0, 6)
+    motion_encoder_num_layers = 0
+    # motion_encoder_num_layers = trial.suggest_int("motion_encoder_num_layers", 0, 6)
     if motion_encoder_name == "rnn1d":
         if args.rnn_name in [
             "conv_lstm1d",
@@ -122,7 +125,8 @@ def objective(trial):
                 "rnn", ["conv_lstm1d", "gru1d", "tcn1d"]
             )
         motion_encoder_name = f"{motion_encoder_name}/{rnn_name}"
-        rnn_num_layers = trial.suggest_int("rnn_num_layers", 1, 5)
+        rnn_num_layers = 3
+        # rnn_num_layers = trial.suggest_int("rnn_num_layers", 1, 5)
         if rnn_name == "conv_lstm1d":
             rnn_option = ConvLSTM1dOption(
                 num_layers=rnn_num_layers,
@@ -130,21 +134,22 @@ def objective(trial):
         elif rnn_name == "gru1d":
             rnn_option = GRU1dOption(
                 num_layers=rnn_num_layers,
-                image_size=8,
+                image_size=64 // 2 ** num_reducible_layers,
             )
         elif rnn_name == "tcn1d":
             rnn_option = TCN1dOption(
                 num_layers=rnn_num_layers,
-                image_size=8,
+                image_size=64 // 2 ** num_reducible_layers,
                 kernel_size=3,
                 dropout=0.1,
             )
         else:
             raise RuntimeError("unreachable")
         motion_encoder_option = MotionRNNEncoder1dOption(
-            in_channels=7,
+            in_channels=3,
             conv_params=interleave_arrays(
-                [{"kernel_size": [3], "stride": [2], "padding": [1]}] * 3,
+                [{"kernel_size": [3], "stride": [2], "padding": [1]}]
+                * num_reducible_layers,
                 [{"kernel_size": [3], "stride": [1], "padding": [1]}]
                 * motion_encoder_num_layers,
                 ),
@@ -152,84 +157,95 @@ def objective(trial):
         )
     elif motion_encoder_name == "conv2d":
         motion_encoder_option = MotionConv2dEncoder1dOption(
-            in_channels=7,
+            in_channels=3,
             conv_params=interleave_arrays(
-                [{"kernel_size": [3], "stride": [1, 2], "padding": [1]}] * 3,
+                [{"kernel_size": [3], "stride": [1, 2], "padding": [1]}]
+                * num_reducible_layers,
                 [{"kernel_size": [3], "stride": [1], "padding": [1]}]
                 * motion_encoder_num_layers,
                 ),
         )
     elif motion_encoder_name == "guided1d":
         motion_encoder_option = MotionGuidedEncoder1dOption(
-            in_channels=7,
+            in_channels=3,
             conv_params=interleave_arrays(
-                [{"kernel_size": [3], "stride": [2], "padding": [1]}] * 3,
+                [{"kernel_size": [3], "stride": [2], "padding": [1]}]
+                * num_reducible_layers,
                 [{"kernel_size": [3], "stride": [1], "padding": [1]}]
                 * motion_encoder_num_layers,
                 ),
         )
     elif motion_encoder_name == "normal1d":
         motion_encoder_option = MotionNormalEncoder1dOption(
-            in_channels=7,
+            in_channels=3,
             conv_params=interleave_arrays(
-                [{"kernel_size": [3], "stride": [2], "padding": [1]}] * 3,
+                [{"kernel_size": [3], "stride": [2], "padding": [1]}]
+                * num_reducible_layers,
                 [{"kernel_size": [3], "stride": [1], "padding": [1]}]
                 * motion_encoder_num_layers,
                 ),
         )
     elif motion_encoder_name == "tsn1d":
         motion_encoder_option = MotionTSNEncoder1dOption(
-            in_channels=7,
+            in_channels=3,
             conv_params=interleave_arrays(
-                [{"kernel_size": [3], "stride": [2], "padding": [1]}] * 3,
+                [{"kernel_size": [3], "stride": [2], "padding": [1]}]
+                * num_reducible_layers,
                 [{"kernel_size": [3], "stride": [1], "padding": [1]}]
                 * motion_encoder_num_layers,
                 ),
         )
     else:
         raise RuntimeError("unreachable")
-    latent_dim = trial.suggest_int("latent_dim", 16, 96, step=8)
-    content_encoder_num_layers = trial.suggest_int(
-        "content_encoder_num_layers", 0, 4
-    )
+    latent_dim = 128
+    # latent_dim = trial.suggest_int("latent_dim", 16, 96, step=8)
+    content_encoder_num_layers = 0
+    # content_encoder_num_layers = trial.suggest_int(
+    #     "content_encoder_num_layers", 0, 4
+    # )
     if network_name == "rae2d":
         network_option = RAE2dOption(
             latent_dim=latent_dim,
             conv_params=interleave_arrays(
-                [{"kernel_size": [3], "stride": [2], "padding": [1]}] * 3,
+                [{"kernel_size": [3], "stride": [2], "padding": [1]}]
+                * num_reducible_layers,
                 [{"kernel_size": [3], "stride": [1], "padding": [1]}]
                 * content_encoder_num_layers,
                 ),
             motion_encoder=motion_encoder_option,
-            upsample_size=[8, 8],
+            upsample_size=[64 // 2 ** num_reducible_layers, 64 // 2 ** num_reducible_layers],
         )
     elif network_name == "rdae2d":
         network_option = RDAE2dOption(
             latent_dim=latent_dim,
             conv_params=interleave_arrays(
-                [{"kernel_size": [3], "stride": [2], "padding": [1]}] * 3,
+                [{"kernel_size": [3], "stride": [2], "padding": [1]}]
+                * num_reducible_layers,
                 [{"kernel_size": [3], "stride": [1], "padding": [1]}]
                 * content_encoder_num_layers,
                 ),
             motion_encoder=motion_encoder_option,
-            upsample_size=[8, 8],
-            aggregation_method=trial.suggest_categorical(
-                "aggregation_method", ["concat", "sum"]
-            ),
+            upsample_size=[64 // 2 ** num_reducible_layers, 64 // 2 ** num_reducible_layers],
+            # aggregation_method=trial.suggest_categorical(
+            #     "aggregation_method", ["concat", "sum"]
+            # ),
+            aggregation_method="concat",
         )
     elif network_name == "hrdae2d":
         network_option = HRDAE2dOption(
             latent_dim=latent_dim,
             conv_params=interleave_arrays(
-                [{"kernel_size": [3], "stride": [2], "padding": [1]}] * 3,
+                [{"kernel_size": [3], "stride": [2], "padding": [1]}]
+                * num_reducible_layers,
                 [{"kernel_size": [3], "stride": [1], "padding": [1]}]
                 * content_encoder_num_layers,
                 ),
             motion_encoder=motion_encoder_option,
-            upsample_size=[8, 8],
-            aggregation_method=trial.suggest_categorical(
-                "aggregation_method", ["concat", "sum"]
-            ),
+            upsample_size=[64 // 2 ** num_reducible_layers, 64 // 2 ** num_reducible_layers],
+            # aggregation_method=trial.suggest_categorical(
+            #     "aggregation_method", ["concat", "sum"]
+            # ),
+            aggregation_method="concat",
         )
     else:
         raise RuntimeError("unreachable")
@@ -239,7 +255,8 @@ def objective(trial):
     )
 
     scheduler_option = OneCycleLRSchedulerOption(
-        max_lr=trial.suggest_float("max_lr", 1e-3, 5e-2, log=True),
+        # max_lr=trial.suggest_float("max_lr", 1e-3, 5e-2, log=True),
+        max_lr=0.05
     )
 
     model_option = VRModelOption(
