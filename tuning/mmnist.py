@@ -197,8 +197,8 @@ def objective(trial):
         )
     else:
         raise RuntimeError("unreachable")
-    latent_dim = 128
-    # latent_dim = trial.suggest_int("latent_dim", 16, 96, step=8)
+    # latent_dim = 128
+    latent_dim = trial.suggest_int("latent_dim", 32, 256, step=16)
     content_encoder_num_layers = 0
     # content_encoder_num_layers = trial.suggest_int(
     #     "content_encoder_num_layers", 0, 4
@@ -309,6 +309,8 @@ if __name__ == "__main__":
     parser.add_argument("--network_name", type=str, default="hrdae2d")
     parser.add_argument("--motion_encoder_name", type=str, default="rnn1d")
     parser.add_argument("--rnn_name", type=str, default="tcn1d")
+    parser.add_argument("--weight", type=float, default=2)
+    parser.add_argument("--batch_size", type=int, default=1)
     args = parser.parse_args()
 
     study_name = "mmnist"
@@ -335,6 +337,7 @@ if __name__ == "__main__":
             "tcn1d",
         ]
         study_name += f"_{args.rnn_name}"
+    study_name += f"_w{args.weight}"
     study = optuna.create_study(
         study_name=study_name,
         storage="sqlite:///results/tuning/mmnist/sqlite.db",
