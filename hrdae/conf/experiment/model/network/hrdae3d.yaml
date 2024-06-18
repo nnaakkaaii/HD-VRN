@@ -1,12 +1,5 @@
-latent_dim: 256
+latent_dim: 128
 conv_params:
-  - kernel_size: [3]
-    stride: [2]
-    padding: [1]
-    output_padding: [1]
-  - kernel_size: [3]
-    stride: [1]
-    padding: [1]
   - kernel_size: [3]
     stride: [2]
     padding: [1]
