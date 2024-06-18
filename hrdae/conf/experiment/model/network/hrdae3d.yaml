@@ -32,6 +32,13 @@ conv_params:
     stride: [2]
     padding: [1]
     output_padding: [1]
+  - kernel_size: [3]
+    stride: [1]
+    padding: [1]
+  - kernel_size: [3]
+    stride: [2]
+    padding: [1]
+    output_padding: [1]
 aggregation_method: concat
 activation: sigmoid  # tanh if pred_diff = true
 debug_show_dim: false
