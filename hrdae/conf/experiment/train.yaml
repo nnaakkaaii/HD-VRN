@@ -1,5 +1,5 @@
 result_dir: results
-n_epoch: 100
+n_epoch: 150
 debug: false
 defaults:
   - /config/experiment/train@_here_

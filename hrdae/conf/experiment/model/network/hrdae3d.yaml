@@ -1,4 +1,4 @@
-latent_dim: 64
+latent_dim: 128
 conv_params:
   - kernel_size: [3]
     stride: [2]
@@ -16,8 +16,12 @@ conv_params:
     stride: [2]
     padding: [1]
     output_padding: [1]
+  - kernel_size: [3]
+    stride: [2]
+    padding: [1]
+    output_padding: [1]
 aggregation_method: concat
-activation: sigmoid
+activation: sigmoid  # tanh if pred_diff = true
 debug_show_dim: false
 defaults:
   - /config/experiment/model/network/hrdae3d@_here_

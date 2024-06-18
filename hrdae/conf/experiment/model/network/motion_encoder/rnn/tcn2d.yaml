@@ -1,5 +1,5 @@
 num_layers: 3
-image_size: [4, 8]
+image_size: [2, 4]
 kernel_size: 4
 dropout: 0.1
 defaults:

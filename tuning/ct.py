@@ -1,6 +1,5 @@
 import json
 from dataclasses import asdict
-from multiprocessing.dummy import active_children
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
@@ -54,7 +53,7 @@ def default(item: Any):
         case _:
             raise TypeError(type(item))
 
-
+# [2, 2]
 def objective(trial):
     pool_size = args.pool_size
     d, h, w = 64 // pool_size[0], 128 // pool_size[1], 128 // pool_size[2]

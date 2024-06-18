@@ -1,6 +1,6 @@
 loss_coef:
   wmse: 1
-phase: "0"
+phase: "all"
 pred_diff: false
 defaults:
   - /config/experiment/model/vr@_here_

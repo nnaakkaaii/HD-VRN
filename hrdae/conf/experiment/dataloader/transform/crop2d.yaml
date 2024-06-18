@@ -1,3 +1,0 @@
-crop_size: 64
-defaults:
-  - /config/experiment/dataloader/transform/crop2d@_here_

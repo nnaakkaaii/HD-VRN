@@ -166,6 +166,7 @@ class VRModel(Model):
                     epoch,
                     result_dir / "logs" / "reconstructed",
                 )
+                save_model(self.network, result_dir / f"model_{epoch}.pth")
 
         with open(result_dir / "training_history.json", "w") as f:
             json.dump(training_history, f)
