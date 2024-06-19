@@ -53,7 +53,7 @@ def default(item: Any):
         case _:
             raise TypeError(type(item))
 
-# [2, 2]
+
 def objective(trial):
     pool_size = args.pool_size
     d, h, w = 64 // pool_size[0], 128 // pool_size[1], 128 // pool_size[2]
@@ -74,7 +74,8 @@ def objective(trial):
             pool_size=pool_size,
         ),
     }
-    num_reducible_layers = trial.suggest_int("num_reducible_layers", 2, 4)
+    num_reducible_layers = 4
+    # num_reducible_layers = trial.suggest_int("num_reducible_layers", 2, 4)
     d_, h_, w_ = d // 2 ** num_reducible_layers, h // 2 ** num_reducible_layers, w // 2 ** num_reducible_layers
 
     dataloader_option = BasicDataLoaderOption(
@@ -92,7 +93,8 @@ def objective(trial):
         ),
     }
 
-    phase = trial.suggest_categorical("phase", ["0", "all"])
+    phase = "all"
+    # phase = trial.suggest_categorical("phase", ["0", "all"])
     if args.network_name in [
         "hrdae3d",
         "rae3d",
@@ -100,9 +102,10 @@ def objective(trial):
     ]:
         network_name = args.network_name
     else:
-        network_name = trial.suggest_categorical(
-            "network", ["hrdae3d", "rae3d", "rdae3d"]
-        )
+        # network_name = trial.suggest_categorical(
+        #     "network", ["hrdae3d", "rae3d", "rdae3d"]
+        # )
+        raise RuntimeError("network_name is not specified")
     if args.motion_encoder_name in [
         "conv3d",
         "guided2d",
@@ -117,15 +120,18 @@ def objective(trial):
         motion_encoder_name = args.motion_encoder_name
     elif phase == "all":
         # pred_diff = False
-        motion_encoder_name = trial.suggest_categorical(
-            "motion_encoder_all", ["conv3d", "normal2d", "rnn2d"]
-        )
+        # motion_encoder_name = trial.suggest_categorical(
+        #     "motion_encoder_all", ["conv3d", "normal2d", "rnn2d"]
+        # )
+        raise RuntimeError("motion_encoder_name is not specified")
     else:
         # pred_diff = trial.suggest_categorical("pred_diff", [True, False])
-        motion_encoder_name = trial.suggest_categorical(
-            "motion_encoder", ["conv3d", "guided2d", "normal2d", "rnn2d", "tsn2d"]
-        )
-    motion_encoder_num_layers = trial.suggest_int("motion_encoder_num_layers", 0, 6)
+        # motion_encoder_name = trial.suggest_categorical(
+        #     "motion_encoder", ["conv3d", "guided2d", "normal2d", "rnn2d", "tsn2d"]
+        # )
+        raise RuntimeError("motion_encoder_name is not specified")
+    motion_encoder_num_layers = 0
+    # motion_encoder_num_layers = trial.suggest_int("motion_encoder_num_layers", 0, 6)
     if motion_encoder_name == "rnn2d":
         if args.rnn_name in [
             "conv_lstm2d",
@@ -134,11 +140,13 @@ def objective(trial):
         ]:
             rnn_name = args.rnn_name
         else:
-            rnn_name = trial.suggest_categorical(
-                "rnn", ["conv_lstm2d", "gru2d", "tcn2d"]
-            )
+            # rnn_name = trial.suggest_categorical(
+            #     "rnn", ["conv_lstm2d", "gru2d", "tcn2d"]
+            # )
+            raise RuntimeError("rnn_name is not specified")
         motion_encoder_name = f"{motion_encoder_name}/{rnn_name}"
-        rnn_num_layers = trial.suggest_int("rnn_num_layers", 1, 4)
+        rnn_num_layers = 3
+        # rnn_num_layers = trial.suggest_int("rnn_num_layers", 1, 4)
         if rnn_name == "conv_lstm2d":
             rnn_option = ConvLSTM2dOption(
                 num_layers=rnn_num_layers,
@@ -209,11 +217,14 @@ def objective(trial):
         )
     else:
         raise RuntimeError("unreachable")
-    latent_dim = trial.suggest_int("latent_dim", 16, 256, step=16)
-    content_encoder_num_layers = trial.suggest_int(
-        "content_encoder_encoder_num_layers", 0, 5
-    )
-    activation = trial.suggest_categorical("activation", ["sigmoid", "relu", "tanh", "none"])
+    latent_dim = trial.suggest_int("latent_dim", 16, 128, step=8)
+    content_encoder_num_layers = 0
+    # content_encoder_num_layers = trial.suggest_int(
+    #     "content_encoder_num_layers", 0, 5
+    # )
+    activation = "tanh" if args.pred_diff else "sigmoid"
+    # activation = trial.suggest_categorical("activation", ["sigmoid", "relu", "tanh", "none"])
+    aggregation_method = "concat"
     if network_name == "rae3d":
         network_option = RAE3dOption(
             activation=activation,
@@ -239,9 +250,10 @@ def objective(trial):
                 ),
             motion_encoder=motion_encoder_option,
             upsample_size=[d_, h_, w_],
-            aggregation_method=trial.suggest_categorical(
-                "aggregation_method", ["concat", "sum"]
-            ),
+            aggregation_method=aggregation_method,
+            # aggregation_method=trial.suggest_categorical(
+            #     "aggregation_method", ["concat", "sum"]
+            # ),
         )
     elif network_name == "hrdae3d":
         network_option = HRDAE3dOption(
@@ -255,9 +267,10 @@ def objective(trial):
                 ),
             motion_encoder=motion_encoder_option,
             upsample_size=[d_, h_, w_],
-            aggregation_method=trial.suggest_categorical(
-                "aggregation_method", ["concat", "sum"]
-            ),
+            aggregation_method=aggregation_method,
+            # aggregation_method=trial.suggest_categorical(
+            #     "aggregation_method", ["concat", "sum"]
+            # ),
         )
     else:
         raise RuntimeError("unreachable")
@@ -273,7 +286,7 @@ def objective(trial):
     model_option = VRModelOption(
         loss_coef={"wmse": 1.0},
         phase=phase,
-        pred_diff=False,
+        pred_diff=args.pred_diff,
         loss=loss_option,
         network=network_option,
         optimizer=optimizer_option,
@@ -287,7 +300,7 @@ def objective(trial):
         result_dir=result_dir,
         dataloader=dataloader_option,
         model=model_option,
-        n_epoch=100,
+        n_epoch=50,
     )
     result_dir.mkdir(parents=True, exist_ok=True)
     with open(result_dir / "config.json", "w") as f:
@@ -323,6 +336,7 @@ if __name__ == "__main__":
     parser.add_argument("--pool_size", nargs="+", type=int, default=[4, 4, 4])
     parser.add_argument("--weight", type=float, default=2)
     parser.add_argument("--batch_size", type=int, default=1)
+    parser.add_argument("--pred_diff", action="store_true")
     args = parser.parse_args()
 
     study_name = "ct"
