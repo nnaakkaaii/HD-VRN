@@ -198,7 +198,7 @@ def objective(trial):
     else:
         raise RuntimeError("unreachable")
     # latent_dim = 128
-    latent_dim = trial.suggest_int("latent_dim", 32, 256, step=16)
+    latent_dim = trial.suggest_int("latent_dim", 32, 256, step=32)
     content_encoder_num_layers = 0
     # content_encoder_num_layers = trial.suggest_int(
     #     "content_encoder_num_layers", 0, 4
@@ -276,7 +276,7 @@ def objective(trial):
         result_dir=result_dir,
         dataloader=dataloader_option,
         model=model_option,
-        n_epoch=100,
+        n_epoch=20,
     )
     result_dir.mkdir(parents=True, exist_ok=True)
     with open(result_dir / "config.json", "w") as f:
@@ -337,7 +337,7 @@ if __name__ == "__main__":
             "tcn1d",
         ]
         study_name += f"_{args.rnn_name}"
-    study_name += f"_w{args.weight}"
+    study_name += f"_w{args.weight}_dc1591a"
     study = optuna.create_study(
         study_name=study_name,
         storage="sqlite:///results/tuning/mmnist/sqlite.db",
