@@ -217,7 +217,7 @@ def objective(trial):
         )
     else:
         raise RuntimeError("unreachable")
-    latent_dim = trial.suggest_int("latent_dim", 16, 128, step=8)
+    latent_dim = trial.suggest_int("latent_dim", 16, 64, step=8)
     content_encoder_num_layers = 0
     # content_encoder_num_layers = trial.suggest_int(
     #     "content_encoder_num_layers", 0, 5
