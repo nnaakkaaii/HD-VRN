@@ -9,7 +9,7 @@ from .option import OptimizerOption
 
 @dataclass
 class AdamOptimizerOption(OptimizerOption):
-    lr: float = 0.
+    lr: float = 0.0
     lrs: dict[str, float] = field(default_factory=dict)
 
 

@@ -1,6 +1,11 @@
 from torch import nn
 
-from .autoencoder import AutoEncoder2dNetworkOption, create_autoencoder2d, AutoEncoder3dNetworkOption, create_autoencoder3d
+from .autoencoder import (
+    AutoEncoder2dNetworkOption,
+    create_autoencoder2d,
+    AutoEncoder3dNetworkOption,
+    create_autoencoder3d,
+)
 from .hr_dae import HRDAE2dOption, HRDAE3dOption, create_hrdae2d, create_hrdae3d
 from .option import NetworkOption
 from .r_ae import RAE2dOption, RAE3dOption, create_rae2d, create_rae3d

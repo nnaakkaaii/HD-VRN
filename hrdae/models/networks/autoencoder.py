@@ -88,7 +88,7 @@ class AutoEncoder3dNetworkOption(NetworkOption):
 
 
 def create_autoencoder3d(
-        out_channels: int, opt: AutoEncoder3dNetworkOption
+    out_channels: int, opt: AutoEncoder3dNetworkOption
 ) -> nn.Module:
     return AutoEncoder3d(
         in_channels=out_channels,
@@ -101,12 +101,12 @@ def create_autoencoder3d(
 
 class AutoEncoder3d(nn.Module):
     def __init__(
-            self,
-            in_channels: int,
-            latent_dim: int,
-            conv_params: list[dict[str, list[int]]],
-            activation: str,
-            debug_show_dim: bool,
+        self,
+        in_channels: int,
+        latent_dim: int,
+        conv_params: list[dict[str, list[int]]],
+        activation: str,
+        debug_show_dim: bool,
     ) -> None:
         super().__init__()
 

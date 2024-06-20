@@ -3,7 +3,11 @@ from torch.utils.data import Dataset
 from ..transforms import Transform
 from .ct import CT, CTDatasetOption, create_ct_dataset
 from .mnist import MNISTDatasetOption, create_mnist_dataset
-from .moving_mnist import MovingMNIST, MovingMNISTDatasetOption, create_moving_mnist_dataset
+from .moving_mnist import (
+    MovingMNIST,
+    MovingMNISTDatasetOption,
+    create_moving_mnist_dataset,
+)
 from .option import DatasetOption
 from .seq_divide_wrapper import SeqDivideWrapper
 
