@@ -1,5 +1,5 @@
-# root: data
-root: /workspace
+root: data
+# root: /workspace
 slice_index: [48, 80]  # size should be (64, 128, 128)
 threshold: 0.1
 min_occupancy: 0.2

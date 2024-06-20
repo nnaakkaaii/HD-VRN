@@ -1,29 +1,37 @@
-latent_dim: 256
+in_channels: 3
 conv_params:
   - kernel_size: [3]
     stride: [2]
     padding: [1]
     output_padding: [1]
   - kernel_size: [3]
-    stride: [2]
+    stride: [1]
     padding: [1]
-    output_padding: [1]
   - kernel_size: [3]
     stride: [2]
     padding: [1]
     output_padding: [1]
   - kernel_size: [3]
-    stride: [2]
+    stride: [1]
     padding: [1]
-    output_padding: [1]
   - kernel_size: [3]
     stride: [2]
     padding: [1]
     output_padding: [1]
-aggregation_method: concat
-activation: sigmoid  # tanh if pred_diff = true
-debug_show_dim: false
+  - kernel_size: [3]
+    stride: [1]
+    padding: [1]
+  - kernel_size: [3]
+    stride: [2]
+    padding: [1]
+    output_padding: [1]
+  - kernel_size: [3]
+    stride: [1]
+    padding: [1]
+  - kernel_size: [3]
+    stride: [2]
+    padding: [1]
+    output_padding: [1]
 defaults:
-  - /config/experiment/model/network/hrdae3d@_here_
-  - motion_encoder: rnn1d
-#   - motion_encoder: rnn2d
+  - /config/experiment/model/network/motion_encoder/rnn1d@_here_
+  - rnn: tcn1d

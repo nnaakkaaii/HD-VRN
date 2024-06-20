@@ -1,0 +1,3 @@
+defaults:
+  - /config/experiment/dataloader/transform/min_max_normalization@_here_
+
