@@ -3,4 +3,4 @@ from dataclasses import dataclass
 
 @dataclass
 class DatasetOption:
-    pass
+    sequential: bool = True

@@ -2,6 +2,8 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
+import torch
+from torch import nn
 
 
 def _save_images(
@@ -97,3 +99,8 @@ def save_reconstructed_images(
             )
     else:
         raise ValueError("Invalid shape of original and reconstructed videos")
+
+
+def save_model(model: nn.Module, filepath: Path):
+    model_to_save = model.module if isinstance(model, torch.nn.DataParallel) else model
+    torch.save(model_to_save.state_dict(), filepath)

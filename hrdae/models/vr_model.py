@@ -8,7 +8,7 @@ from torch import nn
 from torch.optim.optimizer import Optimizer
 from torch.utils.data import DataLoader
 
-from .functions import save_reconstructed_images
+from .functions import save_reconstructed_images, save_model
 from .losses import LossMixer, LossOption, create_loss
 from .networks import NetworkOption, create_network
 from .optimizers import OptimizerOption, create_optimizer
@@ -27,11 +27,6 @@ class VRModelOption(ModelOption):
 
     phase: str = "all"  # "all", "0", "t"
     pred_diff: bool = False
-
-
-def save_model(model: nn.Module, filepath: Path):
-    model_to_save = model.module if isinstance(model, torch.nn.DataParallel) else model
-    torch.save(model_to_save.state_dict(), filepath)
 
 
 class VRModel(Model):
