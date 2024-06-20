@@ -130,7 +130,7 @@ def objective(trial):
         #     "motion_encoder", ["conv3d", "guided2d", "normal2d", "rnn2d", "tsn2d"]
         # )
         raise RuntimeError("motion_encoder_name is not specified")
-    motion_encoder_num_layers = 0
+    motion_encoder_num_layers = 3
     # motion_encoder_num_layers = trial.suggest_int("motion_encoder_num_layers", 0, 6)
     if motion_encoder_name == "rnn2d":
         if args.rnn_name in [
@@ -217,7 +217,7 @@ def objective(trial):
         )
     else:
         raise RuntimeError("unreachable")
-    latent_dim = trial.suggest_int("latent_dim", 16, 64, step=8)
+    latent_dim = trial.suggest_int("latent_dim", 32, 64, step=8)
     content_encoder_num_layers = 0
     # content_encoder_num_layers = trial.suggest_int(
     #     "content_encoder_num_layers", 0, 5
@@ -276,11 +276,13 @@ def objective(trial):
         raise RuntimeError("unreachable")
 
     optimizer_option = AdamOptimizerOption(
-        lr=trial.suggest_float("lr", 1e-5, 1e-2, log=True),
+        lr=0.005,
+        # lr=trial.suggest_float("lr", 1e-5, 1e-2, log=True),
     )
 
     scheduler_option = OneCycleLRSchedulerOption(
-        max_lr=trial.suggest_float("max_lr", 1e-3, 1e-2, log=True),
+        lr=0.05,
+        # max_lr=trial.suggest_float("max_lr", 1e-3, 1e-2, log=True),
     )
 
     model_option = VRModelOption(
@@ -300,7 +302,7 @@ def objective(trial):
         result_dir=result_dir,
         dataloader=dataloader_option,
         model=model_option,
-        n_epoch=50,
+        n_epoch=100,
     )
     result_dir.mkdir(parents=True, exist_ok=True)
     with open(result_dir / "config.json", "w") as f:
