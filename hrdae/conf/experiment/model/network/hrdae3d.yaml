@@ -1,4 +1,4 @@
-latent_dim: 256
+latent_dim: 64
 conv_params:
   - kernel_size: [3]
     stride: [2]
