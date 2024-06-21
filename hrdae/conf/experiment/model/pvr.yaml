@@ -1,6 +1,6 @@
 loss_coef:
   mse: 1
-phase: "all"
+phase: "0"
 pred_diff: false
 network_weight:
   content_encoder: undefined

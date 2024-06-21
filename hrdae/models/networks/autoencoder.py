@@ -3,7 +3,12 @@ from dataclasses import dataclass, field
 
 from torch import Tensor, nn
 
-from .modules import ConvModule2d, ConvModule3d, create_activation
+from .modules import (
+    ConvModule2d,
+    ConvModule3d,
+    create_activation,
+    IdenticalConvBlockConvParams,
+)
 from .option import NetworkOption
 
 
@@ -45,7 +50,7 @@ class AutoEncoder2d(nn.Module):
             in_channels,
             latent_dim,
             latent_dim,
-            conv_params,
+            conv_params + [IdenticalConvBlockConvParams],
             transpose=False,
             debug_show_dim=debug_show_dim,
         )
@@ -53,7 +58,7 @@ class AutoEncoder2d(nn.Module):
             latent_dim,
             in_channels,
             latent_dim,
-            conv_params,
+            conv_params[::-1],
             transpose=True,
             debug_show_dim=debug_show_dim,
         )
