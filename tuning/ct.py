@@ -22,7 +22,6 @@ from hrdae.models.networks.motion_encoder import (
     MotionConv3dEncoder2dOption,
     MotionGuidedEncoder2dOption,
     MotionNormalEncoder2dOption,
-    MotionTSNEncoder2dOption,
 )
 
 

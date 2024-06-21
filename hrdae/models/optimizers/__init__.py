@@ -19,7 +19,7 @@ def create_optimizer(
 ) -> Optimizer:
     if isinstance(opt, AdamOptimizerOption) and type(opt) is AdamOptimizerOption:
         if opt.lr > 0:
-            return Adam(params, lr=opt.lr)
+            return Adam([{"params": params, "lr": opt.lr}])
         if len(opt.lrs) > 0:
             return Adam([{"params": v, "lr": opt.lrs[k]} for k, v in params])
         raise ValueError("either lr or lrs must be set")
