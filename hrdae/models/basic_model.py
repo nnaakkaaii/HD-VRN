@@ -152,16 +152,16 @@ def _save_model(module: nn.Module, save_dir: Path, name: str) -> None:
     if hasattr(module, "encoder"):
         save_model(
             module.encoder,
-            save_dir / "weights" / f"{name}_encoder.pth",
+            save_dir / f"{name}_encoder.pth",
         )
     if hasattr(module, "decoder"):
         save_model(
             module.decoder,
-            save_dir / "weights" / f"{name}_decoder.pth",
+            save_dir / f"{name}_decoder.pth",
         )
     save_model(
         module,
-        save_dir / "weights" / f"{name}_model.pth",
+        save_dir / f"{name}_model.pth",
     )
 
 
