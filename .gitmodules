@@ -1,0 +1,3 @@
+[submodule "hrdae/conf"]
+	path = hrdae/conf
+	url = git@github.com:nnaakkaaii/HR-DAE-conf.git
