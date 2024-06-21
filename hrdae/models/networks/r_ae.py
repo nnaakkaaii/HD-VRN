@@ -98,7 +98,7 @@ class Decoder2d(nn.Module):
         return self.dec(m)
 
 
-class Decoder3d(nn.Module):
+class Decoder3d(ConvModule3d):
     def __init__(
         self,
         out_channels: int,
@@ -106,8 +106,7 @@ class Decoder3d(nn.Module):
         conv_params: list[dict[str, list[int]]],
         debug_show_dim: bool = False,
     ) -> None:
-        super().__init__()
-        self.dec = ConvModule3d(
+        super().__init__(
             latent_dim,
             out_channels,
             latent_dim,
@@ -115,9 +114,6 @@ class Decoder3d(nn.Module):
             transpose=True,
             debug_show_dim=debug_show_dim,
         )
-
-    def forward(self, m: Tensor) -> Tensor:
-        return self.dec(m)
 
 
 class RAE2d(nn.Module):

@@ -131,22 +131,15 @@ class NormalDecoder2d(nn.Module):
         return self.dec(aggregate(m, c, method=self.aggregation_method))
 
 
-class NormalDecoder3d(nn.Module):
+class NormalDecoder3d(ConvModule3d):
     def __init__(
         self,
         out_channels: int,
         latent_dim: int,
         conv_params: list[dict[str, list[int]]],
-        aggregation_method: str = "concat",
         debug_show_dim: bool = False,
     ) -> None:
-        super().__init__()
-        assert aggregation_method in ["concat", "sum"]
-
-        if aggregation_method == "concat":
-            latent_dim *= 2
-
-        self.dec = ConvModule3d(
+        super().__init__(
             latent_dim,
             out_channels,
             latent_dim,
@@ -154,10 +147,6 @@ class NormalDecoder3d(nn.Module):
             transpose=True,
             debug_show_dim=debug_show_dim,
         )
-        self.aggregation_method = aggregation_method
-
-    def forward(self, m: Tensor, c: Tensor) -> Tensor:
-        return self.dec(aggregate(m, c, method=self.aggregation_method))
 
 
 class RDAE2d(nn.Module):
@@ -173,6 +162,8 @@ class RDAE2d(nn.Module):
         debug_show_dim: bool = False,
     ) -> None:
         super().__init__()
+        assert aggregation_method in ["concat", "sum"]
+
         self.content_encoder = NormalContentEncoder2d(
             in_channels,
             latent_dim,
@@ -182,11 +173,12 @@ class RDAE2d(nn.Module):
         self.motion_encoder = motion_encoder
         self.decoder = NormalDecoder2d(
             out_channels,
-            latent_dim,
+            2 * latent_dim if aggregation_method == "concat" else latent_dim,
             conv_params[::-1],
             aggregation_method,
             debug_show_dim,
         )
+        self.aggregation_method = aggregation_method
         self.activation = create_activation(activation)
 
     def forward(
@@ -197,12 +189,13 @@ class RDAE2d(nn.Module):
     ) -> Tensor:
         c = self.content_encoder(x_2d_0)
         m = self.motion_encoder(x_1d, x_1d_0)
-        b, t, c_, h = m.size()
-        m = m.reshape(b * t, c_, h)
+        b, t, c_, h_ = m.size()
+        m = m.reshape(b * t, c_, h_)
         c = c.repeat(t, 1, 1, 1)
-        y = self.decoder(m, c)
-        _, c_, h, w = y.size()
-        y = y.reshape(b, t, c_, h, w)
+        h = aggregate(m, c, method=self.aggregation_method)
+        y = self.decoder(h)
+        _, c_, h_, w = y.size()
+        y = y.reshape(b, t, c_, h_, w)
         if self.activation is not None:
             y = self.activation(y)
         return y
@@ -230,11 +223,11 @@ class RDAE3d(nn.Module):
         self.motion_encoder = motion_encoder
         self.decoder = NormalDecoder3d(
             out_channels,
-            latent_dim,
+            2 * latent_dim if aggregation_method == "concat" else latent_dim,
             conv_params[::-1],
-            aggregation_method,
             debug_show_dim,
         )
+        self.aggregation_method = aggregation_method
         self.activation = create_activation(activation)
 
     def forward(
@@ -245,12 +238,13 @@ class RDAE3d(nn.Module):
     ) -> Tensor:
         c = self.content_encoder(x_3d_0)
         m = self.motion_encoder(x_2d, x_2d_0)
-        b, t, c_, d, h = m.size()
-        m = m.reshape(b * t, c_, d, h)
+        b, t, c_, d, h_ = m.size()
+        m = m.reshape(b * t, c_, d, h_)
         c = c.repeat(t, 1, 1, 1, 1)
-        y = self.decoder(m, c)
-        _, c_, d, h, w = y.size()
-        y = y.reshape(b, t, c_, d, h, w)
+        h = aggregate(m, c, method=self.aggregation_method)
+        y = self.decoder(h)
+        _, c_, d, h_, w = y.size()
+        y = y.reshape(b, t, c_, d, h_, w)
         if self.activation is not None:
             y = self.activation(y)
         return y
