@@ -10,7 +10,7 @@ network_grad:
   decoder: false
 defaults:
   - /config/experiment/model/pvr@_here_
-  - loss@loss.wmse: mse
+  - loss@loss.mse: mse
   - network: rdae2d
   - optimizer: adam
   - scheduler: onecyclelr
