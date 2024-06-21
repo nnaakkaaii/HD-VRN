@@ -42,7 +42,7 @@ def optimize_output(
     if motion_aggregation == "none":
         pass
     elif motion_aggregation == "diff":
-        xm -= xm_0.unsqueeze(0)
+        xm -= xm_0.unsqueeze(0).clone()
     elif motion_aggregation == "concat":
         new = (xm.size(0),) + (1,) * xm_0.dim()
         xm = cat([xm, xm_0.unsqueeze(0).repeat(new)], dim=1)
