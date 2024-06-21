@@ -3,11 +3,11 @@ from pathlib import Path
 
 import torch
 from omegaconf import MISSING
-from torch import nn
+from torch import nn, tensor
 from torch.optim.optimizer import Optimizer
 from torch.utils.data import DataLoader
 
-from .functions import save_reconstructed_images
+from .functions import save_reconstructed_images, save_model
 from .losses import LossMixer, LossOption, create_loss
 from .networks import NetworkOption, create_network
 from .optimizers import OptimizerOption, create_optimizer
@@ -93,6 +93,8 @@ class BasicModel(Model):
             self.network.eval()
             with torch.no_grad():
                 total_val_loss = 0.0
+                t = tensor([0.0], device=self.device)
+                y = tensor([0.0], device=self.device)
                 for idx, data in enumerate(val_loader):
                     if max_iter and max_iter <= idx:
                         break
@@ -109,6 +111,13 @@ class BasicModel(Model):
 
                 if avg_val_loss < least_val_loss:
                     least_val_loss = avg_val_loss
+                    save_reconstructed_images(
+                        t.data.cpu().clone().detach().numpy()[:10],
+                        y.data.cpu().clone().detach().numpy()[:10],
+                        epoch,
+                        result_dir / "logs" / "reconstructed",
+                        )
+                    _save_model(self.network, result_dir, "best")
 
             if epoch % 10 == 0:
                 data = next(iter(val_loader))
@@ -124,14 +133,34 @@ class BasicModel(Model):
                     epoch,
                     result_dir / "logs" / "reconstructed",
                 )
+                _save_model(self.network, result_dir, f"epoch_{epoch}")
 
         return least_val_loss
 
 
+def _save_model(module: nn.Module, save_dir: Path, name: str) -> None:
+    if isinstance(module, nn.DataParallel):
+        module = module.module
+    if hasattr(module, "encoder"):
+        save_model(
+            module.encoder,
+            save_dir / f"{name}_encoder.pth",
+            )
+    if hasattr(module, "decoder"):
+        save_model(
+            module.decoder,
+            save_dir / f"{name}_decoder.pth",
+            )
+    save_model(
+        module,
+        save_dir / "{name}_model.pth",
+        )
+
+
 def create_basic_model(
-    opt: BasicModelOption,
-    n_epoch: int,
-    steps_per_epoch: int,
+        opt: BasicModelOption,
+        n_epoch: int,
+        steps_per_epoch: int,
 ) -> Model:
     network = create_network(1, 1, opt.network)
     optimizer = create_optimizer(

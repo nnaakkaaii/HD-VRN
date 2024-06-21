@@ -18,7 +18,7 @@ from .vr_model import VRModel, VRModelOption
 @dataclass
 class PVRModelOption(VRModelOption):
     network_weight: dict[str, Path] = MISSING
-    freeze_decoder: bool = False
+    network_grad: dict[str, bool] = MISSING
 
 
 class PVRModel(VRModel):
@@ -26,22 +26,24 @@ class PVRModel(VRModel):
         self,
         network: nn.Module,
         network_weight: dict[str, Path],
+        network_grad: dict[str, bool],
         optimizer: Optimizer,
         scheduler: LRScheduler,
         criterion: nn.Module,
         phase: str = "all",  # "all", "0", "t"
         pred_diff: bool = False,
-        freeze_decoder: bool = False,
     ) -> None:
         for k, v in network_weight.items():
             if not hasattr(network, k):
                 raise ValueError(f"{k} is not an attribute of the network")
             getattr(network, k).load_state_dict({k: torch.load(v)})
-        if freeze_decoder:
-            if not hasattr(network, "decoder"):
-                raise ValueError("decoder is not an attribute of the network")
-            for param in getattr(network, "decoder").parameters():
-                param.requires_grad = False
+        for k, v in network_grad.items():
+            if v:
+                continue
+            if not hasattr(network, k):
+                raise ValueError(f"{k} is not an attribute of the network")
+            for param in getattr(network, k).parameters():
+                param.requires_grad = v
 
         super().__init__(
             network,
@@ -80,10 +82,10 @@ def create_pvr_model(
     return PVRModel(
         network,
         opt.network_weight,
+        opt.network_grad,
         optimizer,
         scheduler,
         criterion,
         opt.phase,
         opt.pred_diff,
-        opt.freeze_decoder,
     )

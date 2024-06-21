@@ -4,7 +4,7 @@ from pathlib import Path
 
 import torch
 from omegaconf import MISSING
-from torch import nn
+from torch import nn, tensor
 from torch.optim.optimizer import Optimizer
 from torch.utils.data import DataLoader
 
