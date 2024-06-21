@@ -4,4 +4,4 @@ debug: false
 defaults:
   - /config/experiment/train@_here_
   - dataloader: basic
-  - model: basic
+  - model: pvr

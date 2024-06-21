@@ -42,8 +42,6 @@ from .models.networks.motion_encoder import (
     MotionNormalEncoder2dOption,
     MotionRNNEncoder1dOption,
     MotionRNNEncoder2dOption,
-    MotionTSNEncoder1dOption,
-    MotionTSNEncoder2dOption,
 )
 from .models.networks.rnn import (
     ConvLSTM1dOption,

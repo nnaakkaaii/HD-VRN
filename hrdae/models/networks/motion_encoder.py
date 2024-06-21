@@ -13,7 +13,7 @@ class MotionEncoder1dOption:
     in_channels: int
     conv_params: list[dict[str, list[int]]] = field(
         default_factory=lambda: [{"kernel_size": [3], "stride": [2], "padding": [1]}]
-                                * 3,
+        * 3,
     )
     aggregation: str = "concat"  # diff or concat
     phase: str = "none"  # all, 0, t, none
@@ -24,7 +24,7 @@ class MotionEncoder2dOption:
     in_channels: int
     conv_params: list[dict[str, list[int]]] = field(
         default_factory=lambda: [{"kernel_size": [3], "stride": [2], "padding": [1]}]
-                                * 3,
+        * 3,
     )
     aggregation: str = "concat"  # diff or concat
     phase: str = "none"  # all, 0, t, none
