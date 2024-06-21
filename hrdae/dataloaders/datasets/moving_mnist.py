@@ -25,7 +25,7 @@ class MovingMNIST(datasets.MovingMNIST):
         self.slice_index = kwargs.pop("slice_index")
         self.content_phase = kwargs.pop("content_phase", "all")
         self.motion_phase = kwargs.pop("motion_phase", "0")
-        self.motion_aggregator = kwargs.pop("motion_aggregator", "concat")
+        self.motion_aggregator = kwargs.pop("motion_aggregation", "concat")
         super().__init__(*args, **kwargs)
 
     def __getitem__(self, idx: int) -> dict[str, Tensor]:
