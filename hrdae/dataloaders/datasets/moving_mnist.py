@@ -6,12 +6,16 @@ from torchvision import datasets
 
 from ..transforms import Transform
 from .option import DatasetOption
+from .functions import optimize_output
 
 
 @dataclass
 class MovingMNISTDatasetOption(DatasetOption):
     root: str = "data"
     slice_index: list[int] = field(default_factory=lambda: [32])
+    content_phase: str = "all"
+    motion_phase: str = "0"
+    motion_aggregation: str = "concat"
 
 
 class MovingMNIST(datasets.MovingMNIST):
@@ -19,6 +23,9 @@ class MovingMNIST(datasets.MovingMNIST):
 
     def __init__(self, *args, **kwargs) -> None:
         self.slice_index = kwargs.pop("slice_index")
+        self.content_phase = kwargs.pop("content_phase", "all")
+        self.motion_phase = kwargs.pop("motion_phase", "0")
+        self.motion_aggregator = kwargs.pop("motion_aggregator", "concat")
         super().__init__(*args, **kwargs)
 
     def __getitem__(self, idx: int) -> dict[str, Tensor]:
@@ -56,18 +63,23 @@ class MovingMNIST(datasets.MovingMNIST):
         # (n, h, s) -> (n, s, h)
         idx_expanded = idx_expanded.permute(0, 2, 1)
 
-        return {
-            "x-": x_1d,  # (n, s, h)
-            "x-_0": x_1d_0,  # (s, h)
-            "x-_t": x_1d_t,  # (s, h)
-            "x-_all": x_1d_all,  # (2 * s, h)
-            "x+": x_2d,  # (n, c, h, w)
-            "x+_0": x_2d_0,  # (c, h, w)
-            "x+_t": x_2d_t,  # (c, h, w)
-            "x+_all": x_2d_all,  # (2 * c, h, w)
-            "slice_idx": slice_idx,  # (s,)
-            "idx_expanded": idx_expanded,  # (n, s, h)
-        }
+        output = optimize_output(
+            x_1d,
+            x_1d_0,
+            x_1d_t,
+            x_1d_all,
+            x_2d,
+            x_2d_0,
+            x_2d_t,
+            x_2d_all,
+            self.content_phase,
+            self.motion_phase,
+            self.motion_aggregator,
+        )
+        output["slice_idx"] = slice_idx
+        output["idx_expanded"] = idx_expanded
+
+        return output
 
 
 def create_moving_mnist_dataset(
@@ -81,4 +93,7 @@ def create_moving_mnist_dataset(
         split="train" if is_train else "test",
         download=True,
         transform=transform,
+        content_phase=opt.content_phase,
+        motion_phase=opt.motion_phase,
+        motion_aggregation=opt.motion_aggregation,
     )

@@ -17,28 +17,28 @@ from .motion_encoder import (
     MotionEncoder2d,
     create_motion_encoder1d,
     create_motion_encoder2d,
-    check_in_channels,
 )
 from .r_ae import RAE2dOption, RAE3dOption
 
 
 @dataclass
 class RDAE2dOption(RAE2dOption):
+    in_channels: int = 1  # 2 if content_phase = "all"
     aggregation_method: str = "concat"
 
 
 @dataclass
 class RDAE3dOption(RAE3dOption):
+    in_channels: int = 1  # 2 if content_phase = "all"
     aggregation_method: str = "concat"
 
 
-def create_rdae2d(in_channels: int, out_channels: int, opt: RDAE2dOption) -> nn.Module:
-    check_in_channels(in_channels, opt.motion_encoder)
+def create_rdae2d(out_channels: int, opt: RDAE2dOption) -> nn.Module:
     motion_encoder = create_motion_encoder1d(
         opt.latent_dim, opt.debug_show_dim, opt.motion_encoder
     )
     return RDAE2d(
-        in_channels,
+        opt.in_channels,
         out_channels,
         opt.latent_dim,
         opt.conv_params,
@@ -49,13 +49,12 @@ def create_rdae2d(in_channels: int, out_channels: int, opt: RDAE2dOption) -> nn.
     )
 
 
-def create_rdae3d(in_channels: int, out_channels: int, opt: RDAE3dOption) -> nn.Module:
-    check_in_channels(in_channels, opt.motion_encoder)
+def create_rdae3d(out_channels: int, opt: RDAE3dOption) -> nn.Module:
     motion_encoder = create_motion_encoder2d(
         opt.latent_dim, opt.debug_show_dim, opt.motion_encoder
     )
     return RDAE3d(
-        in_channels,
+        opt.in_channels,
         out_channels,
         opt.latent_dim,
         opt.conv_params,

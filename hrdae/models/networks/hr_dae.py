@@ -22,7 +22,6 @@ from .motion_encoder import (
     MotionEncoder2d,
     create_motion_encoder1d,
     create_motion_encoder2d,
-    check_in_channels,
 )
 from .r_dae import RDAE2dOption, RDAE3dOption
 
@@ -37,15 +36,12 @@ class HRDAE3dOption(RDAE3dOption):
     pass
 
 
-def create_hrdae2d(
-    in_channels: int, out_channels: int, opt: HRDAE2dOption
-) -> nn.Module:
-    check_in_channels(in_channels, opt.motion_encoder)
+def create_hrdae2d(out_channels: int, opt: HRDAE2dOption) -> nn.Module:
     motion_encoder = create_motion_encoder1d(
         opt.latent_dim, opt.debug_show_dim, opt.motion_encoder
     )
     return HRDAE2d(
-        in_channels,
+        opt.in_channels,
         out_channels,
         opt.latent_dim,
         opt.conv_params,
@@ -56,15 +52,12 @@ def create_hrdae2d(
     )
 
 
-def create_hrdae3d(
-    in_channels: int, out_channels: int, opt: HRDAE3dOption
-) -> nn.Module:
-    check_in_channels(in_channels, opt.motion_encoder)
+def create_hrdae3d(out_channels: int, opt: HRDAE3dOption) -> nn.Module:
     motion_encoder = create_motion_encoder2d(
         opt.latent_dim, opt.debug_show_dim, opt.motion_encoder
     )
     return HRDAE3d(
-        in_channels,
+        opt.in_channels,
         out_channels,
         opt.latent_dim,
         opt.conv_params,

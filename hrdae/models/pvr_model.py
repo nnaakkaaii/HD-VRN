@@ -30,8 +30,6 @@ class PVRModel(VRModel):
         optimizer: Optimizer,
         scheduler: LRScheduler,
         criterion: nn.Module,
-        phase: str = "all",  # "all", "0", "t"
-        pred_diff: bool = False,
     ) -> None:
         for k, v in network_weight.items():
             if not hasattr(network, k):
@@ -50,8 +48,6 @@ class PVRModel(VRModel):
             optimizer,
             scheduler,
             criterion,
-            phase,
-            pred_diff,
         )
 
 
@@ -60,8 +56,7 @@ def create_pvr_model(
     n_epoch: int,
     steps_per_epoch: int,
 ) -> Model:
-    in_channels = 2 if opt.phase == "all" else 1
-    network = create_network(in_channels, 1, opt.network)
+    network = create_network(1, opt.network)
     params = {}
     for k in ["content_encoder", "motion_encoder", "decoder"]:
         if hasattr(network, k):
@@ -86,6 +81,4 @@ def create_pvr_model(
         optimizer,
         scheduler,
         criterion,
-        opt.phase,
-        opt.pred_diff,
     )

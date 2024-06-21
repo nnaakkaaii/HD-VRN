@@ -13,7 +13,7 @@ from .r_dae import RDAE2dOption, RDAE3dOption, create_rdae2d, create_rdae3d
 
 
 def create_network(
-    in_channels: int, out_channels: int, opt: NetworkOption
+    out_channels: int, opt: NetworkOption
 ) -> nn.Module:
     if (
         isinstance(opt, AutoEncoder2dNetworkOption)
@@ -26,17 +26,17 @@ def create_network(
     ):
         return create_autoencoder3d(out_channels, opt)
     if isinstance(opt, HRDAE2dOption) and type(opt) is HRDAE2dOption:
-        return create_hrdae2d(in_channels, out_channels, opt)
+        return create_hrdae2d(out_channels, opt)
     if isinstance(opt, HRDAE3dOption) and type(opt) is HRDAE3dOption:
-        return create_hrdae3d(in_channels, out_channels, opt)
+        return create_hrdae3d(out_channels, opt)
     if isinstance(opt, RAE2dOption) and type(opt) is RAE2dOption:
-        return create_rae2d(in_channels, out_channels, opt)
+        return create_rae2d(out_channels, opt)
     if isinstance(opt, RAE3dOption) and type(opt) is RAE3dOption:
-        return create_rae3d(in_channels, out_channels, opt)
+        return create_rae3d(out_channels, opt)
     if isinstance(opt, RDAE2dOption) and type(opt) is RDAE2dOption:
-        return create_rdae2d(in_channels, out_channels, opt)
+        return create_rdae2d(out_channels, opt)
     if isinstance(opt, RDAE3dOption) and type(opt) is RDAE3dOption:
-        return create_rdae3d(in_channels, out_channels, opt)
+        return create_rdae3d(out_channels, opt)
     raise NotImplementedError(f"network {opt.__class__.__name__} not implemented")
 
 

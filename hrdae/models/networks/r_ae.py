@@ -15,7 +15,6 @@ from .motion_encoder import (
     MotionEncoder2dOption,
     create_motion_encoder1d,
     create_motion_encoder2d,
-    check_in_channels,
 )
 from .option import NetworkOption
 
@@ -44,8 +43,7 @@ class RAE3dOption(NetworkOption):
     debug_show_dim: bool = False
 
 
-def create_rae2d(in_channels: int, out_channels: int, opt: RAE2dOption) -> nn.Module:
-    check_in_channels(in_channels, opt.motion_encoder)
+def create_rae2d(out_channels: int, opt: RAE2dOption) -> nn.Module:
     motion_encoder = create_motion_encoder1d(
         opt.latent_dim, opt.debug_show_dim, opt.motion_encoder
     )
@@ -60,8 +58,7 @@ def create_rae2d(in_channels: int, out_channels: int, opt: RAE2dOption) -> nn.Mo
     )
 
 
-def create_rae3d(in_channels: int, out_channels: int, opt: RAE3dOption) -> nn.Module:
-    check_in_channels(in_channels, opt.motion_encoder)
+def create_rae3d(out_channels: int, opt: RAE3dOption) -> nn.Module:
     motion_encoder = create_motion_encoder2d(
         opt.latent_dim, opt.debug_show_dim, opt.motion_encoder
     )

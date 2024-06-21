@@ -170,7 +170,7 @@ def create_basic_model(
     n_epoch: int,
     steps_per_epoch: int,
 ) -> Model:
-    network = create_network(1, 1, opt.network)
+    network = create_network(1, opt.network)
     optimizer = create_optimizer(
         opt.optimizer,
         {"default": network.parameters()},

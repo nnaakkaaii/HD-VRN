@@ -11,6 +11,7 @@ from tqdm import tqdm
 
 from ..transforms import Transform
 from .option import DatasetOption
+from .functions import optimize_output
 
 
 @dataclass
@@ -20,6 +21,9 @@ class CTDatasetOption(DatasetOption):
     threshold: float = 0.1
     min_occupancy: float = 0.2
     in_memory: bool = False
+    content_phase: str = "all"
+    motion_phase: str = "0"
+    motion_aggregation: str = "concat"
 
 
 class BasicSliceIndexer:
@@ -59,6 +63,9 @@ def create_ct_dataset(
         transform=transform,
         in_memory=opt.in_memory,
         is_train=is_train,
+        content_phase=opt.content_phase,
+        motion_phase=opt.motion_phase,
+        motion_aggregation=opt.motion_aggregation,
     )
 
 
@@ -73,6 +80,9 @@ class CT(Dataset):
         transform: Transform | None = None,
         in_memory: bool = True,
         is_train: bool = True,
+        content_phase: str = "all",
+        motion_phase: str = "0",
+        motion_aggregation: str = "concat",  # "concat" | "sum"
     ) -> None:
         super().__init__()
 
@@ -95,6 +105,9 @@ class CT(Dataset):
         self.slice_indexer = slice_indexer
         self.transform = transform
         self.in_memory = in_memory
+        self.content_phase = content_phase
+        self.motion_phase = motion_phase
+        self.motion_aggregation = motion_aggregation
 
     def __len__(self) -> int:
         return len(self.paths)
@@ -146,15 +159,20 @@ class CT(Dataset):
         # (n, d, h, s) -> (n, s, d, h)
         idx_expanded = idx_expanded.permute(0, 3, 1, 2)
 
-        return {
-            "x-": x_2d,  # (n, s, d, h)
-            "x-_0": x_2d_0,  # (s, d, h)
-            "x-_t": x_2d_t,  # (s, d, h)
-            "x-_all": x_2d_all,  # (2 * s, d, h)
-            "x+": x_3d,  # (n, c, d, h, w)
-            "x+_0": x_3d_0,  # (c, d, h, w)
-            "x+_t": x_3d_t,  # (c, d, h, w)
-            "x+_all": x_3d_all,  # (2 * c, d, h, w)
-            "slice_idx": slice_idx,  # (s)
-            "idx_expanded": idx_expanded,  # (n, s, d, h)
-        }
+        output = optimize_output(
+            x_2d,
+            x_2d_0,
+            x_2d_t,
+            x_2d_all,
+            x_3d,
+            x_3d_0,
+            x_3d_t,
+            x_3d_all,
+            self.content_phase,
+            self.motion_phase,
+            self.motion_aggregation,
+        )
+        output["slice_idx"] = slice_idx
+        output["idx_expanded"] = idx_expanded
+
+        return output
