@@ -177,16 +177,6 @@ cs.store(
     node=MotionGuidedEncoder2dOption,
 )
 cs.store(
-    group="config/experiment/model/network/motion_encoder",
-    name="tsn1d",
-    node=MotionTSNEncoder1dOption,
-)
-cs.store(
-    group="config/experiment/model/network/motion_encoder",
-    name="tsn2d",
-    node=MotionTSNEncoder2dOption,
-)
-cs.store(
     group="config/experiment/model/network/motion_encoder/rnn",
     name="conv_lstm1d",
     node=ConvLSTM1dOption,
