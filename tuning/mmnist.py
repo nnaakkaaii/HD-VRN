@@ -19,7 +19,6 @@ from hrdae.models.networks.motion_encoder import (
     MotionConv2dEncoder1dOption,
     MotionGuidedEncoder1dOption,
     MotionNormalEncoder1dOption,
-    MotionTSNEncoder1dOption,
 )
 
 
@@ -177,16 +176,6 @@ def objective(trial):
         )
     elif motion_encoder_name == "normal1d":
         motion_encoder_option = MotionNormalEncoder1dOption(
-            in_channels=3,
-            conv_params=interleave_arrays(
-                [{"kernel_size": [3], "stride": [2], "padding": [1]}]
-                * num_reducible_layers,
-                [{"kernel_size": [3], "stride": [1], "padding": [1]}]
-                * motion_encoder_num_layers,
-                ),
-        )
-    elif motion_encoder_name == "tsn1d":
-        motion_encoder_option = MotionTSNEncoder1dOption(
             in_channels=3,
             conv_params=interleave_arrays(
                 [{"kernel_size": [3], "stride": [2], "padding": [1]}]
