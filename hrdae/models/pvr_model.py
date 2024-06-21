@@ -62,10 +62,10 @@ def create_pvr_model(
 ) -> Model:
     in_channels = 2 if opt.phase == "all" else 1
     network = create_network(in_channels, 1, opt.network)
-    params = []
+    params = {}
     for k in ["content_encoder", "motion_encoder", "decoder"]:
         if hasattr(network, k):
-            params.append({"params": k})
+            params[k] = getattr(network, k).parameters()
     optimizer = create_optimizer(
         opt.optimizer,
         params,

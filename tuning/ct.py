@@ -204,16 +204,6 @@ def objective(trial):
                 * motion_encoder_num_layers,
                 ),
         )
-    elif motion_encoder_name == "tsn2d":
-        motion_encoder_option = MotionTSNEncoder2dOption(
-            in_channels=2,
-            conv_params=interleave_arrays(
-                [{"kernel_size": [3], "stride": [2], "padding": [1]}]
-                * num_reducible_layers,
-                [{"kernel_size": [3], "stride": [1], "padding": [1]}]
-                * motion_encoder_num_layers,
-                ),
-        )
     else:
         raise RuntimeError("unreachable")
     latent_dim = trial.suggest_int("latent_dim", 32, 64, step=8)

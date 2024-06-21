@@ -193,7 +193,7 @@ def create_vr_model(
     network = create_network(in_channels, 1, opt.network)
     optimizer = create_optimizer(
         opt.optimizer,
-        network.parameters(),
+        {"default": network.parameters()},
     )
     scheduler = create_scheduler(
         opt.scheduler,

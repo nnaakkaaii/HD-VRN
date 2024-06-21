@@ -173,7 +173,7 @@ def create_basic_model(
     network = create_network(1, 1, opt.network)
     optimizer = create_optimizer(
         opt.optimizer,
-        network.parameters(),
+        {"default": network.parameters()},
     )
     scheduler = create_scheduler(
         opt.scheduler,

@@ -15,12 +15,29 @@ class AdamOptimizerOption(OptimizerOption):
 
 def create_optimizer(
     opt: OptimizerOption,
-    params: Iterable[Tensor] | Iterable[dict[str, Any]],
+    params: dict[str, Iterable[Tensor]],
 ) -> Optimizer:
     if isinstance(opt, AdamOptimizerOption) and type(opt) is AdamOptimizerOption:
         if opt.lr > 0:
-            return Adam([{"params": params, "lr": opt.lr}])
+            return Adam(
+                [
+                    {
+                        "params": v,
+                        "lr": opt.lr,
+                    }
+                    for v in params.values()
+                ]
+            )
         if len(opt.lrs) > 0:
-            return Adam([{"params": v, "lr": opt.lrs[k]} for k, v in params])
-        raise ValueError("either lr or lrs must be set")
+            return Adam(
+                [
+                    {
+                        "params": v,
+                        "lr": opt.lrs[k],
+                    }
+                    for k, v in params.items()
+                ]
+            )
+        else:
+            raise ValueError("either lr or lrs must be set")
     raise NotImplementedError(f"{opt.__class__.__name__} is not implemented")
