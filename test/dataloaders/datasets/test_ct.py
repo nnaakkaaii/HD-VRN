@@ -49,13 +49,9 @@ def test_CT():
             is_train=False,
         )
         data = dataset[0]
-        assert data["x-"].shape == (10, 1, 16, 16)
-        assert data["x-_0"].shape == (1, 16, 16)
-        assert data["x-_t"].shape == (1, 16, 16)
-        assert data["x-_all"].shape == (2, 16, 16)
-        assert data["x+"].shape == (10, 1, 16, 16, 16)
-        assert data["x+_0"].shape == (1, 16, 16, 16)
-        assert data["x+_t"].shape == (1, 16, 16, 16)
-        assert data["x+_all"].shape == (2, 16, 16, 16)
+        assert data["xm"].shape == (10, 2, 16, 16)  # 2: phase=0, agg=concat
+        assert data["xm_0"].shape == (1, 16, 16)
+        assert data["xp"].shape == (10, 1, 16, 16, 16)
+        assert data["xp_0"].shape == (2, 16, 16, 16)
         assert data["slice_idx"].shape == (1,)
         assert data["idx_expanded"].shape == (10, 1, 16, 16)

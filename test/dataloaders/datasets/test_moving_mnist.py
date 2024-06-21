@@ -20,15 +20,14 @@ def test_MovingMNIST():
             split="test",
             download=False,
             transform=None,
+            content_phase="all",
+            motion_phase="all",
+            motion_aggregator="concat",
         )
         data = dataset[0]
-        assert data["x-"].shape == (10, 1, 64)
-        assert data["x-_0"].shape == (1, 64)
-        assert data["x-_t"].shape == (1, 64)
-        assert data["x-_all"].shape == (2, 64)
-        assert data["x+"].shape == (10, 1, 64, 64)
-        assert data["x+_0"].shape == (1, 64, 64)
-        assert data["x+_t"].shape == (1, 64, 64)
-        assert data["x+_all"].shape == (2, 64, 64)
+        assert data["xm"].shape == (10, 3, 64)  # 3: phase=all, agg=concat
+        assert data["xm_0"].shape == (2, 64)
+        assert data["xp"].shape == (10, 1, 64, 64)
+        assert data["xp_0"].shape == (2, 64, 64)
         assert data["slice_idx"].shape == (1,)
         assert data["idx_expanded"].shape == (10, 1, 64)
