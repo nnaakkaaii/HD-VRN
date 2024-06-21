@@ -38,7 +38,7 @@ def create_motion_encoder1d(
             opt.in_channels,
             latent_dim,
             opt.conv_params,
-            create_rnn1d(opt.in_channels, opt.rnn),
+            create_rnn1d(latent_dim, opt.rnn),
             debug_show_dim,
         )
     if (
