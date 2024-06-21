@@ -1,5 +1,6 @@
 from torch import randn
 
+from hrdae.models.networks.functions import aggregate
 from hrdae.models.networks.r_dae import (
     NormalContentEncoder2d,
     NormalDecoder2d,
@@ -75,7 +76,7 @@ def test_normal_decoder2d__concat():
     c = randn((b * n, latent, h // 4, w // 4))
     net = NormalDecoder2d(
         c_,
-        latent,
+        2 * latent,
         [
             {
                 "kernel_size": [3],
@@ -85,10 +86,9 @@ def test_normal_decoder2d__concat():
             }
         ]
         * 2,
-        aggregation_method="concat",
         debug_show_dim=False,
     )
-    x = net(m, c)
+    x = net(aggregate(m, c, method="concat"))
     assert x.size() == (b * n, c_, h, w)
 
 
@@ -110,10 +110,9 @@ def test_normal_decoder2d__sum():
             }
         ]
         * 2,
-        aggregation_method="sum",
         debug_show_dim=False,
     )
-    x = net(m, c)
+    x = net(aggregate(m, c, method="sum"))
     assert x.size() == (b * n, 1, h, w)
 
 
@@ -125,7 +124,7 @@ def test_normal_decoder3d__concat():
     c = randn((b * n, latent, h // 4, h // 4, w // 4))
     net = NormalDecoder3d(
         c_,
-        latent,
+        2 * latent,
         [
             {
                 "kernel_size": [3],
@@ -135,10 +134,9 @@ def test_normal_decoder3d__concat():
             }
         ]
         * 2,
-        aggregation_method="concat",
         debug_show_dim=False,
     )
-    x = net(m, c)
+    x = net(aggregate(m, c, method="concat"))
     assert x.size() == (b * n, c_, d, h, w)
 
 
@@ -160,10 +158,9 @@ def test_normal_decoder3d__sum():
             }
         ]
         * 2,
-        aggregation_method="sum",
         debug_show_dim=False,
     )
-    x = net(m, c)
+    x = net(aggregate(m, c, method="sum"))
     assert x.size() == (b * n, c_, d, h, w)
 
 

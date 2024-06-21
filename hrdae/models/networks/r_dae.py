@@ -102,22 +102,15 @@ class NormalContentEncoder3d(ConvModule3d):
         )
 
 
-class NormalDecoder2d(nn.Module):
+class NormalDecoder2d(ConvModule2d):
     def __init__(
         self,
         out_channels: int,
         latent_dim: int,
         conv_params: list[dict[str, list[int]]],
-        aggregation_method: str = "concat",
         debug_show_dim: bool = False,
     ) -> None:
-        super().__init__()
-        assert aggregation_method in ["concat", "sum"]
-
-        if aggregation_method == "concat":
-            latent_dim *= 2
-
-        self.dec = ConvModule2d(
+        super().__init__(
             latent_dim,
             out_channels,
             latent_dim,
@@ -125,10 +118,6 @@ class NormalDecoder2d(nn.Module):
             transpose=True,
             debug_show_dim=debug_show_dim,
         )
-        self.aggregation_method = aggregation_method
-
-    def forward(self, m: Tensor, c: Tensor) -> Tensor:
-        return self.dec(aggregate(m, c, method=self.aggregation_method))
 
 
 class NormalDecoder3d(ConvModule3d):
@@ -175,7 +164,6 @@ class RDAE2d(nn.Module):
             out_channels,
             2 * latent_dim if aggregation_method == "concat" else latent_dim,
             conv_params[::-1],
-            aggregation_method,
             debug_show_dim,
         )
         self.aggregation_method = aggregation_method
