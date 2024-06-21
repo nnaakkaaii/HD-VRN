@@ -58,14 +58,14 @@ def _save_images(
 
 
 def save_reconstructed_images(
-    original: np.ndarray, reconstructed: np.ndarray, epoch: int, save_dir: Path
+    original: np.ndarray, reconstructed: np.ndarray, name: str, save_dir: Path
 ):
     if len(original.shape) == 4:
         _save_images(
             original,
             reconstructed,
             save_dir,
-            f"epoch_{epoch}.png",
+            name,
         )
     elif len(original.shape) == 5:
         b, _, _, _, _ = original.shape
@@ -74,7 +74,7 @@ def save_reconstructed_images(
                 original[bi],  # (t, 1, h, w)
                 reconstructed[bi],  # (t, 1, h, w)
                 save_dir,
-                f"epoch_{epoch}_batch_{bi}.png",
+                f"{name}_batch_{bi}",
             )
     elif len(original.shape) == 6:
         b, _, _, d, h, w = original.shape
@@ -83,19 +83,19 @@ def save_reconstructed_images(
                 original[bi, :, :, :, :, w // 2],  # (t, 1, d, h)
                 reconstructed[bi, :, :, :, :, w // 2],  # (t, 1, d, h)
                 save_dir,
-                f"epoch_{epoch}_batch_{bi}_axis_x.png",
+                f"{name}_batch_{bi}_axis_x",
             )
             _save_images(
                 original[bi, :, :, :, h // 2],  # (t, 1, d, w)
                 reconstructed[bi, :, :, :, h // 2],  # (t, 1, d, w)
                 save_dir,
-                f"epoch_{epoch}_batch_{bi}_axis_y.png",
+                f"{name}_batch_{bi}_axis_y",
             )
             _save_images(
                 original[bi, :, :, d // 2],  # (t, 1, h, w)
                 reconstructed[bi, :, :, d // 2],  # (t, 1, h, w)
                 save_dir,
-                f"epoch_{epoch}_batch_{bi}_axis_z.png",
+                f"{name}_batch_{bi}_axis_z",
             )
     else:
         raise ValueError("Invalid shape of original and reconstructed videos")

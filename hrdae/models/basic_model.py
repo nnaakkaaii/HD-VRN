@@ -114,9 +114,9 @@ class BasicModel(Model):
                     save_reconstructed_images(
                         t.data.cpu().clone().detach().numpy()[:10],
                         y.data.cpu().clone().detach().numpy()[:10],
-                        epoch,
+                        "best",
                         result_dir / "logs" / "reconstructed",
-                        )
+                    )
                     _save_model(self.network, result_dir, "best")
 
             if epoch % 10 == 0:
@@ -130,7 +130,7 @@ class BasicModel(Model):
                 save_reconstructed_images(
                     t.data.cpu().clone().detach().numpy()[:10],
                     y.data.cpu().clone().detach().numpy()[:10],
-                    epoch,
+                    f"epoch_{epoch}",
                     result_dir / "logs" / "reconstructed",
                 )
                 _save_model(self.network, result_dir, f"epoch_{epoch}")
@@ -145,22 +145,22 @@ def _save_model(module: nn.Module, save_dir: Path, name: str) -> None:
         save_model(
             module.encoder,
             save_dir / f"{name}_encoder.pth",
-            )
+        )
     if hasattr(module, "decoder"):
         save_model(
             module.decoder,
             save_dir / f"{name}_decoder.pth",
-            )
+        )
     save_model(
         module,
         save_dir / "{name}_model.pth",
-        )
+    )
 
 
 def create_basic_model(
-        opt: BasicModelOption,
-        n_epoch: int,
-        steps_per_epoch: int,
+    opt: BasicModelOption,
+    n_epoch: int,
+    steps_per_epoch: int,
 ) -> Model:
     network = create_network(1, 1, opt.network)
     optimizer = create_optimizer(

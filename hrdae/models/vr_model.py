@@ -108,6 +108,9 @@ class VRModel(Model):
             self.network.eval()
             with torch.no_grad():
                 total_val_loss = 0.0
+                xp = tensor([0.0], device=self.device)
+                y = tensor([0.0], device=self.device)
+
                 for idx, data in enumerate(val_loader):
                     if max_iter and max_iter <= idx:
                         break
@@ -131,6 +134,12 @@ class VRModel(Model):
 
                 if avg_val_loss < least_val_loss:
                     least_val_loss = avg_val_loss
+                    save_reconstructed_images(
+                        xp.data.cpu().clone().detach().numpy(),
+                        y.data.cpu().clone().detach().numpy(),
+                        "best",
+                        result_dir / "logs" / "reconstructed",
+                    )
                     save_model(self.network, result_dir / "best_model.pth")
 
             training_history["history"].append(
@@ -158,7 +167,7 @@ class VRModel(Model):
                 save_reconstructed_images(
                     xp.data.cpu().clone().detach().numpy(),
                     y.data.cpu().clone().detach().numpy(),
-                    epoch,
+                    f"epoch_{epoch}",
                     result_dir / "logs" / "reconstructed",
                 )
                 save_model(self.network, result_dir / f"model_{epoch}.pth")

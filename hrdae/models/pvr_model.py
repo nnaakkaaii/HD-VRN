@@ -37,13 +37,13 @@ class PVRModel(VRModel):
             if not hasattr(network, k):
                 raise ValueError(f"{k} is not an attribute of the network")
             getattr(network, k).load_state_dict({k: torch.load(v)})
-        for k, v in network_grad.items():
-            if v:
+        for k, b in network_grad.items():
+            if b:
                 continue
             if not hasattr(network, k):
                 raise ValueError(f"{k} is not an attribute of the network")
             for param in getattr(network, k).parameters():
-                param.requires_grad = v
+                param.requires_grad = b
 
         super().__init__(
             network,
