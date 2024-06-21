@@ -24,5 +24,5 @@ aggregation_method: sum  # sum when to use pvr
 activation: sigmoid  # tanh if pred_diff = true
 debug_show_dim: false
 defaults:
-  - /config/experiment/model/network/hrdae2d@_here_
+  - /config/experiment/model/network/rdae2d@_here_
   - motion_encoder: rnn1d
