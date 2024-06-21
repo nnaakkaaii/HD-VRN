@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Any, Iterable
+from typing import Iterable
 
 from torch import Tensor
 from torch.optim import Adam, Optimizer
