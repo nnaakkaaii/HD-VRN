@@ -22,7 +22,7 @@ def test_MovingMNIST():
             transform=None,
             content_phase="all",
             motion_phase="all",
-            motion_aggregator="concat",
+            motion_aggregation="concat",
         )
         data = dataset[0]
         assert data["xm"].shape == (10, 3, 64)  # 3: phase=all, agg=concat
