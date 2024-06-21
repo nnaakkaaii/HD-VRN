@@ -1,5 +1,0 @@
-result_dir: results
-defaults:
-  - /config/experiment/test@_here_
-  - dataloader: basic
-  - model: basic

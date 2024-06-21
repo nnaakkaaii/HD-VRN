@@ -1,3 +1,0 @@
-lr: 0.005
-defaults:
-  - /config/experiment/model/optimizer/adam@_here_

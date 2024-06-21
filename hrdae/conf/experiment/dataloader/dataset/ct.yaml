@@ -1,7 +1,0 @@
-root: data
-slice_index: [48, 80]  # size should be (64, 128, 128)
-threshold: 0.1
-min_occupancy: 0.2
-in_memory: false
-defaults:
-  - /config/experiment/dataloader/dataset/ct@_here_
