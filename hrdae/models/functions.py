@@ -102,5 +102,6 @@ def save_reconstructed_images(
 
 
 def save_model(model: nn.Module, filepath: Path):
+    filepath.parent.mkdir(parents=True, exist_ok=True)
     model_to_save = model.module if isinstance(model, torch.nn.DataParallel) else model
     torch.save(model_to_save.state_dict(), filepath)
