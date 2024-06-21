@@ -10,12 +10,24 @@ from .rnn import RNN1d, RNN1dOption, RNN2d, RNN2dOption, create_rnn1d, create_rn
 
 @dataclass
 class MotionEncoder1dOption:
-    pass
+    in_channels: int
+    conv_params: list[dict[str, list[int]]] = field(
+        default_factory=lambda: [{"kernel_size": [3], "stride": [2], "padding": [1]}]
+                                * 3,
+    )
+    aggregation: str = "concat"  # diff or concat
+    phase: str = "none"  # all, 0, t, none
 
 
 @dataclass
 class MotionEncoder2dOption:
-    pass
+    in_channels: int
+    conv_params: list[dict[str, list[int]]] = field(
+        default_factory=lambda: [{"kernel_size": [3], "stride": [2], "padding": [1]}]
+                                * 3,
+    )
+    aggregation: str = "concat"  # diff or concat
+    phase: str = "none"  # all, 0, t, none
 
 
 def check_in_channels(
@@ -25,69 +37,123 @@ def check_in_channels(
         return
     assert type(opt) is not MotionGuidedEncoder1dOption
     assert type(opt) is not MotionGuidedEncoder2dOption
-    assert type(opt) is not MotionTSNEncoder1dOption
-    assert type(opt) is not MotionTSNEncoder2dOption
 
 
 def create_motion_encoder1d(
     latent_dim: int, debug_show_dim: bool, opt: MotionEncoder1dOption
 ) -> "MotionEncoder1d":
+    assert opt.aggregation in ["diff", "concat"]
+    assert opt.phase in ["all", "0", "t", "none"]
+    if opt.aggregation == "diff":
+        assert opt.phase in ["0", "t"]
+
+    in_channels = opt.in_channels
+    if opt.aggregation == "concat":
+        if opt.phase in ["all"]:
+            in_channels *= 3
+        if opt.phase in ["0", "t"]:
+            in_channels *= 2
+
     if (
         isinstance(opt, MotionRNNEncoder1dOption)
         and type(opt) is MotionRNNEncoder1dOption
     ):
-        return create_motion_rnn_encoder1d(latent_dim, debug_show_dim, opt)
+        return MotionRNNEncoder1d(
+            in_channels,
+            latent_dim,
+            opt.conv_params,
+            create_rnn1d(latent_dim, opt.rnn),
+            debug_show_dim,
+        )
     if (
         isinstance(opt, MotionNormalEncoder1dOption)
         and type(opt) is MotionNormalEncoder1dOption
     ):
-        return create_motion_normal_encoder1d(latent_dim, debug_show_dim, opt)
+        return MotionNormalEncoder1d(
+            in_channels,
+            latent_dim,
+            opt.conv_params,
+            debug_show_dim,
+        )
     if (
         isinstance(opt, MotionConv2dEncoder1dOption)
         and type(opt) is MotionConv2dEncoder1dOption
     ):
-        return create_motion_conv2d_encoder1d(latent_dim, debug_show_dim, opt)
+        return MotionConv2dEncoder1d(
+            in_channels,
+            latent_dim,
+            opt.conv_params,
+            debug_show_dim,
+        )
     if (
         isinstance(opt, MotionGuidedEncoder1dOption)
         and type(opt) is MotionGuidedEncoder1dOption
     ):
-        return create_motion_guided_encoder1d(latent_dim, debug_show_dim, opt)
-    if (
-        isinstance(opt, MotionTSNEncoder1dOption)
-        and type(opt) is MotionTSNEncoder1dOption
-    ):
-        return create_motion_tsn_encoder1d(latent_dim, debug_show_dim, opt)
+        return MotionGuidedEncoder1d(
+            in_channels,
+            latent_dim,
+            opt.conv_params,
+            debug_show_dim,
+        )
     raise NotImplementedError(f"{opt.__class__.__name__} not implemented")
 
 
 def create_motion_encoder2d(
     latent_dim: int, debug_show_dim: bool, opt: MotionEncoder2dOption
 ) -> "MotionEncoder2d":
+    assert opt.aggregation in ["diff", "concat"]
+    assert opt.phase in ["all", "0", "t", "none"]
+    if opt.aggregation == "diff":
+        assert opt.phase in ["0", "t"]
+
+    in_channels = opt.in_channels
+    if opt.aggregation == "concat":
+        if opt.phase in ["all"]:
+            in_channels *= 3
+        if opt.phase in ["0", "t"]:
+            in_channels *= 2
+
     if (
         isinstance(opt, MotionRNNEncoder2dOption)
         and type(opt) is MotionRNNEncoder2dOption
     ):
-        return create_motion_rnn_encoder2d(latent_dim, debug_show_dim, opt)
+        return MotionRNNEncoder2d(
+            in_channels,
+            latent_dim,
+            opt.conv_params,
+            create_rnn2d(latent_dim, opt.rnn),
+            debug_show_dim,
+        )
     if (
         isinstance(opt, MotionNormalEncoder2dOption)
         and type(opt) is MotionNormalEncoder2dOption
     ):
-        return create_motion_normal_encoder2d(latent_dim, debug_show_dim, opt)
+        return MotionNormalEncoder2d(
+            in_channels,
+            latent_dim,
+            opt.conv_params,
+            debug_show_dim,
+        )
     if (
         isinstance(opt, MotionConv3dEncoder2dOption)
         and type(opt) is MotionConv3dEncoder2dOption
     ):
-        return create_motion_conv3d_encoder2d(latent_dim, debug_show_dim, opt)
+        return MotionConv3dEncoder2d(
+            in_channels,
+            latent_dim,
+            opt.conv_params,
+            debug_show_dim,
+        )
     if (
         isinstance(opt, MotionGuidedEncoder2dOption)
         and type(opt) is MotionGuidedEncoder2dOption
     ):
-        return create_motion_guided_encoder2d(latent_dim, debug_show_dim, opt)
-    if (
-        isinstance(opt, MotionTSNEncoder2dOption)
-        and type(opt) is MotionTSNEncoder2dOption
-    ):
-        return create_motion_tsn_encoder2d(latent_dim, debug_show_dim, opt)
+        return MotionGuidedEncoder2d(
+            in_channels,
+            latent_dim,
+            opt.conv_params,
+            debug_show_dim,
+        )
     raise NotImplementedError(f"{opt.__class__.__name__} not implemented")
 
 
@@ -113,42 +179,12 @@ class MotionEncoder2d(nn.Module, metaclass=ABCMeta):
 
 @dataclass
 class MotionNormalEncoder1dOption(MotionEncoder1dOption):
-    in_channels: int
-    conv_params: list[dict[str, list[int]]] = field(
-        default_factory=lambda: [{"kernel_size": [3], "stride": [2], "padding": [1]}]
-        * 3,
-    )
+    pass
 
 
 @dataclass
 class MotionNormalEncoder2dOption(MotionEncoder2dOption):
-    in_channels: int
-    conv_params: list[dict[str, list[int]]] = field(
-        default_factory=lambda: [{"kernel_size": [3], "stride": [2], "padding": [1]}]
-        * 3,
-    )
-
-
-def create_motion_normal_encoder1d(
-    latent_dim: int, debug_show_dim: bool, opt: MotionNormalEncoder1dOption
-) -> MotionEncoder1d:
-    return MotionNormalEncoder1d(
-        opt.in_channels,
-        latent_dim,
-        opt.conv_params,
-        debug_show_dim=debug_show_dim,
-    )
-
-
-def create_motion_normal_encoder2d(
-    latent_dim: int, debug_show_dim: bool, opt: MotionNormalEncoder2dOption
-) -> MotionEncoder2d:
-    return MotionNormalEncoder2d(
-        opt.in_channels,
-        latent_dim,
-        opt.conv_params,
-        debug_show_dim=debug_show_dim,
-    )
+    pass
 
 
 class MotionNormalEncoder1d(MotionEncoder1d):
@@ -222,37 +258,13 @@ class MotionNormalEncoder2d(MotionEncoder2d):
 
 
 @dataclass
-class MotionRNNEncoder1dOption(MotionNormalEncoder1dOption):
+class MotionRNNEncoder1dOption(MotionEncoder1dOption):
     rnn: RNN1dOption = MISSING
 
 
 @dataclass
-class MotionRNNEncoder2dOption(MotionNormalEncoder2dOption):
+class MotionRNNEncoder2dOption(MotionEncoder2dOption):
     rnn: RNN2dOption = MISSING
-
-
-def create_motion_rnn_encoder1d(
-    latent_dim: int, debug_show_dim: bool, opt: MotionRNNEncoder1dOption
-) -> MotionEncoder1d:
-    return MotionRNNEncoder1d(
-        opt.in_channels,
-        latent_dim,
-        opt.conv_params,
-        create_rnn1d(latent_dim, opt.rnn),
-        debug_show_dim=debug_show_dim,
-    )
-
-
-def create_motion_rnn_encoder2d(
-    latent_dim: int, debug_show_dim: bool, opt: MotionRNNEncoder2dOption
-) -> MotionEncoder2d:
-    return MotionRNNEncoder2d(
-        opt.in_channels,
-        latent_dim,
-        opt.conv_params,
-        create_rnn2d(latent_dim, opt.rnn),
-        debug_show_dim=debug_show_dim,
-    )
 
 
 class MotionRNNEncoder1d(MotionNormalEncoder1d):
@@ -314,35 +326,13 @@ class MotionRNNEncoder2d(MotionNormalEncoder2d):
 
 
 @dataclass
-class MotionConv2dEncoder1dOption(MotionNormalEncoder1dOption):
+class MotionConv2dEncoder1dOption(MotionEncoder1dOption):
     pass
 
 
 @dataclass
-class MotionConv3dEncoder2dOption(MotionNormalEncoder2dOption):
+class MotionConv3dEncoder2dOption(MotionEncoder2dOption):
     pass
-
-
-def create_motion_conv2d_encoder1d(
-    latent_dim: int, debug_show_dim: bool, opt: MotionConv2dEncoder1dOption
-) -> MotionEncoder1d:
-    return MotionConv2dEncoder1d(
-        opt.in_channels,
-        latent_dim,
-        opt.conv_params,
-        debug_show_dim=debug_show_dim,
-    )
-
-
-def create_motion_conv3d_encoder2d(
-    latent_dim: int, debug_show_dim: bool, opt: MotionConv3dEncoder2dOption
-) -> MotionEncoder2d:
-    return MotionConv3dEncoder2d(
-        opt.in_channels,
-        latent_dim,
-        opt.conv_params,
-        debug_show_dim=debug_show_dim,
-    )
 
 
 class MotionConv2dEncoder1d(MotionEncoder1d):
@@ -416,35 +406,13 @@ class MotionConv3dEncoder2d(MotionEncoder2d):
 
 
 @dataclass
-class MotionGuidedEncoder1dOption(MotionNormalEncoder1dOption):
+class MotionGuidedEncoder1dOption(MotionEncoder1dOption):
     pass
 
 
 @dataclass
-class MotionGuidedEncoder2dOption(MotionNormalEncoder2dOption):
+class MotionGuidedEncoder2dOption(MotionEncoder2dOption):
     pass
-
-
-def create_motion_guided_encoder1d(
-    latent_dim: int, debug_show_dim: bool, opt: MotionGuidedEncoder1dOption
-) -> MotionEncoder1d:
-    return MotionGuidedEncoder1d(
-        opt.in_channels,
-        latent_dim,
-        opt.conv_params,
-        debug_show_dim=debug_show_dim,
-    )
-
-
-def create_motion_guided_encoder2d(
-    latent_dim: int, debug_show_dim: bool, opt: MotionGuidedEncoder2dOption
-) -> MotionEncoder2d:
-    return MotionGuidedEncoder2d(
-        opt.in_channels,
-        latent_dim,
-        opt.conv_params,
-        debug_show_dim=debug_show_dim,
-    )
 
 
 class MotionGuidedEncoder1d(MotionNormalEncoder1d):
@@ -472,68 +440,6 @@ class MotionGuidedEncoder2d(MotionNormalEncoder2d):
         x = super().forward(x, x_0)
         x_0 = self.enc(x_0).unsqueeze(1)
         x -= x_0
-        if self.debug_show_dim:
-            print(f"{self.__class__.__name__}", x.size())
-        return x
-
-
-@dataclass
-class MotionTSNEncoder1dOption(MotionNormalEncoder1dOption):
-    pass
-
-
-@dataclass
-class MotionTSNEncoder2dOption(MotionNormalEncoder2dOption):
-    pass
-
-
-def create_motion_tsn_encoder1d(
-    latent_dim: int, debug_show_dim: bool, opt: MotionTSNEncoder1dOption
-) -> MotionEncoder1d:
-    return MotionTSNEncoder1d(
-        opt.in_channels,
-        latent_dim,
-        opt.conv_params,
-        debug_show_dim=debug_show_dim,
-    )
-
-
-def create_motion_tsn_encoder2d(
-    latent_dim: int, debug_show_dim: bool, opt: MotionTSNEncoder2dOption
-) -> MotionEncoder2d:
-    return MotionTSNEncoder2d(
-        opt.in_channels,
-        latent_dim,
-        opt.conv_params,
-        debug_show_dim=debug_show_dim,
-    )
-
-
-class MotionTSNEncoder1d(MotionNormalEncoder1d):
-    def forward(
-        self,
-        x: Tensor,
-        x_0: Tensor | None = None,
-    ) -> Tensor:
-        # x: (b, t, c, h) - x_0: (b, s, h)
-        assert x_0 is not None
-        x -= x_0.unsqueeze(1)
-        x = super().forward(x, x_0)
-        if self.debug_show_dim:
-            print(f"{self.__class__.__name__}", x.size())
-        return x
-
-
-class MotionTSNEncoder2d(MotionNormalEncoder2d):
-    def forward(
-        self,
-        x: Tensor,
-        x_0: Tensor | None = None,
-    ) -> Tensor:
-        # x: (b, t, c, d, h) - x_0: (b, s, d, h)
-        assert x_0 is not None
-        x -= x_0.unsqueeze(1)
-        x = super().forward(x, x_0)
         if self.debug_show_dim:
             print(f"{self.__class__.__name__}", x.size())
         return x

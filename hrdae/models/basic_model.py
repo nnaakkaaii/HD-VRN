@@ -117,7 +117,11 @@ class BasicModel(Model):
                         "best",
                         result_dir / "logs" / "reconstructed",
                     )
-                    _save_model(self.network, result_dir, "best")
+                    _save_model(
+                        self.network,
+                        result_dir / "weights",
+                        "best",
+                    )
 
             if epoch % 10 == 0:
                 data = next(iter(val_loader))
@@ -133,7 +137,11 @@ class BasicModel(Model):
                     f"epoch_{epoch}",
                     result_dir / "logs" / "reconstructed",
                 )
-                _save_model(self.network, result_dir, f"epoch_{epoch}")
+                _save_model(
+                    self.network,
+                    result_dir / "weights",
+                    f"epoch_{epoch}",
+                )
 
         return least_val_loss
 
@@ -144,16 +152,16 @@ def _save_model(module: nn.Module, save_dir: Path, name: str) -> None:
     if hasattr(module, "encoder"):
         save_model(
             module.encoder,
-            save_dir / f"{name}_encoder.pth",
+            save_dir / "weights" / f"{name}_encoder.pth",
         )
     if hasattr(module, "decoder"):
         save_model(
             module.decoder,
-            save_dir / f"{name}_decoder.pth",
+            save_dir / "weights" / f"{name}_decoder.pth",
         )
     save_model(
         module,
-        save_dir / "{name}_model.pth",
+        save_dir / "weights" / f"{name}_model.pth",
     )
 
 

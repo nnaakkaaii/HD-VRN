@@ -1,0 +1,28 @@
+latent_dim: 64
+conv_params:
+  - kernel_size: [3]
+    stride: [2]
+    padding: [1]
+    output_padding: [1]
+  - kernel_size: [3]
+    stride: [2]
+    padding: [1]
+    output_padding: [1]
+  - kernel_size: [3]
+    stride: [2]
+    padding: [1]
+    output_padding: [1]
+  - kernel_size: [3]
+    stride: [2]
+    padding: [1]
+    output_padding: [1]
+#   - kernel_size: [3]
+#     stride: [2]
+#     padding: [1]
+#     output_padding: [1]
+aggregation_method: sum  # sum when to use pvr
+activation: sigmoid  # tanh if pred_diff = true
+debug_show_dim: false
+defaults:
+  - /config/experiment/model/network/hrdae2d@_here_
+  - motion_encoder: rnn1d

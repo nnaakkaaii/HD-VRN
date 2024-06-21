@@ -1,0 +1,16 @@
+loss_coef:
+  mse: 1
+phase: "all"
+pred_diff: false
+network_weight:
+  content_encoder: undefined
+  decoder: undefined
+network_grad:
+  content_encoder: false
+  decoder: false
+defaults:
+  - /config/experiment/model/pvr@_here_
+  - loss@loss.wmse: mse
+  - network: rdae2d
+  - optimizer: adam
+  - scheduler: onecyclelr

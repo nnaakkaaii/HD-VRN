@@ -140,7 +140,10 @@ class VRModel(Model):
                         "best",
                         result_dir / "logs" / "reconstructed",
                     )
-                    save_model(self.network, result_dir / "best_model.pth")
+                    save_model(
+                        self.network,
+                        result_dir / "weights" / "best_model.pth",
+                    )
 
             training_history["history"].append(
                 {
@@ -170,7 +173,10 @@ class VRModel(Model):
                     f"epoch_{epoch}",
                     result_dir / "logs" / "reconstructed",
                 )
-                save_model(self.network, result_dir / f"model_{epoch}.pth")
+                save_model(
+                    self.network,
+                    result_dir / "weights" / f"model_{epoch}.pth",
+                )
 
         with open(result_dir / "training_history.json", "w") as f:
             json.dump(training_history, f)
