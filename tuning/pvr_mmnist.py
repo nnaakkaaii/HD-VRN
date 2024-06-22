@@ -62,16 +62,6 @@ def objective(trial):
         motion_phase = trial.suggest_categorical("motion_phase__diff", ["0", "t"])
     else:
         raise RuntimeError("unreachable")
-    if args.network_name in [
-        "hrdae2d",
-        "rae2d",
-        "rdae2d",
-    ]:
-        network_name = args.network_name
-    else:
-        network_name = trial.suggest_categorical(
-            "network", ["hrdae2d", "rae2d", "rdae2d"]
-        )
     motion_encoder_num_layers = trial.suggest_int("motion_encoder_num_layers", 0, 6)
     if args.motion_encoder_name in [
         "conv2d",
@@ -143,8 +133,14 @@ def objective(trial):
         ),
     }
 
+
+    motion_encoder_in_channels = 3
+    if motion_aggregation == "concat":
+        if motion_phase in ["0", "t"]:
+            motion_encoder_in_channels *= 2
+        elif motion_phase == "all":
+            motion_encoder_in_channels *= 3
     if motion_encoder_name == "rnn1d":
-        motion_encoder_name = f"{motion_encoder_name}/{rnn_name}"
         if rnn_name == "conv_lstm1d":
             rnn_option = ConvLSTM1dOption(
                 num_layers=rnn_num_layers,
@@ -164,7 +160,7 @@ def objective(trial):
         else:
             raise RuntimeError("unreachable")
         motion_encoder_option = MotionRNNEncoder1dOption(
-            in_channels=3,
+            in_channels=motion_encoder_in_channels,
             conv_params=interleave_arrays(
                 [{"kernel_size": [3], "stride": [2], "padding": [1]}]
                 * num_reducible_layers,
@@ -175,7 +171,7 @@ def objective(trial):
         )
     elif motion_encoder_name == "conv2d":
         motion_encoder_option = MotionConv2dEncoder1dOption(
-            in_channels=3,
+            in_channels=motion_encoder_in_channels,
             conv_params=interleave_arrays(
                 [{"kernel_size": [3], "stride": [1, 2], "padding": [1]}]
                 * num_reducible_layers,
@@ -185,7 +181,7 @@ def objective(trial):
         )
     elif motion_encoder_name == "guided1d":
         motion_encoder_option = MotionGuidedEncoder1dOption(
-            in_channels=3,
+            in_channels=motion_encoder_in_channels,
             conv_params=interleave_arrays(
                 [{"kernel_size": [3], "stride": [2], "padding": [1]}]
                 * num_reducible_layers,
@@ -195,7 +191,7 @@ def objective(trial):
         )
     elif motion_encoder_name == "normal1d":
         motion_encoder_option = MotionNormalEncoder1dOption(
-            in_channels=3,
+            in_channels=motion_encoder_in_channels,
             conv_params=interleave_arrays(
                 [{"kernel_size": [3], "stride": [2], "padding": [1]}]
                 * num_reducible_layers,
@@ -210,55 +206,22 @@ def objective(trial):
     content_encoder_num_layers = 0
     aggregation_method = "sum"
 
-    if network_name == "rae2d":
-        network_option = RAE2dOption(
-            latent_dim=latent_dim,
-            conv_params=interleave_arrays(
-                [{"kernel_size": [3], "stride": [2], "padding": [1]}]
-                * num_reducible_layers,
-                [{"kernel_size": [3], "stride": [1], "padding": [1]}]
-                * content_encoder_num_layers,
-            ),
-            motion_encoder=motion_encoder_option,
-            upsample_size=[
-                64 // 2**num_reducible_layers,
-                64 // 2**num_reducible_layers,
-            ],
-        )
-    elif network_name == "rdae2d":
-        network_option = RDAE2dOption(
-            latent_dim=latent_dim,
-            conv_params=interleave_arrays(
-                [{"kernel_size": [3], "stride": [2], "padding": [1]}]
-                * num_reducible_layers,
-                [{"kernel_size": [3], "stride": [1], "padding": [1]}]
-                * content_encoder_num_layers,
-            ),
-            motion_encoder=motion_encoder_option,
-            upsample_size=[
-                64 // 2**num_reducible_layers,
-                64 // 2**num_reducible_layers,
-            ],
-            aggregation_method=aggregation_method,
-        )
-    elif network_name == "hrdae2d":
-        network_option = HRDAE2dOption(
-            latent_dim=latent_dim,
-            conv_params=interleave_arrays(
-                [{"kernel_size": [3], "stride": [2], "padding": [1]}]
-                * num_reducible_layers,
-                [{"kernel_size": [3], "stride": [1], "padding": [1]}]
-                * content_encoder_num_layers,
-            ),
-            motion_encoder=motion_encoder_option,
-            upsample_size=[
-                64 // 2**num_reducible_layers,
-                64 // 2**num_reducible_layers,
-            ],
-            aggregation_method=aggregation_method,
-        )
-    else:
-        raise RuntimeError("unreachable")
+    network_option = RDAE2dOption(
+        in_channels=1,
+        latent_dim=latent_dim,
+        conv_params=interleave_arrays(
+            [{"kernel_size": [3], "stride": [2], "padding": [1]}]
+            * num_reducible_layers,
+            [{"kernel_size": [3], "stride": [1], "padding": [1]}]
+            * content_encoder_num_layers,
+        ),
+        motion_encoder=motion_encoder_option,
+        upsample_size=[
+            64 // 2**num_reducible_layers,
+            64 // 2**num_reducible_layers,
+        ],
+        aggregation_method=aggregation_method,
+    )
 
     lr = 0.005
     max_lr = 0.05
@@ -292,7 +255,7 @@ def objective(trial):
     )
 
     result_dir = Path(
-        f"results/tuning/pvr/mmnist/{network_name}/{motion_encoder_name}/{trial.number}-{str(uuid4())[:8]}"
+        f"results/tuning/pvr/mmnist/rdae2d/{motion_encoder_name}/{trial.number}-{str(uuid4())[:8]}"
     )
     train_option = TrainExpOption(
         result_dir=result_dir,
@@ -330,7 +293,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--encoder_weight", type=str, required=True)
     parser.add_argument("--decoder_weight", type=str, required=True)
-    parser.add_argument("--network_name", type=str)
     parser.add_argument("--motion_encoder_name", type=str)
     parser.add_argument("--rnn_name", type=str)
     parser.add_argument("--weight", type=float, default=2)
@@ -338,13 +300,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     study_name = "mmnist"
-    if args.network_name is not None:
-        assert args.network_name in [
-            "hrdae2d",
-            "rae2d",
-            "rdae2d",
-        ]
-        study_name += f"_{args.network_name}"
+    study_name += "_rdae2d"
     if args.motion_encoder_name is not None:
         assert args.motion_encoder_name in [
             "conv2d",
