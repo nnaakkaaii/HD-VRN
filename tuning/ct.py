@@ -26,8 +26,8 @@ from hrdae.models.networks.motion_encoder import (
 
 
 def interleave_arrays(
-        an: list[dict[str, list[int]]],
-        am: list[dict[str, list[int]]],
+    an: list[dict[str, list[int]]],
+    am: list[dict[str, list[int]]],
 ) -> list[dict[str, list[int]]]:
     result = []
     slots = len(an) - 1
@@ -59,7 +59,7 @@ def objective(trial):
 
     dataset_option = CTDatasetOption(
         root=Path("data"),
-        slice_index=[w//2-w//8, w//2+w//8],
+        slice_index=[w // 2 - w // 8, w // 2 + w // 8],
         threshold=0.1,
         min_occupancy=0.2,
         in_memory=False,
@@ -75,7 +75,11 @@ def objective(trial):
     }
     num_reducible_layers = 4
     # num_reducible_layers = trial.suggest_int("num_reducible_layers", 2, 4)
-    d_, h_, w_ = d // 2 ** num_reducible_layers, h // 2 ** num_reducible_layers, w // 2 ** num_reducible_layers
+    d_, h_, w_ = (
+        d // 2**num_reducible_layers,
+        h // 2**num_reducible_layers,
+        w // 2**num_reducible_layers,
+    )
 
     dataloader_option = BasicDataLoaderOption(
         batch_size=args.batch_size,
@@ -171,7 +175,7 @@ def objective(trial):
                 * num_reducible_layers,
                 [{"kernel_size": [3], "stride": [1], "padding": [1]}]
                 * motion_encoder_num_layers,
-                ),
+            ),
             rnn=rnn_option,
         )
     elif motion_encoder_name == "conv3d":
@@ -182,7 +186,7 @@ def objective(trial):
                 * num_reducible_layers,
                 [{"kernel_size": [3], "stride": [1], "padding": [1]}]
                 * motion_encoder_num_layers,
-                ),
+            ),
         )
     elif motion_encoder_name == "guided2d":
         motion_encoder_option = MotionGuidedEncoder2dOption(
@@ -192,7 +196,7 @@ def objective(trial):
                 * num_reducible_layers,
                 [{"kernel_size": [3], "stride": [1], "padding": [1]}]
                 * motion_encoder_num_layers,
-                ),
+            ),
         )
     elif motion_encoder_name == "normal2d":
         motion_encoder_option = MotionNormalEncoder2dOption(
@@ -202,7 +206,7 @@ def objective(trial):
                 * num_reducible_layers,
                 [{"kernel_size": [3], "stride": [1], "padding": [1]}]
                 * motion_encoder_num_layers,
-                ),
+            ),
         )
     else:
         raise RuntimeError("unreachable")
@@ -223,7 +227,7 @@ def objective(trial):
                 * num_reducible_layers,
                 [{"kernel_size": [3], "stride": [1], "padding": [1]}]
                 * content_encoder_num_layers,
-                ),
+            ),
             motion_encoder=motion_encoder_option,
             upsample_size=[d_, h_, w_],
         )
@@ -236,7 +240,7 @@ def objective(trial):
                 * num_reducible_layers,
                 [{"kernel_size": [3], "stride": [1], "padding": [1]}]
                 * content_encoder_num_layers,
-                ),
+            ),
             motion_encoder=motion_encoder_option,
             upsample_size=[d_, h_, w_],
             aggregation_method=aggregation_method,
@@ -253,7 +257,7 @@ def objective(trial):
                 * num_reducible_layers,
                 [{"kernel_size": [3], "stride": [1], "padding": [1]}]
                 * content_encoder_num_layers,
-                ),
+            ),
             motion_encoder=motion_encoder_option,
             upsample_size=[d_, h_, w_],
             aggregation_method=aggregation_method,
@@ -353,7 +357,9 @@ if __name__ == "__main__":
             "gru2d",
             "tcn2d",
         ]
-        study_name += f"_{args.rnn_name}_p{'-'.join(map(str, args.pool_size))}_w{args.weight}"
+        study_name += (
+            f"_{args.rnn_name}_p{'-'.join(map(str, args.pool_size))}_w{args.weight}"
+        )
     study = optuna.create_study(
         study_name=study_name,
         storage="sqlite:///results/tuning/ct/sqlite.db",

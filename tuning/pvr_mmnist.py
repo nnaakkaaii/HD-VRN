@@ -23,8 +23,8 @@ from hrdae.models.networks.motion_encoder import (
 
 
 def interleave_arrays(
-        an: list[dict[str, list[int]]],
-        am: list[dict[str, list[int]]],
+    an: list[dict[str, list[int]]],
+    am: list[dict[str, list[int]]],
 ) -> list[dict[str, list[int]]]:
     result = []
     slots = len(an) - 1
@@ -51,9 +51,13 @@ def default(item: Any):
 
 
 def objective(trial):
-    motion_aggregation = trial.suggest_categorical("motion_aggregation", ["concat", "diff"])
+    motion_aggregation = trial.suggest_categorical(
+        "motion_aggregation", ["concat", "diff"]
+    )
     if motion_aggregation == "concat":
-        motion_phase = trial.suggest_categorical("motion_phase__concat", ["none", "0", "t", "all"])
+        motion_phase = trial.suggest_categorical(
+            "motion_phase__concat", ["none", "0", "t", "all"]
+        )
     elif motion_aggregation == "diff":
         motion_phase = trial.suggest_categorical("motion_phase__diff", ["0", "t"])
     else:
@@ -96,10 +100,14 @@ def objective(trial):
         rnn_num_layers = 0
         rnn_name = ""
 
-    content_encoder_grad = trial.suggest_categorical("content_encoder_grad", [True, False])
+    content_encoder_grad = trial.suggest_categorical(
+        "content_encoder_grad", [True, False]
+    )
     decoder_grad = trial.suggest_categorical("decoder_grad", [True, False])
     if content_encoder_grad:
-        content_encoder_lr = trial.suggest_float("content_encoder_lr", 1e-6, 1e-2, log=True)
+        content_encoder_lr = trial.suggest_float(
+            "content_encoder_lr", 1e-6, 1e-2, log=True
+        )
     else:
         content_encoder_lr = 0
     if decoder_grad:
@@ -144,12 +152,12 @@ def objective(trial):
         elif rnn_name == "gru1d":
             rnn_option = GRU1dOption(
                 num_layers=rnn_num_layers,
-                image_size=64 // 2 ** num_reducible_layers,
+                image_size=64 // 2**num_reducible_layers,
             )
         elif rnn_name == "tcn1d":
             rnn_option = TCN1dOption(
                 num_layers=rnn_num_layers,
-                image_size=64 // 2 ** num_reducible_layers,
+                image_size=64 // 2**num_reducible_layers,
                 kernel_size=3,
                 dropout=0.1,
             )
@@ -162,7 +170,7 @@ def objective(trial):
                 * num_reducible_layers,
                 [{"kernel_size": [3], "stride": [1], "padding": [1]}]
                 * motion_encoder_num_layers,
-                ),
+            ),
             rnn=rnn_option,
         )
     elif motion_encoder_name == "conv2d":
@@ -173,7 +181,7 @@ def objective(trial):
                 * num_reducible_layers,
                 [{"kernel_size": [3], "stride": [1], "padding": [1]}]
                 * motion_encoder_num_layers,
-                ),
+            ),
         )
     elif motion_encoder_name == "guided1d":
         motion_encoder_option = MotionGuidedEncoder1dOption(
@@ -183,7 +191,7 @@ def objective(trial):
                 * num_reducible_layers,
                 [{"kernel_size": [3], "stride": [1], "padding": [1]}]
                 * motion_encoder_num_layers,
-                ),
+            ),
         )
     elif motion_encoder_name == "normal1d":
         motion_encoder_option = MotionNormalEncoder1dOption(
@@ -193,7 +201,7 @@ def objective(trial):
                 * num_reducible_layers,
                 [{"kernel_size": [3], "stride": [1], "padding": [1]}]
                 * motion_encoder_num_layers,
-                ),
+            ),
         )
     else:
         raise RuntimeError("unreachable")
@@ -210,9 +218,12 @@ def objective(trial):
                 * num_reducible_layers,
                 [{"kernel_size": [3], "stride": [1], "padding": [1]}]
                 * content_encoder_num_layers,
-                ),
+            ),
             motion_encoder=motion_encoder_option,
-            upsample_size=[64 // 2 ** num_reducible_layers, 64 // 2 ** num_reducible_layers],
+            upsample_size=[
+                64 // 2**num_reducible_layers,
+                64 // 2**num_reducible_layers,
+            ],
         )
     elif network_name == "rdae2d":
         network_option = RDAE2dOption(
@@ -222,9 +233,12 @@ def objective(trial):
                 * num_reducible_layers,
                 [{"kernel_size": [3], "stride": [1], "padding": [1]}]
                 * content_encoder_num_layers,
-                ),
+            ),
             motion_encoder=motion_encoder_option,
-            upsample_size=[64 // 2 ** num_reducible_layers, 64 // 2 ** num_reducible_layers],
+            upsample_size=[
+                64 // 2**num_reducible_layers,
+                64 // 2**num_reducible_layers,
+            ],
             aggregation_method=aggregation_method,
         )
     elif network_name == "hrdae2d":
@@ -235,9 +249,12 @@ def objective(trial):
                 * num_reducible_layers,
                 [{"kernel_size": [3], "stride": [1], "padding": [1]}]
                 * content_encoder_num_layers,
-                ),
+            ),
             motion_encoder=motion_encoder_option,
-            upsample_size=[64 // 2 ** num_reducible_layers, 64 // 2 ** num_reducible_layers],
+            upsample_size=[
+                64 // 2**num_reducible_layers,
+                64 // 2**num_reducible_layers,
+            ],
             aggregation_method=aggregation_method,
         )
     else:
@@ -355,4 +372,3 @@ if __name__ == "__main__":
     print(study.best_value)
     print(study.best_trial)
     study.trials_dataframe().to_csv("results/tuning/mmnist/pvr/trials.csv")
-

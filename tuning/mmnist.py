@@ -23,8 +23,8 @@ from hrdae.models.networks.motion_encoder import (
 
 
 def interleave_arrays(
-        an: list[dict[str, list[int]]],
-        am: list[dict[str, list[int]]],
+    an: list[dict[str, list[int]]],
+    am: list[dict[str, list[int]]],
 ) -> list[dict[str, list[int]]]:
     result = []
     slots = len(an) - 1
@@ -133,12 +133,12 @@ def objective(trial):
         elif rnn_name == "gru1d":
             rnn_option = GRU1dOption(
                 num_layers=rnn_num_layers,
-                image_size=64 // 2 ** num_reducible_layers,
+                image_size=64 // 2**num_reducible_layers,
             )
         elif rnn_name == "tcn1d":
             rnn_option = TCN1dOption(
                 num_layers=rnn_num_layers,
-                image_size=64 // 2 ** num_reducible_layers,
+                image_size=64 // 2**num_reducible_layers,
                 kernel_size=3,
                 dropout=0.1,
             )
@@ -151,7 +151,7 @@ def objective(trial):
                 * num_reducible_layers,
                 [{"kernel_size": [3], "stride": [1], "padding": [1]}]
                 * motion_encoder_num_layers,
-                ),
+            ),
             rnn=rnn_option,
         )
     elif motion_encoder_name == "conv2d":
@@ -162,7 +162,7 @@ def objective(trial):
                 * num_reducible_layers,
                 [{"kernel_size": [3], "stride": [1], "padding": [1]}]
                 * motion_encoder_num_layers,
-                ),
+            ),
         )
     elif motion_encoder_name == "guided1d":
         motion_encoder_option = MotionGuidedEncoder1dOption(
@@ -172,7 +172,7 @@ def objective(trial):
                 * num_reducible_layers,
                 [{"kernel_size": [3], "stride": [1], "padding": [1]}]
                 * motion_encoder_num_layers,
-                ),
+            ),
         )
     elif motion_encoder_name == "normal1d":
         motion_encoder_option = MotionNormalEncoder1dOption(
@@ -182,7 +182,7 @@ def objective(trial):
                 * num_reducible_layers,
                 [{"kernel_size": [3], "stride": [1], "padding": [1]}]
                 * motion_encoder_num_layers,
-                ),
+            ),
         )
     else:
         raise RuntimeError("unreachable")
@@ -200,9 +200,12 @@ def objective(trial):
                 * num_reducible_layers,
                 [{"kernel_size": [3], "stride": [1], "padding": [1]}]
                 * content_encoder_num_layers,
-                ),
+            ),
             motion_encoder=motion_encoder_option,
-            upsample_size=[64 // 2 ** num_reducible_layers, 64 // 2 ** num_reducible_layers],
+            upsample_size=[
+                64 // 2**num_reducible_layers,
+                64 // 2**num_reducible_layers,
+            ],
         )
     elif network_name == "rdae2d":
         network_option = RDAE2dOption(
@@ -212,9 +215,12 @@ def objective(trial):
                 * num_reducible_layers,
                 [{"kernel_size": [3], "stride": [1], "padding": [1]}]
                 * content_encoder_num_layers,
-                ),
+            ),
             motion_encoder=motion_encoder_option,
-            upsample_size=[64 // 2 ** num_reducible_layers, 64 // 2 ** num_reducible_layers],
+            upsample_size=[
+                64 // 2**num_reducible_layers,
+                64 // 2**num_reducible_layers,
+            ],
             # aggregation_method=trial.suggest_categorical(
             #     "aggregation_method", ["concat", "sum"]
             # ),
@@ -228,9 +234,12 @@ def objective(trial):
                 * num_reducible_layers,
                 [{"kernel_size": [3], "stride": [1], "padding": [1]}]
                 * content_encoder_num_layers,
-                ),
+            ),
             motion_encoder=motion_encoder_option,
-            upsample_size=[64 // 2 ** num_reducible_layers, 64 // 2 ** num_reducible_layers],
+            upsample_size=[
+                64 // 2**num_reducible_layers,
+                64 // 2**num_reducible_layers,
+            ],
             # aggregation_method=trial.suggest_categorical(
             #     "aggregation_method", ["concat", "sum"]
             # ),
