@@ -12,7 +12,7 @@ from hrdae.models import create_model, PVRModelOption
 from hrdae.models.losses import WeightedMSELossOption
 from hrdae.models.optimizers import AdamOptimizerOption
 from hrdae.models.schedulers import OneCycleLRSchedulerOption
-from hrdae.models.networks import RAE2dOption, RDAE2dOption, HRDAE2dOption
+from hrdae.models.networks import RDAE2dOption
 from hrdae.models.networks.rnn import ConvLSTM1dOption, GRU1dOption, TCN1dOption
 from hrdae.models.networks.motion_encoder import (
     MotionRNNEncoder1dOption,
@@ -65,14 +65,13 @@ def objective(trial):
     motion_encoder_num_layers = trial.suggest_int("motion_encoder_num_layers", 0, 6)
     if args.motion_encoder_name in [
         "conv2d",
-        "guided1d",
         "normal1d",
         "rnn1d",
     ]:
         motion_encoder_name = args.motion_encoder_name
     else:
         motion_encoder_name = trial.suggest_categorical(
-            "motion_encoder", ["conv2d", "guided1d", "normal1d", "rnn1d"]
+            "motion_encoder", ["conv2d", "normal1d", "rnn1d"]
         )
     if motion_encoder_name == "rnn1d":
         rnn_num_layers = trial.suggest_int("rnn_num_layers", 1, 5)
