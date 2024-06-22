@@ -10,7 +10,7 @@ from .rnn import RNN1d, RNN1dOption, RNN2d, RNN2dOption, create_rnn1d, create_rn
 
 @dataclass
 class MotionEncoder1dOption:
-    # num slices * (1 (phase=none | agg=diff) | 2 (phase=0, t) | 3 (phase=all))
+    # num slices * (1 (agg=diff|none) | 2 (phase=0, t) | 3 (phase=all))
     in_channels: int
     conv_params: list[dict[str, list[int]]] = field(
         default_factory=lambda: [{"kernel_size": [3], "stride": [2], "padding": [1]}]

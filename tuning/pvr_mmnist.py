@@ -52,14 +52,14 @@ def default(item: Any):
 
 def objective(trial):
     motion_aggregation = trial.suggest_categorical(
-        "motion_aggregation", ["concat", "diff"]
+        "motion_aggregation", ["none", "concat", "diff"]
     )
     if motion_aggregation == "concat":
         motion_phase = trial.suggest_categorical(
-            "motion_phase__concat", ["none", "0", "t", "all"]
+            "motion_phase__concat", ["0", "t", "all"]
         )
-    elif motion_aggregation == "diff":
-        motion_phase = trial.suggest_categorical("motion_phase__diff", ["0", "t"])
+    elif motion_aggregation in ["none", "diff"]:
+        motion_phase = trial.suggest_categorical("motion_phase__others", ["0", "t"])
     else:
         raise RuntimeError("unreachable")
     motion_encoder_num_layers = trial.suggest_int("motion_encoder_num_layers", 0, 6)
