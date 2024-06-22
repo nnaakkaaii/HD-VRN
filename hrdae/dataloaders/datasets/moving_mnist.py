@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 
-from torch import Tensor, cat, gather, int64, tensor
+from torch import Tensor, cat, gather, int64, tensor, device
+from torch.cuda import is_available
 from torch.utils.data import Dataset
 from torchvision import datasets
 
@@ -30,7 +31,11 @@ class MovingMNIST(datasets.MovingMNIST):
 
     def __getitem__(self, idx: int) -> dict[str, Tensor]:
         # (n, h, w)
-        x_2d = super().__getitem__(idx).squeeze(1)
+        x_2d = self.data[idx].to(device("cuda:0") if is_available() else device("cpu"))
+        if self.transform is not None:
+            x_2d = self.transform(x_2d)
+        x_2d = x_2d.squeeze(1)
+
         n, h, w = x_2d.size()
 
         # (s,)

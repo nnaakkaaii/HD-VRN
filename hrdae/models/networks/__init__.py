@@ -12,9 +12,7 @@ from .r_ae import RAE2dOption, RAE3dOption, create_rae2d, create_rae3d
 from .r_dae import RDAE2dOption, RDAE3dOption, create_rdae2d, create_rdae3d
 
 
-def create_network(
-    out_channels: int, opt: NetworkOption
-) -> nn.Module:
+def create_network(out_channels: int, opt: NetworkOption) -> nn.Module:
     if (
         isinstance(opt, AutoEncoder2dNetworkOption)
         and type(opt) is AutoEncoder2dNetworkOption
