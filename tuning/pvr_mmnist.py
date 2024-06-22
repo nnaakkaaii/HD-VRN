@@ -255,7 +255,7 @@ def objective(trial):
     )
 
     result_dir = Path(
-        f"results/tuning/pvr/mmnist/rdae2d/{motion_encoder_name}/{trial.number}-{str(uuid4())[:8]}"
+        f"results/tuning/mmnist/pvr/rdae2d/{motion_encoder_name}/{trial.number}-{str(uuid4())[:8]}"
     )
     train_option = TrainExpOption(
         result_dir=result_dir,
