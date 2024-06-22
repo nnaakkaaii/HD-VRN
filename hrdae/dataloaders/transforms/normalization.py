@@ -13,5 +13,5 @@ class MinMaxNormalizationOption(TransformOption):
 
 class MinMaxNormalization:
     def __call__(self, x: Tensor) -> Tensor:
-        x = x.to(device("cuda:0") if is_available() else device("cpu")
+        x = x.to(device("cuda:0") if is_available() else device("cpu"))
         return (x - x.min()) / (x.max() - x.min())
