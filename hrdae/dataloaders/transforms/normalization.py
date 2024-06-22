@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
-from torch import Tensor
+from torch import Tensor, device
+from torch.cuda import is_available
 
 from .option import TransformOption
 
@@ -12,4 +13,5 @@ class MinMaxNormalizationOption(TransformOption):
 
 class MinMaxNormalization:
     def __call__(self, x: Tensor) -> Tensor:
+        x = x.to(device("cuda:0") if is_available() else device("cpu")
         return (x - x.min()) / (x.max() - x.min())
