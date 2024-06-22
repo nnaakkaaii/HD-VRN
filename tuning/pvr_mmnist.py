@@ -1,4 +1,5 @@
 import json
+import warnings
 from dataclasses import asdict
 from pathlib import Path
 from typing import Any
@@ -20,6 +21,8 @@ from hrdae.models.networks.motion_encoder import (
     MotionGuidedEncoder1dOption,
     MotionNormalEncoder1dOption,
 )
+
+warnings.filterwarnings("ignore")
 
 
 def interleave_arrays(
@@ -131,7 +134,6 @@ def objective(trial):
             weight_dynamic=args.weight,
         ),
     }
-
 
     motion_encoder_in_channels = 3
     if motion_aggregation == "concat":

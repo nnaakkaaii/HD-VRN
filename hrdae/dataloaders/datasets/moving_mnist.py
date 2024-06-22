@@ -31,12 +31,7 @@ class MovingMNIST(datasets.MovingMNIST):
 
     def __getitem__(self, idx: int) -> dict[str, Tensor]:
         # (n, h, w)
-        x_2d = self.data[idx]
-        if self.transform is not None:
-            x_2d = x_2d.to(device("cuda:0") if is_available() else device("cpu"))
-            x_2d = self.transform(x_2d)
-            x_2d = x_2d.to(device("cpu"))
-        x_2d = x_2d.squeeze(1)
+        x_2d = super().__getitem__(idx).squeeze(1)
 
         n, h, w = x_2d.size()
 
