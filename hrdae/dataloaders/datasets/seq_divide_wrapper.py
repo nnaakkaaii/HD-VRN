@@ -17,7 +17,7 @@ class SeqDivideWrapper(Dataset):
         return len(self.base) * self.period  # type: ignore
 
     def __getitem__(self, index: int) -> dict[str, Tensor]:
-        x = self.base[index // self.period]["x+"]
+        x = self.base[index // self.period]["xp"]
         return {
             "x": x[index % self.period],
             "t": x[index % self.period],
