@@ -5,7 +5,7 @@ from dataclasses import dataclass
 
 from torch import Tensor, nn
 
-from .functions import aggregate
+from .functions import upsample_motion_tensor
 from .modules import (
     HierarchicalConvDecoder2d,
     HierarchicalConvDecoder3d,
@@ -14,7 +14,11 @@ from .modules import (
     IdenticalConvBlock2d,
     IdenticalConvBlock3d,
     IdenticalConvBlockConvParams,
+    PixelWiseConv2d,
+    PixelWiseConv3d,
     ResNetBranch,
+    create_aggregator2d,
+    create_aggregator3d,
     create_activation,
 )
 from .motion_encoder import (
@@ -43,11 +47,12 @@ def create_hrdae2d(out_channels: int, opt: HRDAE2dOption) -> nn.Module:
     return HRDAE2d(
         opt.in_channels,
         out_channels,
+        opt.hidden_channels,
         opt.latent_dim,
         opt.conv_params,
         motion_encoder,
         opt.activation,
-        opt.aggregation_method,
+        opt.aggregator,
         opt.debug_show_dim,
     )
 
@@ -59,71 +64,100 @@ def create_hrdae3d(out_channels: int, opt: HRDAE3dOption) -> nn.Module:
     return HRDAE3d(
         opt.in_channels,
         out_channels,
+        opt.hidden_channels,
         opt.latent_dim,
         opt.conv_params,
         motion_encoder,
         opt.activation,
-        opt.aggregation_method,
+        opt.aggregator,
         opt.debug_show_dim,
     )
 
 
-class HierarchicalContentEncoder2d(HierarchicalConvEncoder2d):
+class HierarchicalEncoder2d(nn.Module):
     def __init__(
         self,
         in_channels: int,
+        hidden_channels: int,
         latent_dim: int,
         conv_params: list[dict[str, list[int]]],
         debug_show_dim: bool = False,
     ) -> None:
-        super().__init__(
+        super().__init__()
+
+        self.cnn = HierarchicalConvEncoder2d(
             in_channels,
-            latent_dim,
-            latent_dim,
+            hidden_channels,
+            hidden_channels,
             conv_params,
-            debug_show_dim,
+            act_norm=True,
+            debug_show_dim=debug_show_dim,
+        )
+        self.bottleneck = PixelWiseConv2d(
+            hidden_channels,
+            latent_dim,
+            act_norm=False,
         )
 
+    def forward(self, x: Tensor) -> tuple[Tensor, list[Tensor]]:
+        y, cs = self.cnn(x)
+        z = self.bottleneck(y)
+        return z, cs
 
-class HierarchicalContentEncoder3d(HierarchicalConvEncoder3d):
+
+class HierarchicalEncoder3d(nn.Module):
     def __init__(
         self,
         in_channels: int,
+        hidden_channels: int,
         latent_dim: int,
         conv_params: list[dict[str, list[int]]],
         debug_show_dim: bool = False,
     ) -> None:
-        super().__init__(
+        super().__init__()
+
+        self.cnn = HierarchicalConvEncoder3d(
             in_channels,
-            latent_dim,
-            latent_dim,
+            hidden_channels,
+            hidden_channels,
             conv_params,
-            debug_show_dim,
+            act_norm=True,
+            debug_show_dim=debug_show_dim,
         )
+        self.bottleneck = PixelWiseConv3d(
+            hidden_channels,
+            latent_dim,
+            act_norm=False,
+        )
+
+    def forward(self, x: Tensor) -> tuple[Tensor, list[Tensor]]:
+        y, cs = self.cnn(x)
+        z = self.bottleneck(y)
+        return z, cs
 
 
 class HierarchicalDecoder2d(nn.Module):
     def __init__(
         self,
         out_channels: int,
+        hidden_channels: int,
         latent_dim: int,
         conv_params: list[dict[str, list[int]]],
-        aggregation_method: str = "concat",
+        aggregator: str,
         debug_show_dim: bool = False,
     ) -> None:
         super().__init__()
-        assert aggregation_method in [
-            "concat",
-            "sum",
-        ], f"aggregation_method: {aggregation_method} not implemented"
 
-        if aggregation_method == "concat":
-            latent_dim *= 2
-
+        self.aggregator = create_aggregator2d(aggregator, latent_dim, latent_dim)
+        self.bottleneck = PixelWiseConv2d(
+            latent_dim,
+            hidden_channels,
+            act_norm=True,
+        )
         self.dec = HierarchicalConvDecoder2d(
-            latent_dim,
+            hidden_channels,
             out_channels,
-            latent_dim,
+            hidden_channels,
             conv_params,
             debug_show_dim,
         )
@@ -133,24 +167,26 @@ class HierarchicalDecoder2d(nn.Module):
         for _ in conv_params:
             self.mgc.append(
                 nn.Sequential(
+                    create_aggregator2d(aggregator, hidden_channels, latent_dim),
                     ResNetBranch(
-                        IdenticalConvBlock2d(latent_dim, latent_dim),
-                        IdenticalConvBlock2d(latent_dim, latent_dim, act_norm=False),
+                        IdenticalConvBlock2d(hidden_channels, hidden_channels),
+                        IdenticalConvBlock2d(
+                            hidden_channels, hidden_channels, act_norm=False
+                        ),
                     ),
-                    nn.GroupNorm(2, latent_dim),
+                    nn.GroupNorm(2, hidden_channels),
                     nn.LeakyReLU(0.2, inplace=True),
                 )
             )
-        self.aggregation_method = aggregation_method
 
     def forward(self, m: Tensor, c: Tensor, cs: list[Tensor]) -> Tensor:
         assert len(self.mgc) == len(cs)
 
-        x = aggregate(m, c, method=self.aggregation_method)
-        for i, (mgc, c_) in enumerate(zip(self.mgc, cs)):
-            c_ = aggregate(m, c_, method=self.aggregation_method)
-            cs[i] = mgc(c_)
+        x = self.aggregator((c, upsample_motion_tensor(m, c)))
+        for i, mgc in enumerate(self.mgc):
+            cs[i] = mgc((cs[i], upsample_motion_tensor(m, cs[i])))
 
+        x = self.bottleneck(x)
         return self.dec(x, cs)
 
 
@@ -158,24 +194,24 @@ class HierarchicalDecoder3d(nn.Module):
     def __init__(
         self,
         out_channels: int,
+        hidden_channels: int,
         latent_dim: int,
         conv_params: list[dict[str, list[int]]],
-        aggregation_method: str = "concat",
+        aggregator: str,
         debug_show_dim: bool = False,
     ) -> None:
         super().__init__()
-        assert aggregation_method in [
-            "concat",
-            "sum",
-        ], f"aggregation_method: {aggregation_method} not implemented"
 
-        if aggregation_method == "concat":
-            latent_dim *= 2
-
+        self.aggregator = create_aggregator3d(aggregator, latent_dim, latent_dim)
+        self.bottleneck = PixelWiseConv3d(
+            latent_dim,
+            hidden_channels,
+            act_norm=True,
+        )
         self.dec = HierarchicalConvDecoder3d(
-            latent_dim,
+            hidden_channels,
             out_channels,
-            latent_dim,
+            hidden_channels,
             conv_params,
             debug_show_dim,
         )
@@ -185,24 +221,26 @@ class HierarchicalDecoder3d(nn.Module):
         for _ in conv_params:
             self.mgc.append(
                 nn.Sequential(
+                    create_aggregator3d(aggregator, hidden_channels, latent_dim),
                     ResNetBranch(
-                        IdenticalConvBlock3d(latent_dim, latent_dim),
-                        IdenticalConvBlock3d(latent_dim, latent_dim, act_norm=False),
+                        IdenticalConvBlock3d(hidden_channels, hidden_channels),
+                        IdenticalConvBlock3d(
+                            hidden_channels, hidden_channels, act_norm=False
+                        ),
                     ),
-                    nn.GroupNorm(2, latent_dim),
+                    nn.GroupNorm(2, hidden_channels),
                     nn.LeakyReLU(0.2, inplace=True),
                 )
             )
-        self.aggregation_method = aggregation_method
 
     def forward(self, m: Tensor, c: Tensor, cs: list[Tensor]) -> Tensor:
         assert len(self.mgc) == len(cs)
 
-        x = aggregate(m, c, method=self.aggregation_method)
-        for i, (mgc, c_) in enumerate(zip(self.mgc, cs)):
-            c_ = aggregate(m, c_, method=self.aggregation_method)
-            cs[i] = mgc(c_)
+        x = self.aggregator((c, upsample_motion_tensor(m, c)))
+        for i, mgc in enumerate(self.mgc):
+            cs[i] = mgc((cs[i], upsample_motion_tensor(m, cs[i])))
 
+        x = self.bottleneck(x)
         return self.dec(x, cs)
 
 
@@ -211,16 +249,18 @@ class HRDAE2d(nn.Module):
         self,
         in_channels: int,
         out_channels: int,
+        hidden_channels: int,
         latent_dim: int,
         conv_params: list[dict[str, list[int]]],
         motion_encoder: MotionEncoder1d,
         activation: str,
-        aggregation_method: str = "concat",
+        aggregator: str,
         debug_show_dim: bool = False,
     ) -> None:
         super().__init__()
-        self.content_encoder = HierarchicalContentEncoder2d(
+        self.content_encoder = HierarchicalEncoder2d(
             in_channels,
+            hidden_channels,
             latent_dim,
             conv_params + [IdenticalConvBlockConvParams],
             debug_show_dim,
@@ -228,9 +268,10 @@ class HRDAE2d(nn.Module):
         self.motion_encoder = motion_encoder
         self.decoder = HierarchicalDecoder2d(
             out_channels,
+            hidden_channels,
             latent_dim,
             conv_params[::-1],
-            aggregation_method,
+            aggregator,
             debug_show_dim,
         )
         self.activation = create_activation(activation)
@@ -260,16 +301,18 @@ class HRDAE3d(nn.Module):
         self,
         in_channels: int,
         out_channels: int,
+        hidden_channels: int,
         latent_dim: int,
         conv_params: list[dict[str, list[int]]],
         motion_encoder: MotionEncoder2d,
         activation: str,
-        aggregation_method: str = "concat",
+        aggregator: str,
         debug_show_dim: bool = False,
     ) -> None:
         super().__init__()
-        self.content_encoder = HierarchicalContentEncoder3d(
+        self.content_encoder = HierarchicalEncoder3d(
             in_channels,
+            hidden_channels,
             latent_dim,
             conv_params + [IdenticalConvBlockConvParams],
             debug_show_dim,
@@ -277,9 +320,10 @@ class HRDAE3d(nn.Module):
         self.motion_encoder = motion_encoder
         self.decoder = HierarchicalDecoder3d(
             out_channels,
+            hidden_channels,
             latent_dim,
             conv_params[::-1],
-            aggregation_method,
+            aggregator,
             debug_show_dim,
         )
         self.activation = create_activation(activation)

@@ -1,11 +1,6 @@
 from torch import randn
 
-from hrdae.models.networks.functions import aggregate
 from hrdae.models.networks.r_dae import (
-    NormalContentEncoder2d,
-    NormalDecoder2d,
-    NormalContentEncoder3d,
-    NormalDecoder3d,
     RDAE2d,
     RDAE3d,
 )
@@ -15,162 +10,15 @@ from hrdae.models.networks.motion_encoder import (
 )
 
 
-def test_normal_content_encoder2d():
-    b, c, h, w = 8, 1, 16, 16
-    latent = 32
-
-    x = randn((b, c, h, w))
-    net = NormalContentEncoder2d(
-        c,
-        latent,
-        [
-            {
-                "kernel_size": [3],
-                "stride": [2],
-                "padding": [1],
-            }
-        ]
-        * 2,
-        debug_show_dim=False,
-    )
-    c = net(x)
-    assert c.size() == (b, latent, h // 4, w // 4)
-
-
-def test_normal_content_encoder3d():
-    b, c, d, h, w = 8, 1, 16, 16, 16
-    latent = 32
-
-    x = randn((b, c, d, h, w))
-    net = NormalContentEncoder3d(
-        c,
-        latent,
-        [
-            {
-                "kernel_size": [3],
-                "stride": [2],
-                "padding": [1],
-            },
-            {
-                "kernel_size": [3],
-                "stride": [2],
-                "padding": [1],
-            },
-            {
-                "kernel_size": [3],
-                "stride": [1],
-                "padding": [1],
-            },
-        ],
-        debug_show_dim=False,
-    )
-    c = net(x)
-    assert c.size() == (b, latent, d // 4, h // 4, w // 4)
-
-
-def test_normal_decoder2d__concat():
-    b, n, c_, h, w = 8, 10, 1, 16, 16
-    latent = 32
-
-    m = randn((b * n, latent, h))
-    c = randn((b * n, latent, h // 4, w // 4))
-    net = NormalDecoder2d(
-        c_,
-        2 * latent,
-        [
-            {
-                "kernel_size": [3],
-                "stride": [2],
-                "padding": [1],
-                "output_padding": [1],
-            }
-        ]
-        * 2,
-        debug_show_dim=False,
-    )
-    x = net(aggregate(m, c, method="concat"))
-    assert x.size() == (b * n, c_, h, w)
-
-
-def test_normal_decoder2d__sum():
-    b, n, c_, h, w = 8, 10, 1, 16, 16
-    latent = 32
-
-    m = randn((b * n, latent, h))
-    c = randn((b * n, latent, h // 4, w // 4))
-    net = NormalDecoder2d(
-        c_,
-        latent,
-        [
-            {
-                "kernel_size": [3],
-                "stride": [2],
-                "padding": [1],
-                "output_padding": [1],
-            }
-        ]
-        * 2,
-        debug_show_dim=False,
-    )
-    x = net(aggregate(m, c, method="sum"))
-    assert x.size() == (b * n, 1, h, w)
-
-
-def test_normal_decoder3d__concat():
-    b, n, c_, d, h, w = 8, 10, 1, 16, 16, 16
-    latent = 32
-
-    m = randn((b * n, latent, d, h))
-    c = randn((b * n, latent, h // 4, h // 4, w // 4))
-    net = NormalDecoder3d(
-        c_,
-        2 * latent,
-        [
-            {
-                "kernel_size": [3],
-                "stride": [2],
-                "padding": [1],
-                "output_padding": [1],
-            }
-        ]
-        * 2,
-        debug_show_dim=False,
-    )
-    x = net(aggregate(m, c, method="concat"))
-    assert x.size() == (b * n, c_, d, h, w)
-
-
-def test_normal_decoder3d__sum():
-    b, n, c_, d, h, w = 8, 10, 1, 16, 16, 16
-    latent = 32
-
-    m = randn((b * n, latent, d, h))
-    c = randn((b * n, latent, d // 4, h // 4, w // 4))
-    net = NormalDecoder3d(
-        c_,
-        latent,
-        [
-            {
-                "kernel_size": [3],
-                "stride": [2],
-                "padding": [1],
-                "output_padding": [1],
-            }
-        ]
-        * 2,
-        debug_show_dim=False,
-    )
-    x = net(aggregate(m, c, method="sum"))
-    assert x.size() == (b * n, c_, d, h, w)
-
-
 def test_rdae2d():
     b, n, c, s, h, w = 8, 10, 1, 3, 16, 16
-    latent = 32
+    hidden = 16
+    latent = 4
 
     net = RDAE2d(
         2,
         c,
+        hidden,
         latent,
         [
             {
@@ -182,6 +30,7 @@ def test_rdae2d():
         * 2,
         motion_encoder=MotionNormalEncoder1d(
             s,
+            hidden,
             latent,
             [
                 {
@@ -192,6 +41,7 @@ def test_rdae2d():
             ]
             * 2,
         ),
+        aggregator="addition",
         activation="sigmoid",
     )
     out = net(
@@ -203,11 +53,13 @@ def test_rdae2d():
 
 def test_rdae3d():
     b, n, c, s, d, h, w = 8, 10, 1, 3, 16, 16, 16
-    latent = 32
+    hidden = 16
+    latent = 4
 
     net = RDAE3d(
         2,
         c,
+        hidden,
         latent,
         [
             {
@@ -217,9 +69,9 @@ def test_rdae3d():
             }
         ]
         * 2,
-        activation="sigmoid",
         motion_encoder=MotionNormalEncoder2d(
             s,
+            hidden,
             latent,
             [
                 {
@@ -230,6 +82,8 @@ def test_rdae3d():
             ]
             * 2,
         ),
+        aggregator="addition",
+        activation="sigmoid",
     )
     out = net(
         randn((b, n, s, d, h)),

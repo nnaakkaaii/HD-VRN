@@ -4,7 +4,14 @@ from dataclasses import dataclass, field
 from omegaconf import MISSING
 from torch import Tensor, nn
 
-from .modules import ConvModule1d, ConvModule2d, ConvModule3d
+from .modules import (
+    ConvModule1d,
+    ConvModule2d,
+    ConvModule3d,
+    PixelWiseConv1d,
+    PixelWiseConv2d,
+    PixelWiseConv3d,
+)
 from .rnn import RNN1d, RNN1dOption, RNN2d, RNN2dOption, create_rnn1d, create_rnn2d
 
 
@@ -12,6 +19,7 @@ from .rnn import RNN1d, RNN1dOption, RNN2d, RNN2dOption, create_rnn1d, create_rn
 class MotionEncoder1dOption:
     # num slices * (1 (agg=diff|none) | 2 (phase=0, t) | 3 (phase=all))
     in_channels: int
+    hidden_channels: int
     conv_params: list[dict[str, list[int]]] = field(
         default_factory=lambda: [{"kernel_size": [3], "stride": [2], "padding": [1]}]
         * 3,
@@ -21,6 +29,7 @@ class MotionEncoder1dOption:
 @dataclass
 class MotionEncoder2dOption:
     in_channels: int
+    hidden_channels: int
     conv_params: list[dict[str, list[int]]] = field(
         default_factory=lambda: [{"kernel_size": [3], "stride": [2], "padding": [1]}]
         * 3,
@@ -36,6 +45,7 @@ def create_motion_encoder1d(
     ):
         return MotionRNNEncoder1d(
             opt.in_channels,
+            opt.hidden_channels,
             latent_dim,
             opt.conv_params,
             create_rnn1d(latent_dim, opt.rnn),
@@ -47,6 +57,7 @@ def create_motion_encoder1d(
     ):
         return MotionNormalEncoder1d(
             opt.in_channels,
+            opt.hidden_channels,
             latent_dim,
             opt.conv_params,
             debug_show_dim,
@@ -57,6 +68,7 @@ def create_motion_encoder1d(
     ):
         return MotionConv2dEncoder1d(
             opt.in_channels,
+            opt.hidden_channels,
             latent_dim,
             opt.conv_params,
             debug_show_dim,
@@ -67,6 +79,7 @@ def create_motion_encoder1d(
     ):
         return MotionGuidedEncoder1d(
             opt.in_channels,
+            opt.hidden_channels,
             latent_dim,
             opt.conv_params,
             debug_show_dim,
@@ -83,6 +96,7 @@ def create_motion_encoder2d(
     ):
         return MotionRNNEncoder2d(
             opt.in_channels,
+            opt.hidden_channels,
             latent_dim,
             opt.conv_params,
             create_rnn2d(latent_dim, opt.rnn),
@@ -94,6 +108,7 @@ def create_motion_encoder2d(
     ):
         return MotionNormalEncoder2d(
             opt.in_channels,
+            opt.hidden_channels,
             latent_dim,
             opt.conv_params,
             debug_show_dim,
@@ -104,6 +119,7 @@ def create_motion_encoder2d(
     ):
         return MotionConv3dEncoder2d(
             opt.in_channels,
+            opt.hidden_channels,
             latent_dim,
             opt.conv_params,
             debug_show_dim,
@@ -114,6 +130,7 @@ def create_motion_encoder2d(
     ):
         return MotionGuidedEncoder2d(
             opt.in_channels,
+            opt.hidden_channels,
             latent_dim,
             opt.conv_params,
             debug_show_dim,
@@ -155,19 +172,26 @@ class MotionNormalEncoder1d(MotionEncoder1d):
     def __init__(
         self,
         in_channels: int,
+        hidden_channels: int,
         latent_dim: int,
         conv_params: list[dict[str, list[int]]],
         debug_show_dim: bool = False,
     ) -> None:
         super().__init__()
 
-        self.enc = ConvModule1d(
+        self.cnn = ConvModule1d(
             in_channels,
-            latent_dim,
-            latent_dim,
+            hidden_channels,
+            hidden_channels,
             conv_params,
             transpose=False,
+            act_norm=True,
             debug_show_dim=debug_show_dim,
+        )
+        self.bottleneck = PixelWiseConv1d(
+            hidden_channels,
+            latent_dim,
+            act_norm=False,
         )
         self.debug_show_dim = debug_show_dim
 
@@ -178,31 +202,39 @@ class MotionNormalEncoder1d(MotionEncoder1d):
     ) -> Tensor:
         b, t, c, h = x.size()
         x = x.reshape(b * t, c, h)
-        x = self.enc(x)
-        _, c, h = x.size()
-        x = x.reshape(b, t, c, h)
+        y = self.cnn(x)
+        z = self.bottleneck(y)
+        _, c, h = z.size()
+        z = z.reshape(b, t, c, h)
         if self.debug_show_dim:
-            print(f"{self.__class__.__name__}", x.size())
-        return x
+            print(f"{self.__class__.__name__}", z.size())
+        return z
 
 
 class MotionNormalEncoder2d(MotionEncoder2d):
     def __init__(
         self,
         in_channels: int,
+        hidden_channels: int,
         latent_dim: int,
         conv_params: list[dict[str, list[int]]],
         debug_show_dim: bool = False,
     ) -> None:
         super().__init__()
 
-        self.enc = ConvModule2d(
+        self.cnn = ConvModule2d(
             in_channels,
-            latent_dim,
-            latent_dim,
+            hidden_channels,
+            hidden_channels,
             conv_params,
             transpose=False,
+            act_norm=True,
             debug_show_dim=debug_show_dim,
+        )
+        self.bottleneck = PixelWiseConv2d(
+            hidden_channels,
+            latent_dim,
+            act_norm=False,
         )
         self.debug_show_dim = debug_show_dim
 
@@ -213,12 +245,13 @@ class MotionNormalEncoder2d(MotionEncoder2d):
     ) -> Tensor:
         b, t, c, d, h = x.size()
         x = x.reshape(b * t, c, d, h)
-        x = self.enc(x)
-        _, c, d, h = x.size()
-        x = x.reshape(b, t, c, d, h)
+        y = self.cnn(x)
+        z = self.bottleneck(y)
+        _, c, d, h = z.size()
+        z = z.reshape(b, t, c, d, h)
         if self.debug_show_dim:
-            print(f"{self.__class__.__name__}", x.size())
-        return x
+            print(f"{self.__class__.__name__}", z.size())
+        return z
 
 
 @dataclass
@@ -235,6 +268,7 @@ class MotionRNNEncoder1d(MotionNormalEncoder1d):
     def __init__(
         self,
         in_channels: int,
+        hidden_channels: int,
         latent_dim: int,
         conv_params: list[dict[str, list[int]]],
         rnn: RNN1d,
@@ -242,6 +276,7 @@ class MotionRNNEncoder1d(MotionNormalEncoder1d):
     ) -> None:
         super().__init__(
             in_channels,
+            hidden_channels,
             latent_dim,
             conv_params,
             debug_show_dim=debug_show_dim,
@@ -253,17 +288,18 @@ class MotionRNNEncoder1d(MotionNormalEncoder1d):
         x: Tensor,
         x_0: Tensor | None = None,
     ) -> Tensor:
-        x = super().forward(x, x_0)
-        x, _ = self.rnn(x)
+        z = super().forward(x, x_0)
+        z, _ = self.rnn(z)
         if self.debug_show_dim:
-            print(f"{self.__class__.__name__}", x.size())
-        return x
+            print(f"{self.__class__.__name__}", z.size())
+        return z
 
 
 class MotionRNNEncoder2d(MotionNormalEncoder2d):
     def __init__(
         self,
         in_channels: int,
+        hidden_channels: int,
         latent_dim: int,
         conv_params: list[dict[str, list[int]]],
         rnn: RNN2d,
@@ -271,6 +307,7 @@ class MotionRNNEncoder2d(MotionNormalEncoder2d):
     ) -> None:
         super().__init__(
             in_channels,
+            hidden_channels,
             latent_dim,
             conv_params,
             debug_show_dim=debug_show_dim,
@@ -282,11 +319,11 @@ class MotionRNNEncoder2d(MotionNormalEncoder2d):
         x: Tensor,
         x_0: Tensor | None = None,
     ) -> Tensor:
-        x = super().forward(x, x_0)
-        x, _ = self.rnn(x)
+        z = super().forward(x, x_0)
+        z, _ = self.rnn(z)
         if self.debug_show_dim:
-            print(f"{self.__class__.__name__}", x.size())
-        return x
+            print(f"{self.__class__.__name__}", z.size())
+        return z
 
 
 @dataclass
@@ -303,19 +340,26 @@ class MotionConv2dEncoder1d(MotionEncoder1d):
     def __init__(
         self,
         in_channels: int,
+        hidden_channels: int,
         latent_dim: int,
         conv_params: list[dict[str, list[int]]],
         debug_show_dim: bool = False,
     ) -> None:
         super().__init__()
 
-        self.enc = ConvModule2d(
+        self.cnn = ConvModule2d(
             in_channels,
-            latent_dim,
-            latent_dim,
+            hidden_channels,
+            hidden_channels,
             conv_params,
             transpose=False,
+            act_norm=True,
             debug_show_dim=debug_show_dim,
+        )
+        self.bottleneck = PixelWiseConv2d(
+            hidden_channels,
+            latent_dim,
+            act_norm=False,
         )
         self.debug_show_dim = debug_show_dim
 
@@ -326,31 +370,39 @@ class MotionConv2dEncoder1d(MotionEncoder1d):
     ) -> Tensor:
         t = x.size(1)
         x = x.permute(0, 2, 1, 3)  # (b, c, t, h)
-        x = self.enc(x)
-        x = x.permute(0, 2, 1, 3)  # (b, t, c, h)
-        assert x.size(1) == t
+        y = self.cnn(x)
+        z = self.bottleneck(y)
+        z = z.permute(0, 2, 1, 3)  # (b, t, c, h)
+        assert z.size(1) == t
         if self.debug_show_dim:
-            print(f"{self.__class__.__name__}", x.size())
-        return x
+            print(f"{self.__class__.__name__}", z.size())
+        return z
 
 
 class MotionConv3dEncoder2d(MotionEncoder2d):
     def __init__(
         self,
         in_channels: int,
+        hidden_channels: int,
         latent_dim: int,
         conv_params: list[dict[str, list[int]]],
         debug_show_dim: bool = False,
     ) -> None:
         super().__init__()
 
-        self.enc = ConvModule3d(
+        self.cnn = ConvModule3d(
             in_channels,
-            latent_dim,
-            latent_dim,
+            hidden_channels,
+            hidden_channels,
             conv_params,
             transpose=False,
+            act_norm=True,
             debug_show_dim=debug_show_dim,
+        )
+        self.bottleneck = PixelWiseConv3d(
+            hidden_channels,
+            latent_dim,
+            act_norm=False,
         )
         self.debug_show_dim = debug_show_dim
 
@@ -361,12 +413,13 @@ class MotionConv3dEncoder2d(MotionEncoder2d):
     ) -> Tensor:
         t = x.size(1)
         x = x.permute(0, 2, 1, 3, 4)  # (b, c, t, d, h)
-        x = self.enc(x)
-        x = x.permute(0, 2, 1, 3, 4)  # (b, t, c, d, h)
-        assert x.size(1) == t
+        y = self.cnn(x)
+        z = self.bottleneck(y)
+        z = z.permute(0, 2, 1, 3, 4)  # (b, t, c, d, h)
+        assert z.size(1) == t
         if self.debug_show_dim:
-            print(f"{self.__class__.__name__}", x.size())
-        return x
+            print(f"{self.__class__.__name__}", z.size())
+        return z
 
 
 @dataclass
@@ -386,12 +439,12 @@ class MotionGuidedEncoder1d(MotionNormalEncoder1d):
         x_0: Tensor | None = None,
     ) -> Tensor:
         assert x_0 is not None
-        x = super().forward(x, x_0)
-        x_0 = self.enc(x_0).unsqueeze(1)
-        x -= x_0
+        z = super().forward(x, x_0)
+        z_0 = self.bottleneck(self.cnn(x_0)).unsqueeze(1)
+        z -= z_0
         if self.debug_show_dim:
-            print(f"{self.__class__.__name__}", x.size())
-        return x
+            print(f"{self.__class__.__name__}", z.size())
+        return z
 
 
 class MotionGuidedEncoder2d(MotionNormalEncoder2d):
@@ -401,9 +454,9 @@ class MotionGuidedEncoder2d(MotionNormalEncoder2d):
         x_0: Tensor | None = None,
     ) -> Tensor:
         assert x_0 is not None
-        x = super().forward(x, x_0)
-        x_0 = self.enc(x_0).unsqueeze(1)
-        x -= x_0
+        z = super().forward(x, x_0)
+        z_0 = self.bottleneck(self.cnn(x_0)).unsqueeze(1)
+        z -= z_0
         if self.debug_show_dim:
-            print(f"{self.__class__.__name__}", x.size())
-        return x
+            print(f"{self.__class__.__name__}", z.size())
+        return z

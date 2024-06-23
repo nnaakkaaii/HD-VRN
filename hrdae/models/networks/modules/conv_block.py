@@ -8,6 +8,13 @@ IdenticalConvBlockConvParams = {
     "output_padding": [0],
 }
 
+PixelWiseConvBlockConvParams = {
+    "kernel_size": [1],
+    "stride": [1],
+    "padding": [0],
+    "output_padding": [0],
+}
+
 
 def _parse_for_1d(f: list[int]) -> int:
     if len(f) == 1:
@@ -101,6 +108,25 @@ class IdenticalConvBlock1d(ConvBlock1d):
         )
 
 
+class PixelWiseConv1d(ConvBlock1d):
+    def __init__(
+        self,
+        in_channels: int,
+        out_channels: int,
+        act_norm: bool = True,
+    ) -> None:
+        super().__init__(
+            in_channels,
+            out_channels,
+            kernel_size=PixelWiseConvBlockConvParams["kernel_size"],
+            stride=PixelWiseConvBlockConvParams["stride"],
+            padding=PixelWiseConvBlockConvParams["padding"],
+            output_padding=PixelWiseConvBlockConvParams.get("output_padding"),
+            transpose=False,
+            act_norm=act_norm,
+        )
+
+
 class ConvBlock2d(nn.Module):
     conv: nn.Module
 
@@ -167,6 +193,25 @@ class IdenticalConvBlock2d(ConvBlock2d):
             padding=IdenticalConvBlockConvParams["padding"],
             output_padding=IdenticalConvBlockConvParams.get("output_padding"),
             transpose=transpose,
+            act_norm=act_norm,
+        )
+
+
+class PixelWiseConv2d(ConvBlock2d):
+    def __init__(
+        self,
+        in_channels: int,
+        out_channels: int,
+        act_norm: bool = True,
+    ) -> None:
+        super().__init__(
+            in_channels,
+            out_channels,
+            kernel_size=PixelWiseConvBlockConvParams["kernel_size"],
+            stride=PixelWiseConvBlockConvParams["stride"],
+            padding=PixelWiseConvBlockConvParams["padding"],
+            output_padding=PixelWiseConvBlockConvParams.get("output_padding"),
+            transpose=False,
             act_norm=act_norm,
         )
 
@@ -241,6 +286,25 @@ class IdenticalConvBlock3d(ConvBlock3d):
         )
 
 
+class PixelWiseConv3d(ConvBlock3d):
+    def __init__(
+        self,
+        in_channels: int,
+        out_channels: int,
+        act_norm: bool = True,
+    ) -> None:
+        super().__init__(
+            in_channels,
+            out_channels,
+            kernel_size=PixelWiseConvBlockConvParams["kernel_size"],
+            stride=PixelWiseConvBlockConvParams["stride"],
+            padding=PixelWiseConvBlockConvParams["padding"],
+            output_padding=PixelWiseConvBlockConvParams.get("output_padding"),
+            transpose=False,
+            act_norm=act_norm,
+        )
+
+
 class ConvModuleBase(nn.Module):
     layers: nn.ModuleList
     use_skip: bool
@@ -276,6 +340,7 @@ class ConvModule1d(ConvModuleBase):
         latent_dim: int,
         conv_params: list[dict[str, list[int]]],
         transpose: bool,
+        act_norm: bool,
         debug_show_dim: bool = False,
     ) -> None:
         super().__init__()
@@ -310,7 +375,7 @@ class ConvModule1d(ConvModuleBase):
                 padding=conv_params[-1]["padding"],
                 output_padding=conv_params[-1].get("output_padding"),
                 transpose=transpose,
-                act_norm=False,
+                act_norm=act_norm,
             )
         )
 
@@ -329,6 +394,7 @@ class ConvModule2d(ConvModuleBase):
         latent_dim: int,
         conv_params: list[dict[str, list[int]]],
         transpose: bool,
+        act_norm: bool,
         debug_show_dim: bool = False,
     ) -> None:
         super().__init__()
@@ -363,7 +429,7 @@ class ConvModule2d(ConvModuleBase):
                 padding=conv_params[-1]["padding"],
                 output_padding=conv_params[-1].get("output_padding"),
                 transpose=transpose,
-                act_norm=False,
+                act_norm=act_norm,
             )
         )
 
@@ -382,6 +448,7 @@ class ConvModule3d(ConvModuleBase):
         latent_dim: int,
         conv_params: list[dict[str, list[int]]],
         transpose: bool,
+        act_norm: bool,
         debug_show_dim: bool = False,
     ) -> None:
         super().__init__()
@@ -416,7 +483,7 @@ class ConvModule3d(ConvModuleBase):
                 padding=conv_params[-1]["padding"],
                 output_padding=conv_params[-1].get("output_padding"),
                 transpose=transpose,
-                act_norm=False,
+                act_norm=act_norm,
             )
         )
 

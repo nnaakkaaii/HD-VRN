@@ -1,30 +1,27 @@
 from torch import randn
 
+from hrdae.models.networks import create_network, HRDAE2dOption, HRDAE3dOption
 from hrdae.models.networks.hr_dae import (
-    HierarchicalContentEncoder2d,
+    HierarchicalEncoder2d,
     HierarchicalDecoder2d,
-    HierarchicalContentEncoder3d,
+    HierarchicalEncoder3d,
     HierarchicalDecoder3d,
-    HRDAE2d,
-    HRDAE3d,
 )
 from hrdae.models.networks.motion_encoder import (
-    MotionNormalEncoder1d,
-    MotionNormalEncoder2d,
-    MotionRNNEncoder2d,
-)
-from hrdae.models.networks.rnn import (
-    TCN2d,
+    MotionNormalEncoder1dOption,
+    MotionNormalEncoder2dOption,
 )
 
 
 def test_hierarchical_content_encoder2d():
     b, c, h, w = 8, 1, 16, 16
-    latent = 32
+    hidden = 16
+    latent = 4
 
     x = randn((b, c, h, w))
-    net = HierarchicalContentEncoder2d(
+    net = HierarchicalEncoder2d(
         c,
+        hidden,
         latent,
         [
             {
@@ -39,16 +36,18 @@ def test_hierarchical_content_encoder2d():
     c, cs = net(x)
     assert c.size() == (b, latent, h // 4, w // 4)
     assert len(cs) == 1
-    assert cs[0].size() == (b, latent, h // 2, w // 2)
+    assert cs[0].size() == (b, hidden, h // 2, w // 2)
 
 
 def test_hierarchical_content_encoder3d():
     b, c, d, h, w = 8, 1, 16, 16, 16
-    latent = 32
+    hidden = 16
+    latent = 4
 
     x = randn((b, c, d, h, w))
-    net = HierarchicalContentEncoder3d(
+    net = HierarchicalEncoder3d(
         c,
+        hidden,
         latent,
         [
             {
@@ -72,22 +71,24 @@ def test_hierarchical_content_encoder3d():
     c, cs = net(x)
     assert c.size() == (b, latent, d // 4, h // 4, w // 4)
     assert len(cs) == 2
-    assert cs[0].size() == (b, latent, d // 2, h // 2, w // 2)
-    assert cs[1].size() == (b, latent, d // 4, h // 4, w // 4)
+    assert cs[0].size() == (b, hidden, d // 2, h // 2, w // 2)
+    assert cs[1].size() == (b, hidden, d // 4, h // 4, w // 4)
 
 
-def test_hierarchical_decoder2d__concat():
+def test_hierarchical_decoder2d():
     b, n, c_, h, w = 8, 10, 1, 16, 16
-    latent = 32
+    hidden = 16
+    latent = 4
 
-    m = randn((b * n, latent, h))
+    m = randn((b * n, latent, h // 4))
     c = randn((b * n, latent, h // 4, w // 4))
     cs = [
-        randn((b * n, latent, h // 4, w // 4)),
-        randn((b * n, latent, h // 2, w // 2)),
+        randn((b * n, hidden, h // 4, w // 4)),
+        randn((b * n, hidden, h // 2, w // 2)),
     ]
     net = HierarchicalDecoder2d(
         c_,
+        hidden,
         latent,
         [
             {
@@ -98,54 +99,27 @@ def test_hierarchical_decoder2d__concat():
             }
         ]
         * 2,
-        aggregation_method="concat",
+        aggregator="addition",
         debug_show_dim=False,
     )
     x = net(m, c, cs)
     assert x.size() == (b * n, c_, h, w)
 
 
-def test_hierarchical_decoder2d__sum():
-    b, n, c_, h, w = 8, 10, 1, 16, 16
-    latent = 32
-
-    m = randn((b * n, latent, h))
-    c = randn((b * n, latent, h // 4, w // 4))
-    cs = [
-        randn((b * n, latent, h // 4, w // 4)),
-        randn((b * n, latent, h // 2, w // 2)),
-    ]
-    net = HierarchicalDecoder2d(
-        c_,
-        latent,
-        [
-            {
-                "kernel_size": [3],
-                "stride": [2],
-                "padding": [1],
-                "output_padding": [1],
-            }
-        ]
-        * 2,
-        aggregation_method="sum",
-        debug_show_dim=False,
-    )
-    x = net(m, c, cs)
-    assert x.size() == (b * n, 1, h, w)
-
-
-def test_hierarchical_decoder3d__concat():
+def test_hierarchical_decoder3d():
     b, n, c_, d, h, w = 8, 10, 1, 16, 16, 16
-    latent = 32
+    hidden = 16
+    latent = 4
 
     m = randn((b * n, latent, d, h))
     c = randn((b * n, latent, h // 4, h // 4, w // 4))
     cs = [
-        randn((b * n, latent, h // 4, h // 4, w // 4)),
-        randn((b * n, latent, h // 2, h // 2, w // 2)),
+        randn((b * n, hidden, h // 4, h // 4, w // 4)),
+        randn((b * n, hidden, h // 2, h // 2, w // 2)),
     ]
     net = HierarchicalDecoder3d(
         c_,
+        hidden,
         latent,
         [
             {
@@ -156,36 +130,7 @@ def test_hierarchical_decoder3d__concat():
             }
         ]
         * 2,
-        aggregation_method="concat",
-        debug_show_dim=False,
-    )
-    x = net(m, c, cs)
-    assert x.size() == (b * n, c_, d, h, w)
-
-
-def test_hierarchical_decoder3d__sum():
-    b, n, c_, d, h, w = 8, 10, 1, 16, 16, 16
-    latent = 32
-
-    m = randn((b * n, latent, d, h))
-    c = randn((b * n, latent, d // 4, h // 4, w // 4))
-    cs = [
-        randn((b * n, latent, d // 4, h // 4, w // 4)),
-        randn((b * n, latent, d // 2, h // 2, w // 2)),
-    ]
-    net = HierarchicalDecoder3d(
-        c_,
-        latent,
-        [
-            {
-                "kernel_size": [3],
-                "stride": [2],
-                "padding": [1],
-                "output_padding": [1],
-            }
-        ]
-        * 2,
-        aggregation_method="sum",
+        aggregator="addition",
         debug_show_dim=False,
     )
     x = net(m, c, cs)
@@ -193,14 +138,15 @@ def test_hierarchical_decoder3d__sum():
 
 
 def test_hrdae2d():
-    b, n, c, s, h, w = 8, 10, 1, 3, 16, 16
-    latent = 32
+    b, n, s, h, w = 8, 10, 3, 16, 16
+    hidden = 16
+    latent = 4
 
-    net = HRDAE2d(
-        2,
-        c,
-        latent,
-        [
+    opt = HRDAE2dOption(
+        in_channels=2,
+        hidden_channels=hidden,
+        latent_dim=latent,
+        conv_params=[
             {
                 "kernel_size": [3],
                 "stride": [2],
@@ -208,10 +154,10 @@ def test_hrdae2d():
             }
         ]
         * 2,
-        motion_encoder=MotionNormalEncoder1d(
-            s,
-            latent,
-            [
+        motion_encoder=MotionNormalEncoder1dOption(
+            in_channels=s,
+            hidden_channels=hidden,
+            conv_params=[
                 {
                     "kernel_size": [3],
                     "stride": [2],
@@ -220,90 +166,52 @@ def test_hrdae2d():
             ]
             * 2,
         ),
+        aggregator="addition",
         activation="sigmoid",
     )
+    net = create_network(1, opt)
     out = net(
         randn((b, n, s, h)),
         randn((b, 2, h, w)),
     )
-    assert out.size() == (b, n, c, h, w)
+    assert out.size() == (b, n, 1, h, w)
 
 
 def test_hrdae3d():
-    b, n, c, s, d, h, w = 8, 10, 1, 3, 16, 16, 16
-    latent = 32
+    b, n, s, d, h, w = 8, 10, 3, 16, 16, 16
+    hidden = 16
+    latent = 4
 
-    net = HRDAE3d(
-        2,
-        c,
-        latent,
-        [
-            {
-                "kernel_size": [3],
-                "stride": [2],
-                "padding": [1],
-            }
-        ]
-        * 2,
-        motion_encoder=MotionNormalEncoder2d(
-            s,
-            latent,
-            [
-                {
-                    "kernel_size": [3],
-                    "stride": [2],
-                    "padding": [1],
-                }
-            ]
-            * 2,
-            ),
-        activation="sigmoid",
-        )
-    out = net(
-        randn((b, n, s, d, h)),
-        randn((b, 2, d, h, w)),
-    )
-    assert out.size() == (b, n, c, d, h, w)
-
-
-def test_hrdae3d__tcn2d():
-    b, n, c, s, d, h, w = 8, 10, 1, 3, 8, 16, 16
-    latent = 32
-
-    net = HRDAE3d(
-        2,
-        c,
-        latent,
-        [
-            {
-                "kernel_size": [3],
-                "stride": [2],
-                "padding": [1],
-            }
-        ]
-        * 2,
-        motion_encoder=MotionRNNEncoder2d(
-            s,
-            latent,
-            [
-                {
-                    "kernel_size": [3],
-                    "stride": [2],
-                    "padding": [1],
-                }
-            ]
-            * 2,
-            TCN2d(
-                latent,
-                2,
-                (2, 4),
-                3,
-            )
+    opt = HRDAE3dOption(
+        in_channels=2,
+        hidden_channels=hidden,
+        latent_dim=latent,
+        conv_params=[
+                        {
+                            "kernel_size": [3],
+                            "stride": [2],
+                            "padding": [1],
+                        }
+                    ]
+                    * 2,
+        motion_encoder=MotionNormalEncoder2dOption(
+            in_channels=s,
+            hidden_channels=hidden,
+            conv_params=[
+                            {
+                                "kernel_size": [3],
+                                "stride": [2],
+                                "padding": [1],
+                            }
+                        ]
+                        * 2,
         ),
+        aggregator="addition",
         activation="sigmoid",
     )
+    net = create_network(1, opt)
     out = net(
         randn((b, n, s, d, h)),
         randn((b, 2, d, h, w)),
     )
-    assert out.size() == (b, n, c, d, h, w)
+    assert out.size() == (b, n, 1, d, h, w)

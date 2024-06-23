@@ -1,7 +1,6 @@
 from dataclasses import dataclass, field
 
-from torch import Tensor, cat, gather, int64, tensor, device
-from torch.cuda import is_available
+from torch import Tensor, cat, gather, int64, tensor
 from torch.utils.data import Dataset
 from torchvision import datasets
 

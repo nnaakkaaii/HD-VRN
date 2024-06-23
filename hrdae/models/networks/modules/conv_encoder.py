@@ -18,6 +18,7 @@ class HierarchicalConvEncoder1d(ConvModuleBase):
         out_channels: int,
         latent_dim: int,
         conv_params: list[dict[str, list[int]]],
+        act_norm: bool,
         debug_show_dim: bool = False,
     ) -> None:
         super().__init__()
@@ -52,7 +53,7 @@ class HierarchicalConvEncoder1d(ConvModuleBase):
                 padding=conv_params[-1]["padding"],
                 output_padding=conv_params[-1].get("output_padding"),
                 transpose=False,
-                act_norm=False,
+                act_norm=act_norm,
             )
         )
 
@@ -70,6 +71,7 @@ class HierarchicalConvEncoder2d(ConvModuleBase):
         out_channels: int,
         latent_dim: int,
         conv_params: list[dict[str, list[int]]],
+        act_norm: bool,
         debug_show_dim: bool = False,
     ) -> None:
         super().__init__()
@@ -104,7 +106,7 @@ class HierarchicalConvEncoder2d(ConvModuleBase):
                 padding=conv_params[-1]["padding"],
                 output_padding=conv_params[-1].get("output_padding"),
                 transpose=False,
-                act_norm=False,
+                act_norm=act_norm,
             )
         )
 
@@ -122,6 +124,7 @@ class HierarchicalConvEncoder3d(ConvModuleBase):
         out_channels: int,
         latent_dim: int,
         conv_params: list[dict[str, list[int]]],
+        act_norm: bool,
         debug_show_dim: bool = False,
     ) -> None:
         super().__init__()
@@ -156,7 +159,7 @@ class HierarchicalConvEncoder3d(ConvModuleBase):
                 padding=conv_params[-1]["padding"],
                 output_padding=conv_params[-1].get("output_padding"),
                 transpose=False,
-                act_norm=False,
+                act_norm=act_norm,
             )
         )
 

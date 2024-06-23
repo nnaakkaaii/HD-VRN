@@ -1,5 +1,9 @@
 from torch import nn
 
+from .aggregator import (
+    create_aggregator2d,
+    create_aggregator3d,
+)
 from .conv_block import (
     ConvBlock1d,
     ConvBlock2d,
@@ -10,6 +14,9 @@ from .conv_block import (
     IdenticalConvBlock1d,
     IdenticalConvBlock2d,
     IdenticalConvBlock3d,
+    PixelWiseConv1d,
+    PixelWiseConv2d,
+    PixelWiseConv3d,
     IdenticalConvBlockConvParams,
 )
 from .conv_decoder import (
@@ -41,6 +48,8 @@ def create_activation(name: str) -> nn.Module | None:
 
 
 __all__ = [
+    "create_aggregator2d",
+    "create_aggregator3d",
     "ConvBlock1d",
     "ConvBlock2d",
     "ConvBlock3d",
@@ -51,6 +60,9 @@ __all__ = [
     "IdenticalConvBlock2d",
     "IdenticalConvBlock3d",
     "IdenticalConvBlockConvParams",
+    "PixelWiseConv1d",
+    "PixelWiseConv2d",
+    "PixelWiseConv3d",
     "HierarchicalConvDecoder1d",
     "HierarchicalConvDecoder2d",
     "HierarchicalConvDecoder3d",

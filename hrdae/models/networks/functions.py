@@ -1,16 +1,8 @@
-from torch import Tensor, cat
+from torch import Tensor
 from torch.nn.functional import interpolate
 
 
-def aggregate(m: Tensor, c: Tensor, method: str) -> Tensor:
-    if method == "sum":
-        return c + _upsample_motion_tensor(m, c)
-    elif method == "concat":
-        return cat([c, _upsample_motion_tensor(m, c)], dim=1)
-    raise NotImplementedError(f"{method} not implemented")
-
-
-def _upsample_motion_tensor(m: Tensor, c: Tensor) -> Tensor:
+def upsample_motion_tensor(m: Tensor, c: Tensor) -> Tensor:
     if c.dim() == 5:
         return _upsample_motion_tensor3d(m, c)
     elif c.dim() == 4:

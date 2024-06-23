@@ -7,7 +7,8 @@ from omegaconf import MISSING
 from torch import Tensor, nn
 from torch.nn.functional import interpolate
 
-from .modules import ConvModule2d, ConvModule3d, create_activation
+from .modules import create_activation
+from .autoencoder import Decoder2d, Decoder3d
 from .motion_encoder import (
     MotionEncoder1d,
     MotionEncoder1dOption,
@@ -21,7 +22,8 @@ from .option import NetworkOption
 
 @dataclass
 class RAE2dOption(NetworkOption):
-    latent_dim: int = 64
+    hidden_channels: int = 64
+    latent_dim: int = 4
     conv_params: list[dict[str, list[int]]] = field(
         default_factory=lambda: [{"kernel_size": [3], "stride": [2], "padding": [1]}]
         * 3,
@@ -33,7 +35,8 @@ class RAE2dOption(NetworkOption):
 
 @dataclass
 class RAE3dOption(NetworkOption):
-    latent_dim: int = 64
+    hidden_channels: int = 64
+    latent_dim: int = 4
     conv_params: list[dict[str, list[int]]] = field(
         default_factory=lambda: [{"kernel_size": [3], "stride": [2], "padding": [1]}]
         * 3,
@@ -49,6 +52,7 @@ def create_rae2d(out_channels: int, opt: RAE2dOption) -> nn.Module:
     )
     return RAE2d(
         out_channels,
+        opt.hidden_channels,
         opt.latent_dim,
         opt.conv_params,
         motion_encoder,
@@ -64,6 +68,7 @@ def create_rae3d(out_channels: int, opt: RAE3dOption) -> nn.Module:
     )
     return RAE3d(
         out_channels,
+        opt.hidden_channels,
         opt.latent_dim,
         opt.conv_params,
         motion_encoder,
@@ -73,50 +78,11 @@ def create_rae3d(out_channels: int, opt: RAE3dOption) -> nn.Module:
     )
 
 
-class Decoder2d(nn.Module):
-    def __init__(
-        self,
-        out_channels: int,
-        latent_dim: int,
-        conv_params: list[dict[str, list[int]]],
-        debug_show_dim: bool = False,
-    ) -> None:
-        super().__init__()
-        self.dec = ConvModule2d(
-            latent_dim,
-            out_channels,
-            latent_dim,
-            conv_params,
-            transpose=True,
-            debug_show_dim=debug_show_dim,
-        )
-
-    def forward(self, m: Tensor) -> Tensor:
-        return self.dec(m)
-
-
-class Decoder3d(ConvModule3d):
-    def __init__(
-        self,
-        out_channels: int,
-        latent_dim: int,
-        conv_params: list[dict[str, list[int]]],
-        debug_show_dim: bool = False,
-    ) -> None:
-        super().__init__(
-            latent_dim,
-            out_channels,
-            latent_dim,
-            conv_params,
-            transpose=True,
-            debug_show_dim=debug_show_dim,
-        )
-
-
 class RAE2d(nn.Module):
     def __init__(
         self,
         out_channels: int,
+        hidden_channels: int,
         latent_dim: int,
         conv_params: list[dict[str, list[int]]],
         motion_encoder: MotionEncoder1d,
@@ -128,6 +94,7 @@ class RAE2d(nn.Module):
         self.motion_encoder = motion_encoder
         self.decoder = Decoder2d(
             out_channels,
+            hidden_channels,
             latent_dim,
             conv_params[::-1],
             debug_show_dim,
@@ -157,6 +124,7 @@ class RAE3d(nn.Module):
     def __init__(
         self,
         out_channels: int,
+        hidden_channels: int,
         latent_dim: int,
         conv_params: list[dict[str, list[int]]],
         motion_encoder: MotionEncoder2d,
@@ -168,6 +136,7 @@ class RAE3d(nn.Module):
         self.motion_encoder = motion_encoder
         self.decoder = Decoder3d(
             out_channels,
+            hidden_channels,
             latent_dim,
             conv_params[::-1],
             debug_show_dim,

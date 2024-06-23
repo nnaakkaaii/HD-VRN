@@ -14,11 +14,13 @@ from hrdae.models.networks.motion_encoder import (
 
 def test_decoder2d():
     b, n, c_, h, w = 8, 10, 1, 16, 16
-    latent = 32
+    hidden = 16
+    latent = 4
 
     m = randn((b * n, latent, h // 4, w // 4))
     net = Decoder2d(
         c_,
+        hidden,
         latent,
         [
             {
@@ -37,11 +39,13 @@ def test_decoder2d():
 
 def test_decoder3d():
     b, n, c_, d, h, w = 8, 10, 1, 16, 16, 16
-    latent = 32
+    hidden = 16
+    latent = 4
 
     m = randn((b * n, latent, d // 4, h // 4, w // 4))
     net = Decoder3d(
         c_,
+        hidden,
         latent,
         [
             {
@@ -60,10 +64,12 @@ def test_decoder3d():
 
 def test_rae2d():
     b, n, c, s, h, w = 8, 10, 1, 3, 16, 16
-    latent = 32
+    hidden = 16
+    latent = 4
 
     net = RAE2d(
         c,
+        hidden,
         latent,
         [
             {
@@ -75,6 +81,7 @@ def test_rae2d():
         * 2,
         motion_encoder=MotionNormalEncoder1d(
             s,
+            hidden,
             latent,
             [
                 {
@@ -97,10 +104,12 @@ def test_rae2d():
 
 def test_rae3d():
     b, n, c, s, d, h, w = 8, 10, 1, 3, 16, 16, 16
-    latent = 32
+    hidden = 16
+    latent = 4
 
     net = RAE3d(
         c,
+        hidden,
         latent,
         [
             {
@@ -112,6 +121,7 @@ def test_rae3d():
         * 2,
         motion_encoder=MotionNormalEncoder2d(
             s,
+            hidden,
             latent,
             [
                 {
