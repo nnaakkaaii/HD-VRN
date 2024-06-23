@@ -177,6 +177,46 @@ def test_hrdae2d():
     assert out.size() == (b, n, 1, h, w)
 
 
+def test_hrdae2d__concatenation():
+    b, n, s, h, w = 8, 10, 3, 16, 16
+    hidden = 16
+    latent = 4
+
+    opt = HRDAE2dOption(
+        in_channels=2,
+        hidden_channels=hidden,
+        latent_dim=latent,
+        conv_params=[
+                        {
+                            "kernel_size": [3],
+                            "stride": [2],
+                            "padding": [1],
+                        }
+                    ]
+                    * 2,
+        motion_encoder=MotionNormalEncoder1dOption(
+            in_channels=s,
+            hidden_channels=hidden,
+            conv_params=[
+                            {
+                                "kernel_size": [3],
+                                "stride": [2],
+                                "padding": [1],
+                            }
+                        ]
+                        * 2,
+        ),
+        aggregator="concatenation",
+        activation="sigmoid",
+    )
+    net = create_network(1, opt)
+    out = net(
+        randn((b, n, s, h)),
+        randn((b, 2, h, w)),
+    )
+    assert out.size() == (b, n, 1, h, w)
+
+
 def test_hrdae3d():
     b, n, s, d, h, w = 8, 10, 3, 16, 16, 16
     hidden = 16
@@ -207,6 +247,46 @@ def test_hrdae3d():
                         * 2,
         ),
         aggregator="addition",
+        activation="sigmoid",
+    )
+    net = create_network(1, opt)
+    out = net(
+        randn((b, n, s, d, h)),
+        randn((b, 2, d, h, w)),
+    )
+    assert out.size() == (b, n, 1, d, h, w)
+
+
+def test_hrdae3d__concatenation():
+    b, n, s, d, h, w = 8, 10, 3, 16, 16, 16
+    hidden = 16
+    latent = 4
+
+    opt = HRDAE3dOption(
+        in_channels=2,
+        hidden_channels=hidden,
+        latent_dim=latent,
+        conv_params=[
+                        {
+                            "kernel_size": [3],
+                            "stride": [2],
+                            "padding": [1],
+                        }
+                    ]
+                    * 2,
+        motion_encoder=MotionNormalEncoder2dOption(
+            in_channels=s,
+            hidden_channels=hidden,
+            conv_params=[
+                            {
+                                "kernel_size": [3],
+                                "stride": [2],
+                                "padding": [1],
+                            }
+                        ]
+                        * 2,
+        ),
+        aggregator="concatenation",
         activation="sigmoid",
     )
     net = create_network(1, opt)

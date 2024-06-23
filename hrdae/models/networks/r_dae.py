@@ -25,13 +25,13 @@ from .r_ae import RAE2dOption, RAE3dOption
 @dataclass
 class RDAE2dOption(RAE2dOption):
     in_channels: int = 1  # 2 if content_phase = "all"
-    aggregator: str = "attention2d"
+    aggregator: str = "attention"
 
 
 @dataclass
 class RDAE3dOption(RAE3dOption):
     in_channels: int = 1  # 2 if content_phase = "all"
-    aggregator: str = "attention3d"
+    aggregator: str = "attention"
 
 
 def create_rdae2d(out_channels: int, opt: RDAE2dOption) -> nn.Module:
@@ -94,7 +94,7 @@ class RDAE2d(nn.Module):
         self.decoder = Decoder2d(
             out_channels,
             hidden_channels,
-            latent_dim,
+            2 * latent_dim if aggregator == "concatenation" else latent_dim,
             conv_params[::-1],
             debug_show_dim,
         )
@@ -147,7 +147,7 @@ class RDAE3d(nn.Module):
         self.decoder = Decoder3d(
             out_channels,
             hidden_channels,
-            latent_dim,
+            2 * latent_dim if aggregator == "concatenation" else latent_dim,
             conv_params[::-1],
             debug_show_dim,
         )

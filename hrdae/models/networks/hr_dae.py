@@ -148,16 +148,19 @@ class HierarchicalDecoder2d(nn.Module):
     ) -> None:
         super().__init__()
 
+        dec_hidden_channels = hidden_channels
+        if aggregator == "concatenation":
+            dec_hidden_channels += latent_dim
         self.aggregator = create_aggregator2d(aggregator, latent_dim, latent_dim)
         self.bottleneck = PixelWiseConv2d(
-            latent_dim,
-            hidden_channels,
+            2 * latent_dim if aggregator == "concatenation" else latent_dim,
+            dec_hidden_channels,
             act_norm=True,
         )
         self.dec = HierarchicalConvDecoder2d(
-            hidden_channels,
+            dec_hidden_channels,
             out_channels,
-            hidden_channels,
+            dec_hidden_channels,
             conv_params,
             debug_show_dim,
         )
@@ -169,12 +172,12 @@ class HierarchicalDecoder2d(nn.Module):
                 nn.Sequential(
                     create_aggregator2d(aggregator, hidden_channels, latent_dim),
                     ResNetBranch(
-                        IdenticalConvBlock2d(hidden_channels, hidden_channels),
+                        IdenticalConvBlock2d(dec_hidden_channels, dec_hidden_channels),
                         IdenticalConvBlock2d(
-                            hidden_channels, hidden_channels, act_norm=False
+                            dec_hidden_channels, dec_hidden_channels, act_norm=False
                         ),
                     ),
-                    nn.GroupNorm(2, hidden_channels),
+                    nn.GroupNorm(2, dec_hidden_channels),
                     nn.LeakyReLU(0.2, inplace=True),
                 )
             )
@@ -202,16 +205,19 @@ class HierarchicalDecoder3d(nn.Module):
     ) -> None:
         super().__init__()
 
+        dec_hidden_channels = hidden_channels
+        if aggregator == "concatenation":
+            dec_hidden_channels += latent_dim
         self.aggregator = create_aggregator3d(aggregator, latent_dim, latent_dim)
         self.bottleneck = PixelWiseConv3d(
-            latent_dim,
-            hidden_channels,
+            2 * latent_dim if aggregator == "concatenation" else latent_dim,
+            dec_hidden_channels,
             act_norm=True,
         )
         self.dec = HierarchicalConvDecoder3d(
-            hidden_channels,
+            dec_hidden_channels,
             out_channels,
-            hidden_channels,
+            dec_hidden_channels,
             conv_params,
             debug_show_dim,
         )
@@ -223,12 +229,12 @@ class HierarchicalDecoder3d(nn.Module):
                 nn.Sequential(
                     create_aggregator3d(aggregator, hidden_channels, latent_dim),
                     ResNetBranch(
-                        IdenticalConvBlock3d(hidden_channels, hidden_channels),
+                        IdenticalConvBlock3d(dec_hidden_channels, dec_hidden_channels),
                         IdenticalConvBlock3d(
-                            hidden_channels, hidden_channels, act_norm=False
+                            dec_hidden_channels, dec_hidden_channels, act_norm=False
                         ),
                     ),
-                    nn.GroupNorm(2, hidden_channels),
+                    nn.GroupNorm(2, dec_hidden_channels),
                     nn.LeakyReLU(0.2, inplace=True),
                 )
             )

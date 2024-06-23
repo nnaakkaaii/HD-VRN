@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 
-from torch import nn, Tensor, zeros, bmm
+from torch import nn, Tensor, zeros, bmm, cat
 from torch.nn.functional import softmax
 
 from .conv_block import PixelWiseConv2d, PixelWiseConv3d
@@ -11,6 +11,8 @@ def create_aggregator2d(aggregator: str, cc: int, cm: int) -> "Aggregator":
         return AdditionAggregator2d(cc, cm)
     if aggregator == "multiplication":
         return MultiplicationAggregator2d(cc, cm)
+    if aggregator == "concatenation":
+        return ConcatenationAggregator2d()
     if aggregator == "attention":
         return AttentionAggregator2d(cc, cm)
     raise NotImplementedError(f"{aggregator} not implemented")
@@ -21,6 +23,8 @@ def create_aggregator3d(aggregator: str, cc: int, cm: int) -> "Aggregator":
         return AdditionAggregator3d(cc, cm)
     if aggregator == "multiplication":
         return MultiplicationAggregator3d(cc, cm)
+    if aggregator == "concatenation":
+        return ConcatenationAggregator3d()
     if aggregator == "attention":
         return AttentionAggregator3d(cc, cm)
     raise NotImplementedError(f"{aggregator} not implemented")
@@ -86,6 +90,16 @@ class MultiplicationAggregator3d(Aggregator):
         if self.conv is not None:
             zm = self.conv(zm)
         return zc * zm
+
+
+class ConcatenationAggregator2d(Aggregator):
+    def forward(self, z: tuple[Tensor, Tensor]) -> Tensor:
+        return cat(z, dim=1)
+
+
+class ConcatenationAggregator3d(Aggregator):
+    def forward(self, z: tuple[Tensor, Tensor]) -> Tensor:
+        return cat(z, dim=1)
 
 
 class AttentionAggregator2d(Aggregator):
