@@ -8,6 +8,7 @@ from torch.optim.lr_scheduler import StepLR
 from torch.utils.data import DataLoader
 
 from hrdae.models.basic_model import BasicModel
+from hrdae.models.losses import LossMixer
 
 
 class FakeDataset(Dataset):
@@ -51,7 +52,10 @@ def test_basic_model():
     network = FakeNetwork()
     optimizer = Adam(network.parameters())
     scheduler = StepLR(optimizer, step_size=1)
-    criterion = nn.MSELoss()
+    criterion = LossMixer(
+        {"mse": nn.MSELoss()},
+        {"mse": 1},
+    )
     dataloader = DataLoader(FakeDataset(), batch_size=4)
 
     model = BasicModel(network, optimizer, scheduler, criterion)
