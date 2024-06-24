@@ -75,8 +75,8 @@ class BasicModel(Model):
                 t = data["t"].to(self.device)
 
                 self.optimizer.zero_grad()
-                y, _ = self.network(x)
-                loss = self.criterion(t, y)
+                y, z = self.network(x)
+                loss = self.criterion(t, y, latent=z)
                 loss.backward()
                 self.optimizer.step()
 
@@ -102,8 +102,8 @@ class BasicModel(Model):
                     x = data["x"].to(self.device)
                     t = data["t"].to(self.device)
 
-                    y, _ = self.network(x)
-                    loss = self.criterion(t, y)
+                    y, z = self.network(x)
+                    loss = self.criterion(t, y, latent=z)
                     total_val_loss += loss.item()
 
                 avg_val_loss = total_val_loss / len(val_loader)

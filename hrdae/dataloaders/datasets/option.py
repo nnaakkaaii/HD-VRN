@@ -3,4 +3,4 @@ from dataclasses import dataclass
 
 @dataclass
 class DatasetOption:
-    sequential: bool = True
+    wrap: str = "none"  # none, divide, serialize

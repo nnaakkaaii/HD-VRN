@@ -6,6 +6,7 @@ from torch import Tensor, float32, nn, tensor
 from .option import LossOption
 from .pjc import PJC2dLossOption, PJC3dLossOption, create_pjc2d_loss, create_pjc3d_loss
 from .weighted_mse import WeightedMSELossOption, create_weighted_mse_loss
+from .t_sim import TemporalSimilarityLossOption, create_tsim_loss
 
 
 @dataclass
@@ -22,6 +23,8 @@ def create_loss(opt: LossOption) -> nn.Module:
         return create_pjc2d_loss()
     if isinstance(opt, PJC3dLossOption) and type(opt) is PJC3dLossOption:
         return create_pjc3d_loss()
+    if isinstance(opt, TemporalSimilarityLossOption):
+        return create_tsim_loss()
     raise NotImplementedError(f"{opt.__class__.__name__} is not implemented")
 
 

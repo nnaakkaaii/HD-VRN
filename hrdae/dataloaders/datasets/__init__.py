@@ -10,6 +10,7 @@ from .moving_mnist import (
 )
 from .option import DatasetOption
 from .seq_divide_wrapper import SeqDivideWrapper
+from .seq_serialize_wrapper import SeqSerializeWrapper
 
 
 def create_dataset(
@@ -24,12 +25,16 @@ def create_dataset(
         and type(opt) is MovingMNISTDatasetOption
     ):
         dataset = create_moving_mnist_dataset(opt, transform, is_train)
-        if opt.sequential:
-            return dataset
-        return SeqDivideWrapper(dataset, MovingMNIST.PERIOD)
+        if opt.wrap == "divide":
+            return SeqDivideWrapper(dataset, MovingMNIST.PERIOD)
+        if opt.wrap == "serialize":
+            return SeqSerializeWrapper(dataset)
+        return dataset
     if isinstance(opt, CTDatasetOption) and type(opt) is CTDatasetOption:
         dataset = create_ct_dataset(opt, transform, is_train)
-        if opt.sequential:
-            return dataset
-        return SeqDivideWrapper(dataset, CT.PERIOD)
+        if opt.wrap == "divide":
+            return SeqDivideWrapper(dataset, CT.PERIOD)
+        if opt.wrap == "serialize":
+            return SeqSerializeWrapper(dataset)
+        return dataset
     raise NotImplementedError(f"dataset {opt.__class__.__name__} not implemented")

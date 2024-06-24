@@ -22,6 +22,7 @@ from .models.losses import (
     PJC2dLossOption,
     PJC3dLossOption,
     WeightedMSELossOption,
+    TemporalSimilarityLossOption,
 )
 from .models.networks import (
     AutoEncoder2dNetworkOption,
@@ -120,6 +121,9 @@ cs.store(group="config/experiment/model/loss", name="mse", node=MSELossOption)
 cs.store(group="config/experiment/model/loss", name="pjc2d", node=PJC2dLossOption)
 cs.store(group="config/experiment/model/loss", name="pjc3d", node=PJC3dLossOption)
 cs.store(group="config/experiment/model/loss", name="wmse", node=WeightedMSELossOption)
+cs.store(
+    group="config/experiment/model/loss", name="tsim", node=TemporalSimilarityLossOption
+)
 cs.store(
     group="config/experiment/model/network",
     name="autoencoder2d",
