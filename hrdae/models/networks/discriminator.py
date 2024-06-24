@@ -39,7 +39,7 @@ class Discriminator2d(nn.Module):
         super().__init__()
         self.cnn = ConvModule2d(
             in_channels,
-            out_channels,
+            hidden_channels,
             hidden_channels,
             conv_params,
             transpose=False,

@@ -122,7 +122,8 @@ cs.store(group="config/experiment/model", name="vr", node=VRModelOption)
 cs.store(group="config/experiment/model", name="pvr", node=PVRModelOption)
 cs.store(group="config/experiment/model", name="gan", node=GANModelOption)
 cs.store(group="config/experiment/model/loss", name="mse", node=MSELossOption)
-cs.store(group="config/experiment/model/loss", name="bce", node=BCEWithLogitsLossOption)
+cs.store(group="config/experiment/model/loss_g", name="bce", node=BCEWithLogitsLossOption)
+cs.store(group="config/experiment/model/loss_d", name="bce", node=BCEWithLogitsLossOption)
 cs.store(group="config/experiment/model/loss", name="pjc2d", node=PJC2dLossOption)
 cs.store(group="config/experiment/model/loss", name="pjc3d", node=PJC3dLossOption)
 cs.store(group="config/experiment/model/loss", name="wmse", node=WeightedMSELossOption)
@@ -130,14 +131,7 @@ cs.store(
     group="config/experiment/model/loss", name="tsim", node=TemporalSimilarityLossOption
 )
 cs.store(
-    group="config/experiment/model/network",
-    name="discriminator2d",
-    node=Discriminator2dOption,
-)
-cs.store(
-    group="config/experiment/model/network",
-    name="discriminator3d",
-    node=Discriminator3dOption,
+    group="config/experiment/model/loss_g", name="tsim", node=TemporalSimilarityLossOption
 )
 cs.store(
     group="config/experiment/model/network",
@@ -226,10 +220,46 @@ cs.store(
     node=TCN2dOption,
 )
 cs.store(
+    group="config/experiment/model/discriminator",
+    name="discriminator2d",
+    node=Discriminator2dOption,
+)
+cs.store(
+    group="config/experiment/model/discriminator",
+    name="discriminator3d",
+    node=Discriminator3dOption,
+)
+cs.store(
+    group="config/experiment/model/generator",
+    name="autoencoder2d",
+    node=AutoEncoder2dNetworkOption,
+)
+cs.store(
+    group="config/experiment/model/generator",
+    name="autoencoder3d",
+    node=AutoEncoder3dNetworkOption,
+)
+cs.store(
     group="config/experiment/model/optimizer", name="adam", node=AdamOptimizerOption
 )
 cs.store(
+    group="config/experiment/model/optimizer_g", name="adam", node=AdamOptimizerOption
+)
+cs.store(
+    group="config/experiment/model/optimizer_d", name="adam", node=AdamOptimizerOption
+)
+cs.store(
     group="config/experiment/model/scheduler",
+    name="onecyclelr",
+    node=OneCycleLRSchedulerOption,
+)
+cs.store(
+    group="config/experiment/model/scheduler_g",
+    name="onecyclelr",
+    node=OneCycleLRSchedulerOption,
+)
+cs.store(
+    group="config/experiment/model/scheduler_d",
     name="onecyclelr",
     node=OneCycleLRSchedulerOption,
 )
