@@ -8,7 +8,7 @@ from torch import nn, tensor
 from torch.optim.optimizer import Optimizer
 from torch.utils.data import DataLoader
 
-from .functions import save_reconstructed_images, save_model
+from .functions import save_model, save_reconstructed_images
 from .losses import LossMixer, LossOption, create_loss
 from .networks import NetworkOption, create_network
 from .optimizers import OptimizerOption, create_optimizer
@@ -77,9 +77,9 @@ class VRModel(Model):
                 idx_expanded = data["idx_expanded"].to(self.device)
 
                 self.optimizer.zero_grad()
-                y, _ = self.network(xm, xp_0, xm_0)
+                y, latent = self.network(xm, xp_0, xm_0)
 
-                loss = self.criterion(y, xp, idx_expanded=idx_expanded)
+                loss = self.criterion(y, xp, idx_expanded=idx_expanded, latent=latent)
                 loss.backward()
                 self.optimizer.step()
 
@@ -108,9 +108,11 @@ class VRModel(Model):
                     xp = data["xp"].to(self.device)
                     xp_0 = data["xp_0"].to(self.device)
                     idx_expanded = data["idx_expanded"].to(self.device)
-                    y, _ = self.network(xm, xp_0, xm_0)
+                    y, latent = self.network(xm, xp_0, xm_0)
 
-                    loss = self.criterion(y, xp, idx_expanded=idx_expanded)
+                    loss = self.criterion(
+                        y, xp, idx_expanded=idx_expanded, latent=latent
+                    )
                     total_val_loss += loss.item()
 
                 avg_val_loss = total_val_loss / len(val_loader)

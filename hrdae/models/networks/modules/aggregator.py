@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 
-from torch import nn, Tensor, zeros, bmm, cat
+from torch import Tensor, bmm, cat, nn, zeros
 from torch.nn.functional import softmax
 
 from .conv_block import PixelWiseConv2d, PixelWiseConv3d

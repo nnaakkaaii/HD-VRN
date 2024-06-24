@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 
-from torch import nn, Tensor
+from torch import Tensor, nn
 
 from .modules import ConvModule2d, ConvModule3d, PixelWiseConv2d, PixelWiseConv3d
 from .option import NetworkOption

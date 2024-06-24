@@ -5,7 +5,8 @@ from dataclasses import dataclass
 
 from torch import Tensor, nn
 
-from .autoencoder import Encoder2d, Decoder2d, Encoder3d, Decoder3d
+from .autoencoder import Decoder2d, Decoder3d, Encoder2d, Encoder3d
+from .functions import upsample_motion_tensor
 from .modules import (
     IdenticalConvBlockConvParams,
     create_activation,
@@ -18,7 +19,6 @@ from .motion_encoder import (
     create_motion_encoder1d,
     create_motion_encoder2d,
 )
-from .functions import upsample_motion_tensor
 from .r_ae import RAE2dOption, RAE3dOption
 
 

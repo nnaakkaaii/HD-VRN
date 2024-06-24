@@ -16,20 +16,21 @@ from .dataloaders.transforms import (
     ToTensorOption,
     UniformShape3dOption,
 )
-from .models import BasicModelOption, VRModelOption, PVRModelOption, GANModelOption
+from .models import BasicModelOption, GANModelOption, PVRModelOption, VRModelOption
 from .models.losses import (
-    MSELossOption,
     BCEWithLogitsLossOption,
+    MSELossOption,
+    MStdLossOption,
     PJC2dLossOption,
     PJC3dLossOption,
-    WeightedMSELossOption,
     TemporalSimilarityLossOption,
+    WeightedMSELossOption,
 )
 from .models.networks import (
-    Discriminator2dOption,
-    Discriminator3dOption,
     AutoEncoder2dNetworkOption,
     AutoEncoder3dNetworkOption,
+    Discriminator2dOption,
+    Discriminator3dOption,
     HRDAE2dOption,
     HRDAE3dOption,
     RAE2dOption,
@@ -134,6 +135,7 @@ cs.store(group="config/experiment/model/loss", name="wmse", node=WeightedMSELoss
 cs.store(
     group="config/experiment/model/loss", name="tsim", node=TemporalSimilarityLossOption
 )
+cs.store(group="config/experiment/model/loss", name="mstd", node=MStdLossOption)
 cs.store(
     group="config/experiment/model/loss_g",
     name="tsim",

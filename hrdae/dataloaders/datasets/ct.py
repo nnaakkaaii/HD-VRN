@@ -10,8 +10,8 @@ from torch.utils.data import Dataset
 from tqdm import tqdm
 
 from ..transforms import Transform
-from .option import DatasetOption
 from .functions import optimize_output
+from .option import DatasetOption
 
 
 @dataclass

@@ -5,8 +5,8 @@ from torch.utils.data import Dataset
 from torchvision import datasets
 
 from ..transforms import Transform
-from .option import DatasetOption
 from .functions import optimize_output
+from .option import DatasetOption
 
 
 @dataclass

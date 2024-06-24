@@ -17,9 +17,9 @@ from .modules import (
     PixelWiseConv2d,
     PixelWiseConv3d,
     ResNetBranch,
+    create_activation,
     create_aggregator2d,
     create_aggregator3d,
-    create_activation,
 )
 from .motion_encoder import (
     MotionEncoder1d,

@@ -1,8 +1,8 @@
 from .basic_model import BasicModelOption, create_basic_model
-from .option import ModelOption
-from .vr_model import VRModelOption, create_vr_model
-from .pvr_model import PVRModelOption, create_pvr_model
 from .gan_model import GANModelOption, create_gan_model
+from .option import ModelOption
+from .pvr_model import PVRModelOption, create_pvr_model
+from .vr_model import VRModelOption, create_vr_model
 
 
 def create_model(

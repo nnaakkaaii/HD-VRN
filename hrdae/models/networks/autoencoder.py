@@ -6,10 +6,10 @@ from torch import Tensor, nn
 from .modules import (
     ConvModule2d,
     ConvModule3d,
-    create_activation,
     IdenticalConvBlockConvParams,
     PixelWiseConv2d,
     PixelWiseConv3d,
+    create_activation,
 )
 from .option import NetworkOption
 

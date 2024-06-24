@@ -1,9 +1,6 @@
 from torch import nn
 
-from .aggregator import (
-    create_aggregator2d,
-    create_aggregator3d,
-)
+from .aggregator import create_aggregator2d, create_aggregator3d
 from .conv_block import (
     ConvBlock1d,
     ConvBlock2d,
@@ -14,10 +11,10 @@ from .conv_block import (
     IdenticalConvBlock1d,
     IdenticalConvBlock2d,
     IdenticalConvBlock3d,
+    IdenticalConvBlockConvParams,
     PixelWiseConv1d,
     PixelWiseConv2d,
     PixelWiseConv3d,
-    IdenticalConvBlockConvParams,
 )
 from .conv_decoder import (
     HierarchicalConvDecoder1d,

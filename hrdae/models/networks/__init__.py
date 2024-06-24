@@ -2,14 +2,14 @@ from torch import nn
 
 from .autoencoder import (
     AutoEncoder2dNetworkOption,
-    create_autoencoder2d,
     AutoEncoder3dNetworkOption,
+    create_autoencoder2d,
     create_autoencoder3d,
 )
 from .discriminator import (
     Discriminator2dOption,
-    create_discriminator2d,
     Discriminator3dOption,
+    create_discriminator2d,
     create_discriminator3d,
 )
 from .hr_dae import HRDAE2dOption, HRDAE3dOption, create_hrdae2d, create_hrdae3d

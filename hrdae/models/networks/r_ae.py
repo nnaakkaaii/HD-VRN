@@ -7,8 +7,8 @@ from omegaconf import MISSING
 from torch import Tensor, nn
 from torch.nn.functional import interpolate
 
-from .modules import create_activation
 from .autoencoder import Decoder2d, Decoder3d
+from .modules import create_activation
 from .motion_encoder import (
     MotionEncoder1d,
     MotionEncoder1dOption,

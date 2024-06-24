@@ -7,8 +7,8 @@ from torch import nn
 from torch.optim.optimizer import Optimizer
 from torch.utils.data import DataLoader
 
-from .functions import save_reconstructed_images, save_model
-from .losses import LossOption, create_loss, LossMixer
+from .functions import save_model, save_reconstructed_images
+from .losses import LossMixer, LossOption, create_loss
 from .networks import NetworkOption, create_network
 from .optimizers import OptimizerOption, create_optimizer
 from .option import ModelOption
