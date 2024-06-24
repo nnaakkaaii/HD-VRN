@@ -23,8 +23,11 @@ def create_loss(opt: LossOption) -> nn.Module:
         return create_pjc2d_loss()
     if isinstance(opt, PJC3dLossOption) and type(opt) is PJC3dLossOption:
         return create_pjc3d_loss()
-    if isinstance(opt, TemporalSimilarityLossOption):
-        return create_tsim_loss()
+    if (
+        isinstance(opt, TemporalSimilarityLossOption)
+        and type(opt) is TemporalSimilarityLossOption
+    ):
+        return create_tsim_loss(opt)
     raise NotImplementedError(f"{opt.__class__.__name__} is not implemented")
 
 
