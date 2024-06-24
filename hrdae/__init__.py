@@ -122,8 +122,12 @@ cs.store(group="config/experiment/model", name="vr", node=VRModelOption)
 cs.store(group="config/experiment/model", name="pvr", node=PVRModelOption)
 cs.store(group="config/experiment/model", name="gan", node=GANModelOption)
 cs.store(group="config/experiment/model/loss", name="mse", node=MSELossOption)
-cs.store(group="config/experiment/model/loss_g", name="bce", node=BCEWithLogitsLossOption)
-cs.store(group="config/experiment/model/loss_d", name="bce", node=BCEWithLogitsLossOption)
+cs.store(
+    group="config/experiment/model/loss_g", name="bce", node=BCEWithLogitsLossOption
+)
+cs.store(
+    group="config/experiment/model/loss_d", name="bce", node=BCEWithLogitsLossOption
+)
 cs.store(group="config/experiment/model/loss", name="pjc2d", node=PJC2dLossOption)
 cs.store(group="config/experiment/model/loss", name="pjc3d", node=PJC3dLossOption)
 cs.store(group="config/experiment/model/loss", name="wmse", node=WeightedMSELossOption)
@@ -131,7 +135,9 @@ cs.store(
     group="config/experiment/model/loss", name="tsim", node=TemporalSimilarityLossOption
 )
 cs.store(
-    group="config/experiment/model/loss_g", name="tsim", node=TemporalSimilarityLossOption
+    group="config/experiment/model/loss_g",
+    name="tsim",
+    node=TemporalSimilarityLossOption,
 )
 cs.store(
     group="config/experiment/model/network",

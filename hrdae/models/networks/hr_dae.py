@@ -44,6 +44,18 @@ def create_hrdae2d(out_channels: int, opt: HRDAE2dOption) -> nn.Module:
     motion_encoder = create_motion_encoder1d(
         opt.latent_dim, opt.debug_show_dim, opt.motion_encoder
     )
+    if opt.cycle:
+        return CycleHRDAE2d(
+            opt.in_channels,
+            out_channels,
+            opt.hidden_channels,
+            opt.latent_dim,
+            opt.conv_params,
+            motion_encoder,
+            opt.activation,
+            opt.aggregator,
+            opt.debug_show_dim,
+        )
     return HRDAE2d(
         opt.in_channels,
         out_channels,
@@ -61,6 +73,18 @@ def create_hrdae3d(out_channels: int, opt: HRDAE3dOption) -> nn.Module:
     motion_encoder = create_motion_encoder2d(
         opt.latent_dim, opt.debug_show_dim, opt.motion_encoder
     )
+    if opt.cycle:
+        return CycleHRDAE3d(
+            opt.in_channels,
+            out_channels,
+            opt.hidden_channels,
+            opt.latent_dim,
+            opt.conv_params,
+            motion_encoder,
+            opt.activation,
+            opt.aggregator,
+            opt.debug_show_dim,
+        )
     return HRDAE3d(
         opt.in_channels,
         out_channels,
@@ -287,19 +311,39 @@ class HRDAE2d(nn.Module):
         x_1d: Tensor,
         x_2d_0: Tensor,
         x_1d_0: Tensor | None = None,
-    ) -> Tensor:
+    ) -> tuple[Tensor, list[Tensor]]:
         c, cs = self.content_encoder(x_2d_0)
         m = self.motion_encoder(x_1d, x_1d_0)
         b, t, c_, h = m.size()
         m = m.reshape(b * t, c_, h)
-        c = c.repeat(t, 1, 1, 1)
-        cs = [c_.repeat(t, 1, 1, 1) for c_ in cs]
-        y = self.decoder(m, c, cs[::-1])
+        c_exp = c.repeat(t, 1, 1, 1)
+        cs_exp = [c_.repeat(t, 1, 1, 1) for c_ in cs]
+        y = self.decoder(m, c_exp, cs_exp[::-1])
         _, c_, h, w = y.size()
         y = y.reshape(b, t, c_, h, w)
         if self.activation is not None:
             y = self.activation(y)
-        return y
+        return y, [c] + cs
+
+
+class CycleHRDAE2d(HRDAE2d):
+    def forward(
+        self,
+        x_1d: Tensor,
+        x_2d_0: Tensor,
+        x_1d_0: Tensor | None = None,
+    ) -> tuple[Tensor, list[Tensor]]:
+        y, cs = super().forward(x_1d, x_2d_0, x_1d_0)
+        b, t, c, h, w = y.size()
+        y_seq = y.reshape(b * t, c, h, w)
+        d, ds = self.content_encoder(y_seq)
+        assert d.size(0) == b * t
+        d = d.reshape(b, t, *d.size()[1:]) - cs[0].unsqueeze(1)
+        assert len(cs) == 1 + len(ds)
+        for i, di in enumerate(ds):
+            assert di.size(0) == b * t
+            ds[i] = di.reshape(b, t, *di.size()[1:]) - cs[1 + i].unsqueeze(1)
+        return y, [d] + ds
 
 
 class HRDAE3d(nn.Module):
@@ -339,16 +383,36 @@ class HRDAE3d(nn.Module):
         x_2d: Tensor,
         x_3d_0: Tensor,
         x_2d_0: Tensor | None = None,
-    ) -> Tensor:
+    ) -> tuple[Tensor, list[Tensor]]:
         c, cs = self.content_encoder(x_3d_0)
         m = self.motion_encoder(x_2d, x_2d_0)
         b, t, c_, h, w = m.size()
         m = m.reshape(b * t, c_, h, w)
-        c = c.repeat(t, 1, 1, 1, 1)
-        cs = [c_.repeat(t, 1, 1, 1, 1) for c_ in cs]
-        y = self.decoder(m, c, cs[::-1])
+        c_exp = c.repeat(t, 1, 1, 1, 1)
+        cs_exp = [c_.repeat(t, 1, 1, 1, 1) for c_ in cs]
+        y = self.decoder(m, c_exp, cs_exp[::-1])
         _, c_, d, h, w = y.size()
         y = y.reshape(b, t, c_, d, h, w)
         if self.activation is not None:
             y = self.activation(y)
-        return y
+        return y, [c] + cs
+
+
+class CycleHRDAE3d(HRDAE3d):
+    def forward(
+        self,
+        x_2d: Tensor,
+        x_3d_0: Tensor,
+        x_2d_0: Tensor | None = None,
+    ) -> tuple[Tensor, list[Tensor]]:
+        y, cs = super().forward(x_2d, x_3d_0, x_2d_0)
+        b, t, c, d_, h, w = y.size()
+        y_seq = y.reshape(b * t, c, d_, h, w)
+        d, ds = self.content_encoder(y_seq)
+        assert d.size(0) == b * t
+        d = d.reshape(b, t, *d.size()[1:]) - cs[0].unsqueeze(1)
+        assert len(cs) == 1 + len(ds)
+        for i, di in enumerate(ds):
+            assert di.size(0) == b * t
+            ds[i] = di.reshape(b, t, *di.size()[1:]) - cs[1 + i].unsqueeze(1)
+        return y, [d] + ds

@@ -26,12 +26,14 @@ from .r_ae import RAE2dOption, RAE3dOption
 class RDAE2dOption(RAE2dOption):
     in_channels: int = 1  # 2 if content_phase = "all"
     aggregator: str = "attention"
+    cycle: bool = False
 
 
 @dataclass
 class RDAE3dOption(RAE3dOption):
     in_channels: int = 1  # 2 if content_phase = "all"
     aggregator: str = "attention"
+    cycle: bool = False
 
 
 def create_rdae2d(out_channels: int, opt: RDAE2dOption) -> nn.Module:
@@ -106,20 +108,37 @@ class RDAE2d(nn.Module):
         x_1d: Tensor,
         x_2d_0: Tensor,
         x_1d_0: Tensor | None = None,
-    ) -> Tensor:
+    ) -> tuple[Tensor, list[Tensor]]:
         c = self.content_encoder(x_2d_0)
         m = self.motion_encoder(x_1d, x_1d_0)
         b, t, c_, h_ = m.size()
         m = m.reshape(b * t, c_, h_)
-        c = c.repeat(t, 1, 1, 1)
-        m = upsample_motion_tensor(m, c)
-        h = self.aggregator((m, c))
+        c_exp = c.repeat(t, 1, 1, 1)
+        m = upsample_motion_tensor(m, c_exp)
+        h = self.aggregator((m, c_exp))
         y = self.decoder(h)
         _, c_, h_, w = y.size()
         y = y.reshape(b, t, c_, h_, w)
         if self.activation is not None:
             y = self.activation(y)
-        return y
+        return y, [c]
+
+
+class CycleRDAE2d(RDAE2d):
+    def forward(
+        self,
+        x_1d: Tensor,
+        x_2d_0: Tensor,
+        x_1d_0: Tensor | None = None,
+    ) -> tuple[Tensor, list[Tensor]]:
+        y, cs = super().forward(x_1d, x_2d_0, x_1d_0)
+        b, t, c, h, w = y.size()
+        y_seq = y.reshape(b * t, c, h, w)
+        d = self.content_encoder(y_seq)
+        assert len(cs) == 1
+        assert d.size(0) == b * t
+        d = d.reshape(b, t, *d.size()[1:]) - cs[0].unsqueeze(1)
+        return y, [d]
 
 
 class RDAE3d(nn.Module):
@@ -159,17 +178,34 @@ class RDAE3d(nn.Module):
         x_2d: Tensor,
         x_3d_0: Tensor,
         x_2d_0: Tensor | None = None,
-    ) -> Tensor:
+    ) -> tuple[Tensor, list[Tensor]]:
         c = self.content_encoder(x_3d_0)
         m = self.motion_encoder(x_2d, x_2d_0)
         b, t, c_, d, h_ = m.size()
         m = m.reshape(b * t, c_, d, h_)
-        c = c.repeat(t, 1, 1, 1, 1)
-        m = upsample_motion_tensor(m, c)
-        h = self.aggregator((m, c))
+        c_exp = c.repeat(t, 1, 1, 1, 1)
+        m = upsample_motion_tensor(m, c_exp)
+        h = self.aggregator((m, c_exp))
         y = self.decoder(h)
         _, c_, d, h_, w = y.size()
         y = y.reshape(b, t, c_, d, h_, w)
         if self.activation is not None:
             y = self.activation(y)
-        return y
+        return y, [c]
+
+
+class CycleRDAE3d(RDAE3d):
+    def forward(
+        self,
+        x_2d: Tensor,
+        x_3d_0: Tensor,
+        x_2d_0: Tensor | None = None,
+    ) -> tuple[Tensor, list[Tensor]]:
+        y, cs = super().forward(x_2d, x_3d_0, x_2d_0)
+        b, t, c, d_, h, w = y.size()
+        y_seq = y.reshape(b * t, c, d_, h, w)
+        d = self.content_encoder(y_seq)
+        assert len(cs) == 1
+        assert d.size(0) == b * t
+        d = d.reshape(b, t, *d.size()[1:]) - cs[0].unsqueeze(1)
+        return y, [d]

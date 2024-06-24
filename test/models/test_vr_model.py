@@ -71,7 +71,7 @@ class FakeNetwork(nn.Module):
         xm: Tensor,
         xp_0: Tensor,
         xm_0: Tensor,
-    ) -> tuple[Tensor, Tensor]:
+    ) -> tuple[Tensor, list[Tensor]]:
         c = 4
         b, n, s, h = xm.size()
         _, _, _, w = xp_0.size()
@@ -94,7 +94,7 @@ class FakeNetwork(nn.Module):
 
         # x (40, 1, 32, 32)
         x = self.deconv2d(y)
-        return x.reshape(b, n, 1, h, w)
+        return x.reshape(b, n, 1, h, w), [ym]
 
 
 def test_vr_model():

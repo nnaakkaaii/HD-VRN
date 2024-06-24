@@ -170,7 +170,7 @@ def test_hrdae2d():
         activation="sigmoid",
     )
     net = create_network(1, opt)
-    out = net(
+    out, _ = net(
         randn((b, n, s, h)),
         randn((b, 2, h, w)),
     )
@@ -210,7 +210,7 @@ def test_hrdae2d__concatenation():
         activation="sigmoid",
     )
     net = create_network(1, opt)
-    out = net(
+    out, _ = net(
         randn((b, n, s, h)),
         randn((b, 2, h, w)),
     )
@@ -250,7 +250,7 @@ def test_hrdae3d():
         activation="sigmoid",
     )
     net = create_network(1, opt)
-    out = net(
+    out, _ = net(
         randn((b, n, s, d, h)),
         randn((b, 2, d, h, w)),
     )
@@ -290,8 +290,96 @@ def test_hrdae3d__concatenation():
         activation="sigmoid",
     )
     net = create_network(1, opt)
-    out = net(
+    out, _ = net(
         randn((b, n, s, d, h)),
         randn((b, 2, d, h, w)),
     )
     assert out.size() == (b, n, 1, d, h, w)
+
+
+def test_cycle_hrdae2d():
+    b, n, s, h, w = 8, 10, 3, 16, 16
+    hidden = 16
+    latent = 4
+
+    opt = HRDAE2dOption(
+        in_channels=1,
+        hidden_channels=hidden,
+        latent_dim=latent,
+        conv_params=[
+            {
+                "kernel_size": [3],
+                "stride": [2],
+                "padding": [1],
+            }
+        ]
+        * 2,
+        motion_encoder=MotionNormalEncoder1dOption(
+            in_channels=s,
+            hidden_channels=hidden,
+            conv_params=[
+                {
+                    "kernel_size": [3],
+                    "stride": [2],
+                    "padding": [1],
+                }
+            ]
+            * 2,
+        ),
+        aggregator="addition",
+        activation="sigmoid",
+        cycle=True,
+    )
+    net = create_network(1, opt)
+    out, cs = net(
+        randn((b, n, s, h)),
+        randn((b, 1, h, w)),
+    )
+    assert out.size() == (b, n, 1, h, w)
+    assert cs[0].size() == (b, n, latent, h // 4, w // 4)
+    assert cs[1].size() == (b, n, hidden, h // 2, w // 2)
+    assert cs[2].size() == (b, n, hidden, h // 4, w // 4)
+
+
+def test_cycle_hrdae3d():
+    b, n, s, d, h, w = 8, 10, 3, 16, 16, 16
+    hidden = 16
+    latent = 4
+
+    opt = HRDAE3dOption(
+        in_channels=1,
+        hidden_channels=hidden,
+        latent_dim=latent,
+        conv_params=[
+            {
+                "kernel_size": [3],
+                "stride": [2],
+                "padding": [1],
+            }
+        ]
+        * 2,
+        motion_encoder=MotionNormalEncoder2dOption(
+            in_channels=s,
+            hidden_channels=hidden,
+            conv_params=[
+                {
+                    "kernel_size": [3],
+                    "stride": [2],
+                    "padding": [1],
+                }
+            ]
+            * 2,
+        ),
+        aggregator="addition",
+        activation="sigmoid",
+        cycle=True,
+    )
+    net = create_network(1, opt)
+    out, cs = net(
+        randn((b, n, s, d, h)),
+        randn((b, 1, d, h, w)),
+    )
+    assert out.size() == (b, n, 1, d, h, w)
+    assert cs[0].size() == (b, n, latent, d // 4, h // 4, w // 4)
+    assert cs[1].size() == (b, n, hidden, d // 2, h // 2, w // 2)
+    assert cs[2].size() == (b, n, hidden, d // 4, h // 4, w // 4)
