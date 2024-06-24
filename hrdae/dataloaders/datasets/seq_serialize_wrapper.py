@@ -11,6 +11,9 @@ class SeqSerializeWrapper(Dataset):
 
         self.base = base
 
+    def __len__(self) -> int:
+        return len(self.base)
+
     def __getitem__(self, index: int) -> dict[str, Tensor]:
         x = self.base[index]["xp"]
         b = x.size(0)
