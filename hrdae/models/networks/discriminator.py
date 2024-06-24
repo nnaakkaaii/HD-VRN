@@ -20,7 +20,7 @@ class Discriminator2dOption(NetworkOption):
 def create_discriminator2d(out_channels: int, opt: Discriminator2dOption) -> nn.Module:
     return Discriminator2d(
         in_channels=out_channels,
-        out_channels=out_channels,
+        out_channels=1,
         hidden_channels=opt.hidden_channels,
         conv_params=opt.conv_params,
         debug_show_dim=opt.debug_show_dim,
@@ -72,7 +72,7 @@ class Discriminator3dOption(NetworkOption):
 def create_discriminator3d(out_channels: int, opt: Discriminator3dOption) -> nn.Module:
     return Discriminator3d(
         in_channels=out_channels,
-        out_channels=out_channels,
+        out_channels=1,
         hidden_channels=opt.hidden_channels,
         conv_params=opt.conv_params,
         debug_show_dim=opt.debug_show_dim,
