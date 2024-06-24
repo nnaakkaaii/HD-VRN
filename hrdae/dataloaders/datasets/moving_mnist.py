@@ -77,6 +77,8 @@ class MovingMNIST(datasets.MovingMNIST):
             self.motion_phase,
             self.motion_aggregator,
         )
+        output["x"] = x_2d
+        output["t"] = x_2d
         output["slice_idx"] = slice_idx
         output["idx_expanded"] = idx_expanded
 

@@ -24,6 +24,8 @@ class BasicModelOption(ModelOption):
     loss: dict[str, LossOption] = MISSING
     loss_coef: dict[str, float] = MISSING
 
+    serialize: bool = False
+
 
 class BasicModel(Model):
     def __init__(
@@ -32,11 +34,13 @@ class BasicModel(Model):
         optimizer: Optimizer,
         scheduler: LRScheduler,
         criterion: nn.Module,
+        serialize: bool = False,
     ) -> None:
         self.network = network
         self.optimizer = optimizer
         self.scheduler = scheduler
         self.criterion = criterion
+        self.serialize = serialize
 
         if torch.cuda.is_available():
             print("GPU is enabled")
@@ -74,8 +78,16 @@ class BasicModel(Model):
                 x = data["x"].to(self.device)
                 t = data["t"].to(self.device)
 
+                b, n = x.size()[:2]
+
                 self.optimizer.zero_grad()
+                if self.serialize:
+                    x = x.reshape(b * n, x.size()[2:])
                 y, z = self.network(x)
+                if self.serialize:
+                    y = y.reshape(b, n, y.size()[1:])
+                    z = z.reshape(b, n, z.size()[1:])
+
                 loss = self.criterion(t, y, latent=z)
                 loss.backward()
                 self.optimizer.step()
@@ -102,7 +114,15 @@ class BasicModel(Model):
                     x = data["x"].to(self.device)
                     t = data["t"].to(self.device)
 
+                    b, n = x.size()[:2]
+
+                    if self.serialize:
+                        x = x.reshape(b * n, x.size()[2:])
                     y, z = self.network(x)
+                    if self.serialize:
+                        y = y.reshape(b, n, y.size()[1:])
+                        z = z.reshape(b, n, z.size()[1:])
+
                     loss = self.criterion(t, y, latent=z)
                     total_val_loss += loss.item()
 
@@ -129,7 +149,13 @@ class BasicModel(Model):
                 x = data["x"].to(self.device)
                 t = data["t"].to(self.device)
 
+                b, n = x.size()[:2]
+
+                if self.serialize:
+                    x = x.reshape(b * n, x.size()[2:])
                 y, _ = self.network(x)
+                if self.serialize:
+                    y = y.reshape(b, n, y.size()[1:])
 
                 save_reconstructed_images(
                     t.data.cpu().clone().detach().numpy()[:10],

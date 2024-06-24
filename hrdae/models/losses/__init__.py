@@ -27,7 +27,7 @@ def create_loss(opt: LossOption) -> nn.Module:
         isinstance(opt, TemporalSimilarityLossOption)
         and type(opt) is TemporalSimilarityLossOption
     ):
-        return create_tsim_loss(opt)
+        return create_tsim_loss()
     raise NotImplementedError(f"{opt.__class__.__name__} is not implemented")
 
 
