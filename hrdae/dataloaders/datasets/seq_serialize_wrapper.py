@@ -12,7 +12,7 @@ class SeqSerializeWrapper(Dataset):
         self.base = base
 
     def __len__(self) -> int:
-        return len(self.base)
+        return len(self.base)  # type: ignore
 
     def __getitem__(self, index: int) -> dict[str, Tensor]:
         x = self.base[index]["xp"]
