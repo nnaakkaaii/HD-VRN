@@ -82,11 +82,11 @@ class BasicModel(Model):
 
                 self.optimizer.zero_grad()
                 if self.serialize:
-                    x = x.reshape(b * n, x.size()[2:])
+                    x = x.reshape(b * n, *x.size()[2:])
                 y, z = self.network(x)
                 if self.serialize:
-                    y = y.reshape(b, n, y.size()[1:])
-                    z = z.reshape(b, n, z.size()[1:])
+                    y = y.reshape(b, n, *y.size()[1:])
+                    z = z.reshape(b, n, *z.size()[1:])
 
                 loss = self.criterion(t, y, latent=z)
                 loss.backward()
@@ -117,11 +117,11 @@ class BasicModel(Model):
                     b, n = x.size()[:2]
 
                     if self.serialize:
-                        x = x.reshape(b * n, x.size()[2:])
+                        x = x.reshape(b * n, *x.size()[2:])
                     y, z = self.network(x)
                     if self.serialize:
-                        y = y.reshape(b, n, y.size()[1:])
-                        z = z.reshape(b, n, z.size()[1:])
+                        y = y.reshape(b, n, *y.size()[1:])
+                        z = z.reshape(b, n, *z.size()[1:])
 
                     loss = self.criterion(t, y, latent=z)
                     total_val_loss += loss.item()
@@ -152,10 +152,10 @@ class BasicModel(Model):
                 b, n = x.size()[:2]
 
                 if self.serialize:
-                    x = x.reshape(b * n, x.size()[2:])
+                    x = x.reshape(b * n, *x.size()[2:])
                 y, _ = self.network(x)
                 if self.serialize:
-                    y = y.reshape(b, n, y.size()[1:])
+                    y = y.reshape(b, n, *y.size()[1:])
 
                 save_reconstructed_images(
                     t.data.cpu().clone().detach().numpy()[:10],
@@ -210,4 +210,4 @@ def create_basic_model(
     criterion = LossMixer(
         {k: create_loss(v) for k, v in opt.loss.items()}, opt.loss_coef
     )
-    return BasicModel(network, optimizer, scheduler, criterion)
+    return BasicModel(network, optimizer, scheduler, criterion, opt.serialize)
