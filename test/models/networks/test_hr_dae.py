@@ -187,24 +187,24 @@ def test_hrdae2d__concatenation():
         hidden_channels=hidden,
         latent_dim=latent,
         conv_params=[
-                        {
-                            "kernel_size": [3],
-                            "stride": [2],
-                            "padding": [1],
-                        }
-                    ]
-                    * 2,
+            {
+                "kernel_size": [3],
+                "stride": [2],
+                "padding": [1],
+            }
+        ]
+        * 2,
         motion_encoder=MotionNormalEncoder1dOption(
             in_channels=s,
             hidden_channels=hidden,
             conv_params=[
-                            {
-                                "kernel_size": [3],
-                                "stride": [2],
-                                "padding": [1],
-                            }
-                        ]
-                        * 2,
+                {
+                    "kernel_size": [3],
+                    "stride": [2],
+                    "padding": [1],
+                }
+            ]
+            * 2,
         ),
         aggregator="concatenation",
         activation="sigmoid",
@@ -227,24 +227,24 @@ def test_hrdae3d():
         hidden_channels=hidden,
         latent_dim=latent,
         conv_params=[
-                        {
-                            "kernel_size": [3],
-                            "stride": [2],
-                            "padding": [1],
-                        }
-                    ]
-                    * 2,
+            {
+                "kernel_size": [3],
+                "stride": [2],
+                "padding": [1],
+            }
+        ]
+        * 2,
         motion_encoder=MotionNormalEncoder2dOption(
             in_channels=s,
             hidden_channels=hidden,
             conv_params=[
-                            {
-                                "kernel_size": [3],
-                                "stride": [2],
-                                "padding": [1],
-                            }
-                        ]
-                        * 2,
+                {
+                    "kernel_size": [3],
+                    "stride": [2],
+                    "padding": [1],
+                }
+            ]
+            * 2,
         ),
         aggregator="addition",
         activation="sigmoid",
@@ -267,24 +267,24 @@ def test_hrdae3d__concatenation():
         hidden_channels=hidden,
         latent_dim=latent,
         conv_params=[
-                        {
-                            "kernel_size": [3],
-                            "stride": [2],
-                            "padding": [1],
-                        }
-                    ]
-                    * 2,
+            {
+                "kernel_size": [3],
+                "stride": [2],
+                "padding": [1],
+            }
+        ]
+        * 2,
         motion_encoder=MotionNormalEncoder2dOption(
             in_channels=s,
             hidden_channels=hidden,
             conv_params=[
-                            {
-                                "kernel_size": [3],
-                                "stride": [2],
-                                "padding": [1],
-                            }
-                        ]
-                        * 2,
+                {
+                    "kernel_size": [3],
+                    "stride": [2],
+                    "padding": [1],
+                }
+            ]
+            * 2,
         ),
         aggregator="concatenation",
         activation="sigmoid",

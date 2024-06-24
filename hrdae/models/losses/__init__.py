@@ -14,9 +14,19 @@ class MSELossOption(LossOption):
     pass
 
 
+@dataclass
+class BCEWithLogitsLossOption(LossOption):
+    pass
+
+
 def create_loss(opt: LossOption) -> nn.Module:
     if isinstance(opt, MSELossOption) and type(opt) is MSELossOption:
         return nn.MSELoss()
+    if (
+        isinstance(opt, BCEWithLogitsLossOption)
+        and type(opt) is BCEWithLogitsLossOption
+    ):
+        return nn.BCEWithLogitsLoss()
     if isinstance(opt, WeightedMSELossOption) and type(opt) is WeightedMSELossOption:
         return create_weighted_mse_loss(opt)
     if isinstance(opt, PJC2dLossOption) and type(opt) is PJC2dLossOption:

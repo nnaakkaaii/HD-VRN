@@ -16,15 +16,18 @@ from .dataloaders.transforms import (
     ToTensorOption,
     UniformShape3dOption,
 )
-from .models import BasicModelOption, VRModelOption, PVRModelOption
+from .models import BasicModelOption, VRModelOption, PVRModelOption, GANModelOption
 from .models.losses import (
     MSELossOption,
+    BCEWithLogitsLossOption,
     PJC2dLossOption,
     PJC3dLossOption,
     WeightedMSELossOption,
     TemporalSimilarityLossOption,
 )
 from .models.networks import (
+    Discriminator2dOption,
+    Discriminator3dOption,
     AutoEncoder2dNetworkOption,
     AutoEncoder3dNetworkOption,
     HRDAE2dOption,
@@ -117,12 +120,24 @@ cs.store(
 cs.store(group="config/experiment/model", name="basic", node=BasicModelOption)
 cs.store(group="config/experiment/model", name="vr", node=VRModelOption)
 cs.store(group="config/experiment/model", name="pvr", node=PVRModelOption)
+cs.store(group="config/experiment/model", name="gan", node=GANModelOption)
 cs.store(group="config/experiment/model/loss", name="mse", node=MSELossOption)
+cs.store(group="config/experiment/model/loss", name="bce", node=BCEWithLogitsLossOption)
 cs.store(group="config/experiment/model/loss", name="pjc2d", node=PJC2dLossOption)
 cs.store(group="config/experiment/model/loss", name="pjc3d", node=PJC3dLossOption)
 cs.store(group="config/experiment/model/loss", name="wmse", node=WeightedMSELossOption)
 cs.store(
     group="config/experiment/model/loss", name="tsim", node=TemporalSimilarityLossOption
+)
+cs.store(
+    group="config/experiment/model/network",
+    name="discriminator2d",
+    node=Discriminator2dOption,
+)
+cs.store(
+    group="config/experiment/model/network",
+    name="discriminator3d",
+    node=Discriminator3dOption,
 )
 cs.store(
     group="config/experiment/model/network",

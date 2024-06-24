@@ -6,6 +6,12 @@ from .autoencoder import (
     AutoEncoder3dNetworkOption,
     create_autoencoder3d,
 )
+from .discriminator import (
+    Discriminator2dOption,
+    create_discriminator2d,
+    Discriminator3dOption,
+    create_discriminator3d,
+)
 from .hr_dae import HRDAE2dOption, HRDAE3dOption, create_hrdae2d, create_hrdae3d
 from .option import NetworkOption
 from .r_ae import RAE2dOption, RAE3dOption, create_rae2d, create_rae3d
@@ -13,6 +19,10 @@ from .r_dae import RDAE2dOption, RDAE3dOption, create_rdae2d, create_rdae3d
 
 
 def create_network(out_channels: int, opt: NetworkOption) -> nn.Module:
+    if isinstance(opt, Discriminator2dOption) and type(opt) is Discriminator2dOption:
+        return create_discriminator2d(out_channels, opt)
+    if isinstance(opt, Discriminator3dOption) and type(opt) is Discriminator3dOption:
+        return create_discriminator3d(out_channels, opt)
     if (
         isinstance(opt, AutoEncoder2dNetworkOption)
         and type(opt) is AutoEncoder2dNetworkOption
@@ -39,6 +49,8 @@ def create_network(out_channels: int, opt: NetworkOption) -> nn.Module:
 
 
 __all__ = [
+    "Discriminator2dOption",
+    "Discriminator3dOption",
     "AutoEncoder2dNetworkOption",
     "AutoEncoder3dNetworkOption",
     "HRDAE2dOption",
