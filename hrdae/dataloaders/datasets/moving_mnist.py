@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from random import randint
 
 from torch import Tensor, cat, gather, int64, tensor
 from torch.utils.data import Dataset
@@ -33,6 +34,7 @@ class MovingMNIST(datasets.MovingMNIST):
         x_2d = super().__getitem__(idx).squeeze(1)
 
         n, h, w = x_2d.size()
+        rt = randint(0, self.PERIOD - 1)
 
         # (s,)
         slice_idx = tensor(self.slice_index, dtype=int64)
@@ -43,15 +45,18 @@ class MovingMNIST(datasets.MovingMNIST):
         # (h, s)
         x_1d_0 = x_1d[0]
         x_1d_t = x_1d[self.PERIOD // 2]
+        x_1d_rt = x_1d[rt]
         # (h, w)
         x_2d_0 = x_2d[0]
         x_2d_t = x_2d[self.PERIOD // 2]
+        x_2d_rt = x_2d[rt]
 
         # (n, h, s) -> (n, s, h)
         x_1d = x_1d.permute(0, 2, 1)
         # (h, s) -> (s, h)
         x_1d_0 = x_1d_0.permute(1, 0)
         x_1d_t = x_1d_t.permute(1, 0)
+        x_1d_rt = x_1d_rt.permute(1, 0)
         # (2 * s, h)
         x_1d_all = cat([x_1d_0, x_1d_t], dim=0)
         # (n, h, w) -> (n, c, h, w)
@@ -59,6 +64,7 @@ class MovingMNIST(datasets.MovingMNIST):
         # (h, w) -> (c, h, w)
         x_2d_0 = x_2d_0.unsqueeze(0)
         x_2d_t = x_2d_t.unsqueeze(0)
+        x_2d_rt = x_2d_rt.unsqueeze(0)
         # (2 * c, h, w)
         x_2d_all = cat([x_2d_0, x_2d_t], dim=0)
         # (n, h, s) -> (n, s, h)
@@ -68,10 +74,12 @@ class MovingMNIST(datasets.MovingMNIST):
             x_1d,
             x_1d_0,
             x_1d_t,
+            x_1d_rt,
             x_1d_all,
             x_2d,
             x_2d_0,
             x_2d_t,
+            x_2d_rt,
             x_2d_all,
             self.content_phase,
             self.motion_phase,

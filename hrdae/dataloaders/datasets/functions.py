@@ -5,10 +5,12 @@ def optimize_output(
     x_2d: Tensor,
     x_2d_0: Tensor,
     x_2d_t: Tensor,
+    x_2d_rt: Tensor,
     x_2d_all: Tensor,
     x_3d: Tensor,
     x_3d_0: Tensor,
     x_3d_t: Tensor,
+    x_3d_rt: Tensor,
     x_3d_all: Tensor,
     content_phase: str,
     motion_phase: str,
@@ -21,6 +23,8 @@ def optimize_output(
         xp_0 = x_3d_0
     elif content_phase == "t":
         xp_0 = x_3d_t
+    elif content_phase == "random":
+        xp_0 = x_3d_rt
     else:
         raise KeyError(f"unknown content phase {content_phase}")
 
@@ -33,6 +37,8 @@ def optimize_output(
         pass
     elif motion_phase == "t":
         xm_0 = x_2d_t
+    elif motion_phase == "random":
+        xm_0 = x_2d_rt
     elif motion_phase == "all":
         xm_0 = x_2d_all
     else:

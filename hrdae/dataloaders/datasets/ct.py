@@ -126,6 +126,8 @@ class CT(Dataset):
         n, d, h, w = x_3d.size()
         assert n == self.PERIOD, f"expected {self.PERIOD} but got {n}"
 
+        rt = random.randint(0, self.PERIOD - 1)
+
         # (s,)
         slice_idx = self.slice_indexer(x_3d)
         # (n, d, h, s)
@@ -138,9 +140,11 @@ class CT(Dataset):
         # (d, h, s)
         x_2d_0 = x_2d[0]
         x_2d_t = x_2d[self.PERIOD // 2]
+        x_2d_rt = x_2d[rt]
         # (d, h, w)
         x_3d_0 = x_3d[0]
         x_3d_t = x_3d[self.PERIOD // 2]
+        x_3d_rt = x_3d[rt]
 
         # (n, d, h, s) -> (n, s, d, h)
         x_2d = x_2d.permute(0, 3, 1, 2)
@@ -163,10 +167,12 @@ class CT(Dataset):
             x_2d,
             x_2d_0,
             x_2d_t,
+            x_2d_rt,
             x_2d_all,
             x_3d,
             x_3d_0,
             x_3d_t,
+            x_3d_rt,
             x_3d_all,
             self.content_phase,
             self.motion_phase,
