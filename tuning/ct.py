@@ -20,7 +20,6 @@ from hrdae.models.networks.rnn import ConvLSTM2dOption, GRU2dOption, TCN2dOption
 from hrdae.models.networks.motion_encoder import (
     MotionRNNEncoder2dOption,
     MotionConv3dEncoder2dOption,
-    MotionGuidedEncoder2dOption,
     MotionNormalEncoder2dOption,
 )
 
@@ -170,8 +169,15 @@ def objective(trial):
             raise RuntimeError("unreachable")
         motion_encoder_option = MotionRNNEncoder2dOption(
             in_channels=2,
+            hidden_channels=64,
             conv_params=interleave_arrays(
                 [{"kernel_size": [3], "stride": [2], "padding": [1]}]
+                * num_reducible_layers,
+                [{"kernel_size": [3], "stride": [1], "padding": [1]}]
+                * motion_encoder_num_layers,
+            ),
+            deconv_params=interleave_arrays(
+                [{"kernel_size": [3], "stride": [1, 1, 2], "padding": [1]}]
                 * num_reducible_layers,
                 [{"kernel_size": [3], "stride": [1], "padding": [1]}]
                 * motion_encoder_num_layers,
@@ -181,18 +187,15 @@ def objective(trial):
     elif motion_encoder_name == "conv3d":
         motion_encoder_option = MotionConv3dEncoder2dOption(
             in_channels=2,
+            hidden_channels=64,
             conv_params=interleave_arrays(
                 [{"kernel_size": [3], "stride": [1, 2, 2], "padding": [1]}]
                 * num_reducible_layers,
                 [{"kernel_size": [3], "stride": [1], "padding": [1]}]
                 * motion_encoder_num_layers,
             ),
-        )
-    elif motion_encoder_name == "guided2d":
-        motion_encoder_option = MotionGuidedEncoder2dOption(
-            in_channels=2,
-            conv_params=interleave_arrays(
-                [{"kernel_size": [3], "stride": [2], "padding": [1]}]
+            deconv_params=interleave_arrays(
+                [{"kernel_size": [3], "stride": [1, 1, 2], "padding": [1]}]
                 * num_reducible_layers,
                 [{"kernel_size": [3], "stride": [1], "padding": [1]}]
                 * motion_encoder_num_layers,
@@ -201,8 +204,15 @@ def objective(trial):
     elif motion_encoder_name == "normal2d":
         motion_encoder_option = MotionNormalEncoder2dOption(
             in_channels=2,
+            hidden_channels=64,
             conv_params=interleave_arrays(
                 [{"kernel_size": [3], "stride": [2], "padding": [1]}]
+                * num_reducible_layers,
+                [{"kernel_size": [3], "stride": [1], "padding": [1]}]
+                * motion_encoder_num_layers,
+            ),
+            deconv_params=interleave_arrays(
+                [{"kernel_size": [3], "stride": [1, 1, 2], "padding": [1]}]
                 * num_reducible_layers,
                 [{"kernel_size": [3], "stride": [1], "padding": [1]}]
                 * motion_encoder_num_layers,
@@ -243,10 +253,6 @@ def objective(trial):
             ),
             motion_encoder=motion_encoder_option,
             upsample_size=[d_, h_, w_],
-            aggregation_method=aggregation_method,
-            # aggregation_method=trial.suggest_categorical(
-            #     "aggregation_method", ["concat", "sum"]
-            # ),
         )
     elif network_name == "hrdae3d":
         network_option = HRDAE3dOption(
@@ -260,10 +266,6 @@ def objective(trial):
             ),
             motion_encoder=motion_encoder_option,
             upsample_size=[d_, h_, w_],
-            aggregation_method=aggregation_method,
-            # aggregation_method=trial.suggest_categorical(
-            #     "aggregation_method", ["concat", "sum"]
-            # ),
         )
     else:
         raise RuntimeError("unreachable")
@@ -274,14 +276,12 @@ def objective(trial):
     )
 
     scheduler_option = OneCycleLRSchedulerOption(
-        lr=0.05,
+        max_lr=0.05,
         # max_lr=trial.suggest_float("max_lr", 1e-3, 1e-2, log=True),
     )
 
     model_option = VRModelOption(
         loss_coef={"wmse": 1.0},
-        phase=phase,
-        pred_diff=args.pred_diff,
         loss=loss_option,
         network=network_option,
         optimizer=optimizer_option,

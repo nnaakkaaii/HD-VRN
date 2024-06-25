@@ -18,7 +18,6 @@ from hrdae.models.networks.rnn import ConvLSTM1dOption, GRU1dOption, TCN1dOption
 from hrdae.models.networks.motion_encoder import (
     MotionRNNEncoder1dOption,
     MotionConv2dEncoder1dOption,
-    MotionGuidedEncoder1dOption,
     MotionNormalEncoder1dOption,
 )
 
@@ -162,8 +161,15 @@ def objective(trial):
             raise RuntimeError("unreachable")
         motion_encoder_option = MotionRNNEncoder1dOption(
             in_channels=motion_encoder_in_channels,
+            hidden_channels=64,
             conv_params=interleave_arrays(
                 [{"kernel_size": [3], "stride": [2], "padding": [1]}]
+                * num_reducible_layers,
+                [{"kernel_size": [3], "stride": [1], "padding": [1]}]
+                * motion_encoder_num_layers,
+            ),
+            deconv_params=interleave_arrays(
+                [{"kernel_size": [3], "stride": [1, 2], "padding": [1]}]
                 * num_reducible_layers,
                 [{"kernel_size": [3], "stride": [1], "padding": [1]}]
                 * motion_encoder_num_layers,
@@ -173,18 +179,15 @@ def objective(trial):
     elif motion_encoder_name == "conv2d":
         motion_encoder_option = MotionConv2dEncoder1dOption(
             in_channels=motion_encoder_in_channels,
+            hidden_channels=64,
             conv_params=interleave_arrays(
                 [{"kernel_size": [3], "stride": [1, 2], "padding": [1]}]
                 * num_reducible_layers,
                 [{"kernel_size": [3], "stride": [1], "padding": [1]}]
                 * motion_encoder_num_layers,
             ),
-        )
-    elif motion_encoder_name == "guided1d":
-        motion_encoder_option = MotionGuidedEncoder1dOption(
-            in_channels=motion_encoder_in_channels,
-            conv_params=interleave_arrays(
-                [{"kernel_size": [3], "stride": [2], "padding": [1]}]
+            deconv_params=interleave_arrays(
+                [{"kernel_size": [3], "stride": [1, 2], "padding": [1]}]
                 * num_reducible_layers,
                 [{"kernel_size": [3], "stride": [1], "padding": [1]}]
                 * motion_encoder_num_layers,
@@ -193,8 +196,15 @@ def objective(trial):
     elif motion_encoder_name == "normal1d":
         motion_encoder_option = MotionNormalEncoder1dOption(
             in_channels=motion_encoder_in_channels,
+            hidden_channels=64,
             conv_params=interleave_arrays(
                 [{"kernel_size": [3], "stride": [2], "padding": [1]}]
+                * num_reducible_layers,
+                [{"kernel_size": [3], "stride": [1], "padding": [1]}]
+                * motion_encoder_num_layers,
+            ),
+            deconv_params=interleave_arrays(
+                [{"kernel_size": [3], "stride": [1, 2], "padding": [1]}]
                 * num_reducible_layers,
                 [{"kernel_size": [3], "stride": [1], "padding": [1]}]
                 * motion_encoder_num_layers,
@@ -205,10 +215,10 @@ def objective(trial):
 
     latent_dim = 8
     content_encoder_num_layers = 0
-    aggregation_method = "sum"
 
     network_option = RDAE2dOption(
         in_channels=1,
+        hidden_channels=64,
         latent_dim=latent_dim,
         conv_params=interleave_arrays(
             [{"kernel_size": [3], "stride": [2], "padding": [1]}]
@@ -221,7 +231,6 @@ def objective(trial):
             64 // 2**num_reducible_layers,
             64 // 2**num_reducible_layers,
         ],
-        aggregation_method=aggregation_method,
     )
 
     lr = 0.005
