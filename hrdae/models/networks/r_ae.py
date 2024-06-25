@@ -109,8 +109,8 @@ class RAE2d(nn.Module):
         x_1d_0: Tensor | None = None,
     ) -> tuple[Tensor, list[Tensor]]:
         m = self.motion_encoder(x_1d, x_1d_0)
-        b, t, c_, h = m.size()
-        m = m.reshape(b * t, c_, h, 1)
+        b, t, c_, h, w = m.size()
+        m = m.reshape(b * t, c_, h, w)
         m = interpolate(m, size=self.upsample_size, mode="bilinear", align_corners=True)
         y = self.decoder(m)
         _, c_, h, w = y.size()
@@ -151,8 +151,8 @@ class RAE3d(nn.Module):
         x_2d_0: Tensor | None = None,
     ) -> tuple[Tensor, list[Tensor]]:
         m = self.motion_encoder(x_2d, x_2d_0)
-        b, t, c_, d, h = m.size()
-        m = m.reshape(b * t, c_, d, h, 1)
+        b, t, c_, d, h, w = m.size()
+        m = m.reshape(b * t, c_, d, h, w)
         m = interpolate(
             m, size=self.upsample_size, mode="trilinear", align_corners=True
         )

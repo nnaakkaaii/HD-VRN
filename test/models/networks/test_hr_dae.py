@@ -80,7 +80,7 @@ def test_hierarchical_decoder2d():
     hidden = 16
     latent = 4
 
-    m = randn((b * n, latent, h // 4))
+    m = randn((b * n, latent, h // 4, w // 4))
     c = randn((b * n, latent, h // 4, w // 4))
     cs = [
         randn((b * n, hidden, h // 4, w // 4)),
@@ -111,7 +111,7 @@ def test_hierarchical_decoder3d():
     hidden = 16
     latent = 4
 
-    m = randn((b * n, latent, d, h))
+    m = randn((b * n, latent, d, h, w))
     c = randn((b * n, latent, h // 4, h // 4, w // 4))
     cs = [
         randn((b * n, hidden, h // 4, h // 4, w // 4)),
@@ -165,6 +165,15 @@ def test_hrdae2d():
                 }
             ]
             * 2,
+            deconv_params=[
+                {
+                    "kernel_size": [3],
+                    "stride": [1, 2],
+                    "padding": [1],
+                    "output_padding": [0, 1],
+                }
+            ]
+            * 2,
         ),
         aggregator="addition",
         activation="sigmoid",
@@ -202,6 +211,15 @@ def test_hrdae2d__concatenation():
                     "kernel_size": [3],
                     "stride": [2],
                     "padding": [1],
+                }
+            ]
+            * 2,
+            deconv_params=[
+                {
+                    "kernel_size": [3],
+                    "stride": [1, 2],
+                    "padding": [1],
+                    "output_padding": [0, 1],
                 }
             ]
             * 2,
@@ -245,6 +263,15 @@ def test_hrdae3d():
                 }
             ]
             * 2,
+            deconv_params=[
+                {
+                    "kernel_size": [3],
+                    "stride": [1, 1, 2],
+                    "padding": [1],
+                    "output_padding": [0, 0, 1],
+                }
+            ]
+            * 2,
         ),
         aggregator="addition",
         activation="sigmoid",
@@ -285,6 +312,15 @@ def test_hrdae3d__concatenation():
                 }
             ]
             * 2,
+            deconv_params=[
+                {
+                    "kernel_size": [3],
+                    "stride": [1, 1, 2],
+                    "padding": [1],
+                    "output_padding": [0, 0, 1],
+                }
+            ]
+            * 2,
         ),
         aggregator="concatenation",
         activation="sigmoid",
@@ -322,6 +358,15 @@ def test_cycle_hrdae2d():
                     "kernel_size": [3],
                     "stride": [2],
                     "padding": [1],
+                }
+            ]
+            * 2,
+            deconv_params=[
+                {
+                    "kernel_size": [3],
+                    "stride": [1, 2],
+                    "padding": [1],
+                    "output_padding": [0, 1],
                 }
             ]
             * 2,
@@ -366,6 +411,15 @@ def test_cycle_hrdae3d():
                     "kernel_size": [3],
                     "stride": [2],
                     "padding": [1],
+                }
+            ]
+            * 2,
+            deconv_params=[
+                {
+                    "kernel_size": [3],
+                    "stride": [1, 1, 2],
+                    "padding": [1],
+                    "output_padding": [0, 0, 1],
                 }
             ]
             * 2,

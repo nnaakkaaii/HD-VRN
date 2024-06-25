@@ -56,7 +56,7 @@ def create_motion_encoder1d(
             latent_dim,
             opt.conv_params,
             opt.deconv_params,
-            create_rnn1d(latent_dim, opt.rnn),
+            create_rnn1d(opt.hidden_channels, opt.rnn),
             debug_show_dim,
         )
     if (
@@ -78,7 +78,7 @@ def create_motion_encoder1d(
         return MotionConv2dEncoder1d(
             opt.in_channels,
             opt.hidden_channels,
-            latent_dim,
+            opt.hidden_channels,
             opt.conv_params,
             opt.deconv_params,
             debug_show_dim,
@@ -99,7 +99,7 @@ def create_motion_encoder2d(
             latent_dim,
             opt.conv_params,
             opt.deconv_params,
-            create_rnn2d(latent_dim, opt.rnn),
+            create_rnn2d(opt.hidden_channels, opt.rnn),
             debug_show_dim,
         )
     if (
@@ -207,6 +207,7 @@ class MotionNormalEncoder1d(MotionEncoder1d):
         y = y.unsqueeze(-1)
         y = self.tcnn(y)
         z = self.bottleneck(y)
+        z = z.reshape(b, t, *z.size()[1:])
         if self.debug_show_dim:
             print(f"{self.__class__.__name__}", z.size())
         return z
@@ -260,6 +261,7 @@ class MotionNormalEncoder2d(MotionEncoder2d):
         y = y.unsqueeze(-1)
         y = self.tcnn(y)
         z = self.bottleneck(y)
+        z = z.reshape(b, t, *z.size()[1:])
         if self.debug_show_dim:
             print(f"{self.__class__.__name__}", z.size())
         return z
@@ -318,13 +320,16 @@ class MotionRNNEncoder1d(MotionEncoder1d):
         x: Tensor,
         x_0: Tensor | None = None,
     ) -> Tensor:
-        b, t, c, h = x.size()
-        x = x.reshape(b * t, c, h)
+        b, t = x.size()[:2]
+        x = x.reshape(b * t, *x.size()[2:])
         y = self.cnn(x)
+        y = y.reshape(b, t, *y.size()[1:])
         y, _ = self.rnn(y)
+        y = y.reshape(b * t, *y.size()[2:])
         y = y.unsqueeze(-1)
         y = self.tcnn(y)
         z = self.bottleneck(y)
+        z = z.reshape(b, t, *z.size()[1:])
         if self.debug_show_dim:
             print(f"{self.__class__.__name__}", z.size())
         return z
@@ -373,13 +378,17 @@ class MotionRNNEncoder2d(MotionEncoder2d):
         x: Tensor,
         x_0: Tensor | None = None,
     ) -> Tensor:
-        b, t, c, d, h = x.size()
-        x = x.reshape(b * t, c, d, h)
+        b, t = x.size()[:2]
+        x = x.reshape(b * t, *x.size()[2:])
         y = self.cnn(x)
+        y = y.reshape(b, t, *y.size()[1:])
+        print(y.shape)
         y, _ = self.rnn(y)
+        y = y.reshape(b * t, *y.size()[2:])
         y = y.unsqueeze(-1)
         y = self.tcnn(y)
         z = self.bottleneck(y)
+        z = z.reshape(b, t, *z.size()[1:])
         if self.debug_show_dim:
             print(f"{self.__class__.__name__}", z.size())
         return z
@@ -439,13 +448,12 @@ class MotionConv2dEncoder1d(MotionEncoder1d):
     ) -> Tensor:
         x = x.permute(0, 2, 1, 3)  # (b, c, t, h)
         y = self.cnn(x)
-        y = y.unsqueeze(-1)  # (b, c, t, h, 1)
-        y = self.tcnn(y)
-        y = y.permute(0, 2, 1, 3, 4)  # (b, t, c, h, w)
-        b, t, _, h, w = y.size()
-        y = y.reshape(b * t, -1, h, w)
+        y = y.permute(0, 2, 1, 3)  # (b, t, c, h)
+        b, t, _, h = y.size()
+        y = y.reshape(b * t, -1, h, 1)
+        y = self.tcnn(y)  # (b * t, c, h, w)
         z = self.bottleneck(y)
-        z = z.reshape(b, t, -1, h, w)
+        z = z.reshape(b, t, *z.size()[1:])
         if self.debug_show_dim:
             print(f"{self.__class__.__name__}", z.size())
         return z
@@ -495,13 +503,12 @@ class MotionConv3dEncoder2d(MotionEncoder2d):
     ) -> Tensor:
         x = x.permute(0, 2, 1, 3, 4)  # (b, c, t, d, h)
         y = self.cnn(x)
-        y = y.unsqueeze(-1)  # (b, c, t, d, h, 1)
-        y = self.tcnn(y)
-        y = y.permute(0, 2, 1, 3, 4, 5)  # (b, t, c, d, h, w)
-        b, t, _, d, h, w = y.size()
-        y = y.reshape(b * t, -1, d, h, w)
+        y = y.permute(0, 2, 1, 3, 4)  # (b, t, c, d, h)
+        b, t, _, d, h = y.size()
+        y = y.reshape(b * t, -1, d, h, 1)
+        y = self.tcnn(y)  # (b * t, c, d, h, w)
         z = self.bottleneck(y)
-        z = z.reshape(b, t, -1, d, h, w)
+        z = z.reshape(b, t, *z.size()[1:])
         if self.debug_show_dim:
             print(f"{self.__class__.__name__}", z.size())
         return z

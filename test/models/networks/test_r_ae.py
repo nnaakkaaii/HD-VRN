@@ -91,6 +91,14 @@ def test_rae2d():
                 }
             ]
             * 2,
+            [
+                {
+                    "kernel_size": [3],
+                    "stride": [1],
+                    "padding": [1],
+                }
+            ]
+            * 2,
         ),
         upsample_size=[h // 4, w // 4],
         activation="sigmoid",
@@ -127,6 +135,14 @@ def test_rae3d():
                 {
                     "kernel_size": [3],
                     "stride": [2],
+                    "padding": [1],
+                }
+            ]
+            * 2,
+            [
+                {
+                    "kernel_size": [3],
+                    "stride": [1],
                     "padding": [1],
                 }
             ]

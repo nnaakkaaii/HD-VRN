@@ -314,8 +314,8 @@ class HRDAE2d(nn.Module):
     ) -> tuple[Tensor, list[Tensor]]:
         c, cs = self.content_encoder(x_2d_0)
         m = self.motion_encoder(x_1d, x_1d_0)
-        b, t, c_, h = m.size()
-        m = m.reshape(b * t, c_, h)
+        b, t, c_, h, w = m.size()
+        m = m.reshape(b * t, c_, h, w)
         c_exp = c.repeat(t, 1, 1, 1)
         cs_exp = [c_.repeat(t, 1, 1, 1) for c_ in cs]
         y = self.decoder(m, c_exp, cs_exp[::-1])
@@ -386,8 +386,8 @@ class HRDAE3d(nn.Module):
     ) -> tuple[Tensor, list[Tensor]]:
         c, cs = self.content_encoder(x_3d_0)
         m = self.motion_encoder(x_2d, x_2d_0)
-        b, t, c_, h, w = m.size()
-        m = m.reshape(b * t, c_, h, w)
+        b, t, c_, d, h, w = m.size()
+        m = m.reshape(b * t, c_, d, h, w)
         c_exp = c.repeat(t, 1, 1, 1, 1)
         cs_exp = [c_.repeat(t, 1, 1, 1, 1) for c_ in cs]
         y = self.decoder(m, c_exp, cs_exp[::-1])

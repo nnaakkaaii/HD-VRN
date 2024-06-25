@@ -111,8 +111,8 @@ class RDAE2d(nn.Module):
     ) -> tuple[Tensor, list[Tensor]]:
         c = self.content_encoder(x_2d_0)
         m = self.motion_encoder(x_1d, x_1d_0)
-        b, t, c_, h_ = m.size()
-        m = m.reshape(b * t, c_, h_)
+        b, t, c_, h_, w = m.size()
+        m = m.reshape(b * t, c_, h_, w)
         c_exp = c.repeat(t, 1, 1, 1)
         m = upsample_motion_tensor(m, c_exp)
         h = self.aggregator((m, c_exp))
@@ -181,8 +181,8 @@ class RDAE3d(nn.Module):
     ) -> tuple[Tensor, list[Tensor]]:
         c = self.content_encoder(x_3d_0)
         m = self.motion_encoder(x_2d, x_2d_0)
-        b, t, c_, d, h_ = m.size()
-        m = m.reshape(b * t, c_, d, h_)
+        b, t, c_, d, h_, w = m.size()
+        m = m.reshape(b * t, c_, d, h_, w)
         c_exp = c.repeat(t, 1, 1, 1, 1)
         m = upsample_motion_tensor(m, c_exp)
         h = self.aggregator((m, c_exp))

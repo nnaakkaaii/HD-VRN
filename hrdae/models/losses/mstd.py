@@ -21,4 +21,4 @@ class MStdLoss(nn.Module):
         return ["latent"]
 
     def forward(self, input: Tensor, target: Tensor, latent: list[Tensor]) -> Tensor:
-        return sum([torch.sqrt(torch.mean(v**2)) for v in latent])
+        return sum([torch.sqrt(torch.mean(v**2)) for v in latent])  # type: ignore

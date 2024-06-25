@@ -42,6 +42,14 @@ def test_rdae2d():
                 }
             ]
             * 2,
+            [
+                {
+                    "kernel_size": [3],
+                    "stride": [1],
+                    "padding": [1],
+                }
+            ]
+            * 2,
         ),
         aggregator="addition",
         activation="sigmoid",
@@ -79,6 +87,14 @@ def test_cycle_rdae2d():
                 {
                     "kernel_size": [3],
                     "stride": [2],
+                    "padding": [1],
+                }
+            ]
+            * 2,
+            [
+                {
+                    "kernel_size": [3],
+                    "stride": [1],
                     "padding": [1],
                 }
             ]
@@ -125,6 +141,14 @@ def test_rdae3d():
                 }
             ]
             * 2,
+            [
+                {
+                    "kernel_size": [3],
+                    "stride": [1],
+                    "padding": [1],
+                }
+            ]
+            * 2,
         ),
         aggregator="addition",
         activation="sigmoid",
@@ -162,6 +186,14 @@ def test_cycle_rdae3d():
                 {
                     "kernel_size": [3],
                     "stride": [2],
+                    "padding": [1],
+                }
+            ]
+            * 2,
+            [
+                {
+                    "kernel_size": [3],
+                    "stride": [1],
                     "padding": [1],
                 }
             ]
