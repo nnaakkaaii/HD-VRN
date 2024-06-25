@@ -41,8 +41,6 @@ from .models.networks import (
 from .models.networks.motion_encoder import (
     MotionConv2dEncoder1dOption,
     MotionConv3dEncoder2dOption,
-    MotionGuidedEncoder1dOption,
-    MotionGuidedEncoder2dOption,
     MotionNormalEncoder1dOption,
     MotionNormalEncoder2dOption,
     MotionRNNEncoder1dOption,
@@ -186,16 +184,6 @@ cs.store(
     group="config/experiment/model/network/motion_encoder",
     name="conv3d",
     node=MotionConv3dEncoder2dOption,
-)
-cs.store(
-    group="config/experiment/model/network/motion_encoder",
-    name="guided1d",
-    node=MotionGuidedEncoder1dOption,
-)
-cs.store(
-    group="config/experiment/model/network/motion_encoder",
-    name="guided2d",
-    node=MotionGuidedEncoder2dOption,
 )
 cs.store(
     group="config/experiment/model/network/motion_encoder/rnn",

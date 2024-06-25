@@ -8,7 +8,6 @@ from .modules import (
     ConvModule1d,
     ConvModule2d,
     ConvModule3d,
-    PixelWiseConv1d,
     PixelWiseConv2d,
     PixelWiseConv3d,
 )
@@ -24,6 +23,10 @@ class MotionEncoder1dOption:
         default_factory=lambda: [{"kernel_size": [3], "stride": [2], "padding": [1]}]
         * 3,
     )
+    deconv_params: list[dict[str, list[int]]] = field(
+        default_factory=lambda: [{"kernel_size": [3], "stride": [2], "padding": [1]}]
+        * 3,
+    )
 
 
 @dataclass
@@ -31,6 +34,10 @@ class MotionEncoder2dOption:
     in_channels: int
     hidden_channels: int
     conv_params: list[dict[str, list[int]]] = field(
+        default_factory=lambda: [{"kernel_size": [3], "stride": [2], "padding": [1]}]
+        * 3,
+    )
+    deconv_params: list[dict[str, list[int]]] = field(
         default_factory=lambda: [{"kernel_size": [3], "stride": [2], "padding": [1]}]
         * 3,
     )
@@ -48,6 +55,7 @@ def create_motion_encoder1d(
             opt.hidden_channels,
             latent_dim,
             opt.conv_params,
+            opt.deconv_params,
             create_rnn1d(latent_dim, opt.rnn),
             debug_show_dim,
         )
@@ -60,6 +68,7 @@ def create_motion_encoder1d(
             opt.hidden_channels,
             latent_dim,
             opt.conv_params,
+            opt.deconv_params,
             debug_show_dim,
         )
     if (
@@ -71,17 +80,7 @@ def create_motion_encoder1d(
             opt.hidden_channels,
             latent_dim,
             opt.conv_params,
-            debug_show_dim,
-        )
-    if (
-        isinstance(opt, MotionGuidedEncoder1dOption)
-        and type(opt) is MotionGuidedEncoder1dOption
-    ):
-        return MotionGuidedEncoder1d(
-            opt.in_channels,
-            opt.hidden_channels,
-            latent_dim,
-            opt.conv_params,
+            opt.deconv_params,
             debug_show_dim,
         )
     raise NotImplementedError(f"{opt.__class__.__name__} not implemented")
@@ -99,6 +98,7 @@ def create_motion_encoder2d(
             opt.hidden_channels,
             latent_dim,
             opt.conv_params,
+            opt.deconv_params,
             create_rnn2d(latent_dim, opt.rnn),
             debug_show_dim,
         )
@@ -111,6 +111,7 @@ def create_motion_encoder2d(
             opt.hidden_channels,
             latent_dim,
             opt.conv_params,
+            opt.deconv_params,
             debug_show_dim,
         )
     if (
@@ -122,17 +123,7 @@ def create_motion_encoder2d(
             opt.hidden_channels,
             latent_dim,
             opt.conv_params,
-            debug_show_dim,
-        )
-    if (
-        isinstance(opt, MotionGuidedEncoder2dOption)
-        and type(opt) is MotionGuidedEncoder2dOption
-    ):
-        return MotionGuidedEncoder2d(
-            opt.in_channels,
-            opt.hidden_channels,
-            latent_dim,
-            opt.conv_params,
+            opt.deconv_params,
             debug_show_dim,
         )
     raise NotImplementedError(f"{opt.__class__.__name__} not implemented")
@@ -175,6 +166,7 @@ class MotionNormalEncoder1d(MotionEncoder1d):
         hidden_channels: int,
         latent_dim: int,
         conv_params: list[dict[str, list[int]]],
+        deconv_params: list[dict[str, list[int]]],
         debug_show_dim: bool = False,
     ) -> None:
         super().__init__()
@@ -188,46 +180,12 @@ class MotionNormalEncoder1d(MotionEncoder1d):
             act_norm=True,
             debug_show_dim=debug_show_dim,
         )
-        self.bottleneck = PixelWiseConv1d(
-            hidden_channels,
-            latent_dim,
-            act_norm=False,
-        )
-        self.debug_show_dim = debug_show_dim
-
-    def forward(
-        self,
-        x: Tensor,
-        x_0: Tensor | None = None,
-    ) -> Tensor:
-        b, t, c, h = x.size()
-        x = x.reshape(b * t, c, h)
-        y = self.cnn(x)
-        z = self.bottleneck(y)
-        _, c, h = z.size()
-        z = z.reshape(b, t, c, h)
-        if self.debug_show_dim:
-            print(f"{self.__class__.__name__}", z.size())
-        return z
-
-
-class MotionNormalEncoder2d(MotionEncoder2d):
-    def __init__(
-        self,
-        in_channels: int,
-        hidden_channels: int,
-        latent_dim: int,
-        conv_params: list[dict[str, list[int]]],
-        debug_show_dim: bool = False,
-    ) -> None:
-        super().__init__()
-
-        self.cnn = ConvModule2d(
-            in_channels,
+        self.tcnn = ConvModule2d(
             hidden_channels,
             hidden_channels,
-            conv_params,
-            transpose=False,
+            hidden_channels,
+            deconv_params,
+            transpose=True,
             act_norm=True,
             debug_show_dim=debug_show_dim,
         )
@@ -243,12 +201,65 @@ class MotionNormalEncoder2d(MotionEncoder2d):
         x: Tensor,
         x_0: Tensor | None = None,
     ) -> Tensor:
+        b, t, c, h = x.size()
+        x = x.reshape(b * t, c, h)
+        y = self.cnn(x)
+        y = y.unsqueeze(-1)
+        y = self.tcnn(y)
+        z = self.bottleneck(y)
+        if self.debug_show_dim:
+            print(f"{self.__class__.__name__}", z.size())
+        return z
+
+
+class MotionNormalEncoder2d(MotionEncoder2d):
+    def __init__(
+        self,
+        in_channels: int,
+        hidden_channels: int,
+        latent_dim: int,
+        conv_params: list[dict[str, list[int]]],
+        deconv_params: list[dict[str, list[int]]],
+        debug_show_dim: bool = False,
+    ) -> None:
+        super().__init__()
+
+        self.cnn = ConvModule2d(
+            in_channels,
+            hidden_channels,
+            hidden_channels,
+            conv_params,
+            transpose=False,
+            act_norm=True,
+            debug_show_dim=debug_show_dim,
+        )
+        self.tcnn = ConvModule3d(
+            hidden_channels,
+            hidden_channels,
+            hidden_channels,
+            deconv_params,
+            transpose=True,
+            act_norm=True,
+            debug_show_dim=debug_show_dim,
+        )
+        self.bottleneck = PixelWiseConv3d(
+            hidden_channels,
+            latent_dim,
+            act_norm=False,
+        )
+        self.debug_show_dim = debug_show_dim
+
+    def forward(
+        self,
+        x: Tensor,
+        x_0: Tensor | None = None,
+    ) -> Tensor:
         b, t, c, d, h = x.size()
         x = x.reshape(b * t, c, d, h)
         y = self.cnn(x)
+        y = y.unsqueeze(-1)
+        y = self.tcnn(y)
         z = self.bottleneck(y)
-        _, c, d, h = z.size()
-        z = z.reshape(b, t, c, d, h)
         if self.debug_show_dim:
             print(f"{self.__class__.__name__}", z.size())
         return z
@@ -264,63 +275,111 @@ class MotionRNNEncoder2dOption(MotionEncoder2dOption):
     rnn: RNN2dOption = MISSING
 
 
-class MotionRNNEncoder1d(MotionNormalEncoder1d):
+class MotionRNNEncoder1d(MotionEncoder1d):
     def __init__(
         self,
         in_channels: int,
         hidden_channels: int,
         latent_dim: int,
         conv_params: list[dict[str, list[int]]],
+        deconv_params: list[dict[str, list[int]]],
         rnn: RNN1d,
         debug_show_dim: bool = False,
     ) -> None:
-        super().__init__(
+        super().__init__()
+        self.cnn = ConvModule1d(
             in_channels,
             hidden_channels,
-            latent_dim,
+            hidden_channels,
             conv_params,
+            transpose=False,
+            act_norm=True,
             debug_show_dim=debug_show_dim,
         )
         self.rnn = rnn
+        self.tcnn = ConvModule2d(
+            hidden_channels,
+            hidden_channels,
+            hidden_channels,
+            deconv_params,
+            transpose=True,
+            act_norm=True,
+            debug_show_dim=debug_show_dim,
+        )
+        self.bottleneck = PixelWiseConv2d(
+            hidden_channels,
+            latent_dim,
+            act_norm=False,
+        )
+        self.debug_show_dim = debug_show_dim
 
     def forward(
         self,
         x: Tensor,
         x_0: Tensor | None = None,
     ) -> Tensor:
-        z = super().forward(x, x_0)
-        z, _ = self.rnn(z)
+        b, t, c, h = x.size()
+        x = x.reshape(b * t, c, h)
+        y = self.cnn(x)
+        y, _ = self.rnn(y)
+        y = y.unsqueeze(-1)
+        y = self.tcnn(y)
+        z = self.bottleneck(y)
         if self.debug_show_dim:
             print(f"{self.__class__.__name__}", z.size())
         return z
 
 
-class MotionRNNEncoder2d(MotionNormalEncoder2d):
+class MotionRNNEncoder2d(MotionEncoder2d):
     def __init__(
         self,
         in_channels: int,
         hidden_channels: int,
         latent_dim: int,
         conv_params: list[dict[str, list[int]]],
+        deconv_params: list[dict[str, list[int]]],
         rnn: RNN2d,
         debug_show_dim: bool = False,
     ) -> None:
-        super().__init__(
+        super().__init__()
+        self.cnn = ConvModule2d(
             in_channels,
             hidden_channels,
-            latent_dim,
+            hidden_channels,
             conv_params,
+            transpose=False,
+            act_norm=True,
             debug_show_dim=debug_show_dim,
         )
         self.rnn = rnn
+        self.tcnn = ConvModule3d(
+            hidden_channels,
+            hidden_channels,
+            hidden_channels,
+            deconv_params,
+            transpose=True,
+            act_norm=True,
+            debug_show_dim=debug_show_dim,
+        )
+        self.bottleneck = PixelWiseConv3d(
+            hidden_channels,
+            latent_dim,
+            act_norm=False,
+        )
+        self.debug_show_dim = debug_show_dim
 
     def forward(
         self,
         x: Tensor,
         x_0: Tensor | None = None,
     ) -> Tensor:
-        z = super().forward(x, x_0)
-        z, _ = self.rnn(z)
+        b, t, c, d, h = x.size()
+        x = x.reshape(b * t, c, d, h)
+        y = self.cnn(x)
+        y, _ = self.rnn(y)
+        y = y.unsqueeze(-1)
+        y = self.tcnn(y)
+        z = self.bottleneck(y)
         if self.debug_show_dim:
             print(f"{self.__class__.__name__}", z.size())
         return z
@@ -343,6 +402,7 @@ class MotionConv2dEncoder1d(MotionEncoder1d):
         hidden_channels: int,
         latent_dim: int,
         conv_params: list[dict[str, list[int]]],
+        deconv_params: list[dict[str, list[int]]],
         debug_show_dim: bool = False,
     ) -> None:
         super().__init__()
@@ -353,6 +413,15 @@ class MotionConv2dEncoder1d(MotionEncoder1d):
             hidden_channels,
             conv_params,
             transpose=False,
+            act_norm=True,
+            debug_show_dim=debug_show_dim,
+        )
+        self.tcnn = ConvModule2d(
+            hidden_channels,
+            hidden_channels,
+            hidden_channels,
+            deconv_params,
+            transpose=True,
             act_norm=True,
             debug_show_dim=debug_show_dim,
         )
@@ -368,12 +437,15 @@ class MotionConv2dEncoder1d(MotionEncoder1d):
         x: Tensor,
         x_0: Tensor | None = None,
     ) -> Tensor:
-        t = x.size(1)
         x = x.permute(0, 2, 1, 3)  # (b, c, t, h)
         y = self.cnn(x)
+        y = y.unsqueeze(-1)  # (b, c, t, h, 1)
+        y = self.tcnn(y)
+        y = y.permute(0, 2, 1, 3, 4)  # (b, t, c, h, w)
+        b, t, _, h, w = y.size()
+        y = y.reshape(b * t, -1, h, w)
         z = self.bottleneck(y)
-        z = z.permute(0, 2, 1, 3)  # (b, t, c, h)
-        assert z.size(1) == t
+        z = z.reshape(b, t, -1, h, w)
         if self.debug_show_dim:
             print(f"{self.__class__.__name__}", z.size())
         return z
@@ -386,6 +458,7 @@ class MotionConv3dEncoder2d(MotionEncoder2d):
         hidden_channels: int,
         latent_dim: int,
         conv_params: list[dict[str, list[int]]],
+        deconv_params: list[dict[str, list[int]]],
         debug_show_dim: bool = False,
     ) -> None:
         super().__init__()
@@ -396,6 +469,15 @@ class MotionConv3dEncoder2d(MotionEncoder2d):
             hidden_channels,
             conv_params,
             transpose=False,
+            act_norm=True,
+            debug_show_dim=debug_show_dim,
+        )
+        self.tcnn = ConvModule3d(
+            hidden_channels,
+            hidden_channels,
+            hidden_channels,
+            deconv_params,
+            transpose=True,
             act_norm=True,
             debug_show_dim=debug_show_dim,
         )
@@ -411,52 +493,15 @@ class MotionConv3dEncoder2d(MotionEncoder2d):
         x: Tensor,
         x_0: Tensor | None = None,
     ) -> Tensor:
-        t = x.size(1)
         x = x.permute(0, 2, 1, 3, 4)  # (b, c, t, d, h)
         y = self.cnn(x)
+        y = y.unsqueeze(-1)  # (b, c, t, d, h, 1)
+        y = self.tcnn(y)
+        y = y.permute(0, 2, 1, 3, 4, 5)  # (b, t, c, d, h, w)
+        b, t, _, d, h, w = y.size()
+        y = y.reshape(b * t, -1, d, h, w)
         z = self.bottleneck(y)
-        z = z.permute(0, 2, 1, 3, 4)  # (b, t, c, d, h)
-        assert z.size(1) == t
-        if self.debug_show_dim:
-            print(f"{self.__class__.__name__}", z.size())
-        return z
-
-
-@dataclass
-class MotionGuidedEncoder1dOption(MotionEncoder1dOption):
-    pass
-
-
-@dataclass
-class MotionGuidedEncoder2dOption(MotionEncoder2dOption):
-    pass
-
-
-class MotionGuidedEncoder1d(MotionNormalEncoder1d):
-    def forward(
-        self,
-        x: Tensor,
-        x_0: Tensor | None = None,
-    ) -> Tensor:
-        assert x_0 is not None
-        z = super().forward(x, x_0)
-        z_0 = self.bottleneck(self.cnn(x_0)).unsqueeze(1)
-        z -= z_0
-        if self.debug_show_dim:
-            print(f"{self.__class__.__name__}", z.size())
-        return z
-
-
-class MotionGuidedEncoder2d(MotionNormalEncoder2d):
-    def forward(
-        self,
-        x: Tensor,
-        x_0: Tensor | None = None,
-    ) -> Tensor:
-        assert x_0 is not None
-        z = super().forward(x, x_0)
-        z_0 = self.bottleneck(self.cnn(x_0)).unsqueeze(1)
-        z -= z_0
+        z = z.reshape(b, t, -1, d, h, w)
         if self.debug_show_dim:
             print(f"{self.__class__.__name__}", z.size())
         return z
