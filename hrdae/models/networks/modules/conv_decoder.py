@@ -24,12 +24,14 @@ class HierarchicalConvDecoder1d(ConvModuleBase):
         super().__init__()
         assert len(conv_params) > 1
 
+        d = 2 if aggregation == "concatenation" else 1
+
         self.layers = nn.ModuleList()
         for i, conv_param in enumerate(conv_params[:-1]):
             self.layers.append(
                 nn.Sequential(
                     ConvBlock1d(
-                        2 * latent_dim if i > 0 else 2 * in_channels,
+                        d * latent_dim if i > 0 else d * in_channels,
                         latent_dim,  # 2*latent_dim ?
                         kernel_size=conv_param["kernel_size"],
                         stride=conv_param["stride"],
@@ -46,7 +48,7 @@ class HierarchicalConvDecoder1d(ConvModuleBase):
             )
         self.layers.append(
             ConvBlock1d(
-                2 * latent_dim,
+                d * latent_dim,
                 out_channels,
                 kernel_size=conv_params[-1]["kernel_size"],
                 stride=conv_params[-1]["stride"],
@@ -78,12 +80,14 @@ class HierarchicalConvDecoder2d(ConvModuleBase):
         super().__init__()
         assert len(conv_params) > 1
 
+        d = 2 if aggregation == "concatenation" else 1
+
         self.layers = nn.ModuleList()
         for i, conv_param in enumerate(conv_params[:-1]):
             self.layers.append(
                 nn.Sequential(
                     ConvBlock2d(
-                        2 * latent_dim if i > 0 else 2 * in_channels,
+                        d * latent_dim if i > 0 else d * in_channels,
                         latent_dim,  # 2*latent_dim ?
                         kernel_size=conv_param["kernel_size"],
                         stride=conv_param["stride"],
@@ -100,7 +104,7 @@ class HierarchicalConvDecoder2d(ConvModuleBase):
             )
         self.layers.append(
             ConvBlock2d(
-                2 * latent_dim,
+                d * latent_dim,
                 out_channels,
                 kernel_size=conv_params[-1]["kernel_size"],
                 stride=conv_params[-1]["stride"],
@@ -132,12 +136,14 @@ class HierarchicalConvDecoder3d(ConvModuleBase):
         super().__init__()
         assert len(conv_params) > 1
 
+        d = 2 if aggregation == "concatenation" else 1
+
         self.layers = nn.ModuleList()
         for i, conv_param in enumerate(conv_params[:-1]):
             self.layers.append(
                 nn.Sequential(
                     ConvBlock3d(
-                        2 * latent_dim if i > 0 else 2 * in_channels,
+                        d * latent_dim if i > 0 else d * in_channels,
                         latent_dim,  # 2*latent_dim ?
                         kernel_size=conv_param["kernel_size"],
                         stride=conv_param["stride"],
@@ -154,7 +160,7 @@ class HierarchicalConvDecoder3d(ConvModuleBase):
             )
         self.layers.append(
             ConvBlock3d(
-                2 * latent_dim,
+                d * latent_dim,
                 out_channels,
                 kernel_size=conv_params[-1]["kernel_size"],
                 stride=conv_params[-1]["stride"],
