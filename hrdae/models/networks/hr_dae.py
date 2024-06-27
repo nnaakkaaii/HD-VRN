@@ -167,6 +167,81 @@ class HierarchicalDecoder2d(nn.Module):
         hidden_channels: int,
         latent_dim: int,
         conv_params: list[dict[str, list[int]]],
+        debug_show_dim: bool = False,
+    ) -> None:
+        super().__init__()
+        self.bottleneck = PixelWiseConv2d(
+            latent_dim,
+            hidden_channels,
+            act_norm=True,
+        )
+        self.cnn = HierarchicalConvDecoder2d(
+            hidden_channels,
+            out_channels,
+            hidden_channels,
+            conv_params,
+            debug_show_dim,
+        )
+        self.debug_show_dim = debug_show_dim
+
+    def forward(self, z: Tensor, cs: list[Tensor]) -> Tensor:
+        y = self.bottleneck(z)
+        x = self.cnn(y, cs)
+
+        if self.debug_show_dim:
+            print("Latent", z.size())
+            print("Output", y.size())
+            print("Input", x.size())
+
+        return x
+
+
+class HierarchicalDecoder3d(nn.Module):
+    def __init__(
+        self,
+        out_channels: int,
+        hidden_channels: int,
+        latent_dim: int,
+        conv_params: list[dict[str, list[int]]],
+        debug_show_dim: bool = False,
+    ) -> None:
+        super().__init__()
+        self.bottleneck = PixelWiseConv3d(
+            latent_dim,
+            hidden_channels,
+            act_norm=True,
+        )
+        self.cnn = HierarchicalConvDecoder3d(
+            hidden_channels,
+            out_channels,
+            hidden_channels,
+            conv_params,
+            debug_show_dim,
+        )
+        self.debug_show_dim = debug_show_dim
+
+    def forward(self, z: Tensor, cs: list[Tensor]) -> Tensor:
+        y = self.bottleneck(z)
+        x = self.cnn(y, cs)
+
+        if self.debug_show_dim:
+            print("Latent", z.size())
+            print("Output", y.size())
+            print("Input", x.size())
+
+        return x
+
+
+class HRDAE2d(nn.Module):
+    def __init__(
+        self,
+        in_channels: int,
+        out_channels: int,
+        hidden_channels: int,
+        latent_dim: int,
+        conv_params: list[dict[str, list[int]]],
+        motion_encoder: MotionEncoder1d,
+        activation: str,
         aggregator: str,
         debug_show_dim: bool = False,
     ) -> None:
@@ -175,19 +250,22 @@ class HierarchicalDecoder2d(nn.Module):
         dec_hidden_channels = hidden_channels
         if aggregator == "concatenation":
             dec_hidden_channels += latent_dim
-        self.aggregator = create_aggregator2d(aggregator, latent_dim, latent_dim)
-        self.bottleneck = PixelWiseConv2d(
-            2 * latent_dim if aggregator == "concatenation" else latent_dim,
-            dec_hidden_channels,
-            act_norm=True,
-        )
-        self.dec = HierarchicalConvDecoder2d(
-            dec_hidden_channels,
-            out_channels,
-            dec_hidden_channels,
-            conv_params,
+        self.content_encoder = HierarchicalEncoder2d(
+            in_channels,
+            hidden_channels,
+            latent_dim,
+            conv_params + [IdenticalConvBlockConvParams],
             debug_show_dim,
         )
+        self.motion_encoder = motion_encoder
+        self.decoder = HierarchicalDecoder2d(
+            out_channels,
+            dec_hidden_channels,
+            2 * latent_dim if aggregator == "concatenation" else latent_dim,
+            conv_params[::-1],
+            debug_show_dim,
+        )
+        self.aggregator = create_aggregator2d(aggregator, latent_dim, latent_dim)
         # motion guided connection
         # (Mutual Suppression Network for Video Prediction using Disentangled Features)
         self.mgc = nn.ModuleList()
@@ -205,105 +283,6 @@ class HierarchicalDecoder2d(nn.Module):
                     nn.LeakyReLU(0.2, inplace=True),
                 )
             )
-
-    def forward(self, m: Tensor, c: Tensor, cs: list[Tensor]) -> Tensor:
-        assert len(self.mgc) == len(cs)
-
-        x = self.aggregator((c, upsample_motion_tensor(m, c)))
-        for i, mgc in enumerate(self.mgc):
-            cs[i] = mgc((cs[i], upsample_motion_tensor(m, cs[i])))
-
-        x = self.bottleneck(x)
-        return self.dec(x, cs)
-
-
-class HierarchicalDecoder3d(nn.Module):
-    def __init__(
-        self,
-        out_channels: int,
-        hidden_channels: int,
-        latent_dim: int,
-        conv_params: list[dict[str, list[int]]],
-        aggregator: str,
-        debug_show_dim: bool = False,
-    ) -> None:
-        super().__init__()
-
-        dec_hidden_channels = hidden_channels
-        if aggregator == "concatenation":
-            dec_hidden_channels += latent_dim
-        self.aggregator = create_aggregator3d(aggregator, latent_dim, latent_dim)
-        self.bottleneck = PixelWiseConv3d(
-            2 * latent_dim if aggregator == "concatenation" else latent_dim,
-            dec_hidden_channels,
-            act_norm=True,
-        )
-        self.dec = HierarchicalConvDecoder3d(
-            dec_hidden_channels,
-            out_channels,
-            dec_hidden_channels,
-            conv_params,
-            debug_show_dim,
-        )
-        # motion guided connection
-        # (Mutual Suppression Network for Video Prediction using Disentangled Features)
-        self.mgc = nn.ModuleList()
-        for _ in conv_params:
-            self.mgc.append(
-                nn.Sequential(
-                    create_aggregator3d(aggregator, hidden_channels, latent_dim),
-                    ResNetBranch(
-                        IdenticalConvBlock3d(dec_hidden_channels, dec_hidden_channels),
-                        IdenticalConvBlock3d(
-                            dec_hidden_channels, dec_hidden_channels, act_norm=False
-                        ),
-                    ),
-                    nn.GroupNorm(2, dec_hidden_channels),
-                    nn.LeakyReLU(0.2, inplace=True),
-                )
-            )
-
-    def forward(self, m: Tensor, c: Tensor, cs: list[Tensor]) -> Tensor:
-        assert len(self.mgc) == len(cs)
-
-        x = self.aggregator((c, upsample_motion_tensor(m, c)))
-        for i, mgc in enumerate(self.mgc):
-            cs[i] = mgc((cs[i], upsample_motion_tensor(m, cs[i])))
-
-        x = self.bottleneck(x)
-        return self.dec(x, cs)
-
-
-class HRDAE2d(nn.Module):
-    def __init__(
-        self,
-        in_channels: int,
-        out_channels: int,
-        hidden_channels: int,
-        latent_dim: int,
-        conv_params: list[dict[str, list[int]]],
-        motion_encoder: MotionEncoder1d,
-        activation: str,
-        aggregator: str,
-        debug_show_dim: bool = False,
-    ) -> None:
-        super().__init__()
-        self.content_encoder = HierarchicalEncoder2d(
-            in_channels,
-            hidden_channels,
-            latent_dim,
-            conv_params + [IdenticalConvBlockConvParams],
-            debug_show_dim,
-        )
-        self.motion_encoder = motion_encoder
-        self.decoder = HierarchicalDecoder2d(
-            out_channels,
-            hidden_channels,
-            latent_dim,
-            conv_params[::-1],
-            aggregator,
-            debug_show_dim,
-        )
         self.activation = create_activation(activation)
 
     def forward(
@@ -318,7 +297,13 @@ class HRDAE2d(nn.Module):
         m = m.reshape(b * t, c_, h, w)
         c_exp = c.repeat(t, 1, 1, 1)
         cs_exp = [c_.repeat(t, 1, 1, 1) for c_ in cs]
-        y = self.decoder(m, c_exp, cs_exp[::-1])
+
+        assert len(self.mgc) == len(cs_exp)
+        z = self.aggregator((c_exp, upsample_motion_tensor(m, c_exp)))
+        for i, mgc in enumerate(self.mgc):
+            cs_exp[i] = mgc((cs_exp[i], upsample_motion_tensor(m, cs_exp[i])))
+        y = self.decoder(z, cs_exp[::-1])
+
         _, c_, h, w = y.size()
         y = y.reshape(b, t, c_, h, w)
         if self.activation is not None:
@@ -360,6 +345,10 @@ class HRDAE3d(nn.Module):
         debug_show_dim: bool = False,
     ) -> None:
         super().__init__()
+
+        dec_hidden_channels = hidden_channels
+        if aggregator == "concatenation":
+            dec_hidden_channels += latent_dim
         self.content_encoder = HierarchicalEncoder3d(
             in_channels,
             hidden_channels,
@@ -370,12 +359,29 @@ class HRDAE3d(nn.Module):
         self.motion_encoder = motion_encoder
         self.decoder = HierarchicalDecoder3d(
             out_channels,
-            hidden_channels,
-            latent_dim,
+            dec_hidden_channels,
+            2 * latent_dim if aggregator == "concatenation" else latent_dim,
             conv_params[::-1],
-            aggregator,
             debug_show_dim,
         )
+        self.aggregator = create_aggregator2d(aggregator, latent_dim, latent_dim)
+        # motion guided connection
+        # (Mutual Suppression Network for Video Prediction using Disentangled Features)
+        self.mgc = nn.ModuleList()
+        for _ in conv_params:
+            self.mgc.append(
+                nn.Sequential(
+                    create_aggregator3d(aggregator, hidden_channels, latent_dim),
+                    ResNetBranch(
+                        IdenticalConvBlock3d(dec_hidden_channels, dec_hidden_channels),
+                        IdenticalConvBlock3d(
+                            dec_hidden_channels, dec_hidden_channels, act_norm=False
+                        ),
+                    ),
+                    nn.GroupNorm(2, dec_hidden_channels),
+                    nn.LeakyReLU(0.2, inplace=True),
+                )
+            )
         self.activation = create_activation(activation)
 
     def forward(
@@ -390,7 +396,13 @@ class HRDAE3d(nn.Module):
         m = m.reshape(b * t, c_, d, h, w)
         c_exp = c.repeat(t, 1, 1, 1, 1)
         cs_exp = [c_.repeat(t, 1, 1, 1, 1) for c_ in cs]
-        y = self.decoder(m, c_exp, cs_exp[::-1])
+
+        assert len(self.mgc) == len(cs_exp)
+        z = self.aggregator((c_exp, upsample_motion_tensor(m, c_exp)))
+        for i, mgc in enumerate(self.mgc):
+            cs_exp[i] = mgc((cs_exp[i], upsample_motion_tensor(m, cs_exp[i])))
+        y = self.decoder(z, cs_exp[::-1])
+
         _, c_, d, h, w = y.size()
         y = y.reshape(b, t, c_, d, h, w)
         if self.activation is not None:
