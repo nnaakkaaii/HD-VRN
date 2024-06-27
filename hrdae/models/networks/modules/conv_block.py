@@ -309,6 +309,7 @@ class ConvModuleBase(nn.Module):
     layers: nn.ModuleList
     use_skip: bool
     debug_show_dim: bool
+    aggregation: str
 
     def _forward(
         self, x: Tensor, hs: list[Tensor] | None = None
@@ -323,7 +324,12 @@ class ConvModuleBase(nn.Module):
         for i, layer in enumerate(self.layers):
             if self.use_skip:
                 assert hs is not None
-                x = cat([x, hs[i]], dim=1)
+                if self.aggregation == "concatenation":
+                    x = cat([x, hs[i]], dim=1)
+                elif self.aggregation == "addition":
+                    x = x + hs[i]
+                else:
+                    raise ValueError(f"Invalid aggregation: {self.aggregation}")
             x = layer(x)
             if self.debug_show_dim:
                 print(f"{self.__class__.__name__} Layer {i}", x.size())
@@ -381,6 +387,7 @@ class ConvModule1d(ConvModuleBase):
 
         self.debug_show_dim = debug_show_dim
         self.use_skip = False
+        self.aggregation = "concatenation"
 
     def forward(self, x: Tensor) -> Tensor:
         return self._forward(x)[0]
@@ -435,6 +442,7 @@ class ConvModule2d(ConvModuleBase):
 
         self.debug_show_dim = debug_show_dim
         self.use_skip = False
+        self.aggregation = "concatenation"
 
     def forward(self, x: Tensor) -> Tensor:
         return self._forward(x)[0]
@@ -489,6 +497,7 @@ class ConvModule3d(ConvModuleBase):
 
         self.debug_show_dim = debug_show_dim
         self.use_skip = False
+        self.aggregation = "concatenation"
 
     def forward(self, x: Tensor) -> Tensor:
         return self._forward(x)[0]

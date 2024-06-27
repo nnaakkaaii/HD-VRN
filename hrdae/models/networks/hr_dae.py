@@ -32,12 +32,12 @@ from .r_dae import RDAE2dOption, RDAE3dOption
 
 @dataclass
 class HRDAE2dOption(RDAE2dOption):
-    pass
+    connection_aggregation: str = "concatenation"
 
 
 @dataclass
 class HRDAE3dOption(RDAE3dOption):
-    pass
+    connection_aggregation: str = "concatenation"
 
 
 def create_hrdae2d(out_channels: int, opt: HRDAE2dOption) -> nn.Module:
@@ -54,6 +54,7 @@ def create_hrdae2d(out_channels: int, opt: HRDAE2dOption) -> nn.Module:
             motion_encoder,
             opt.activation,
             opt.aggregator,
+            opt.connection_aggregation,
             opt.debug_show_dim,
         )
     return HRDAE2d(
@@ -65,6 +66,7 @@ def create_hrdae2d(out_channels: int, opt: HRDAE2dOption) -> nn.Module:
         motion_encoder,
         opt.activation,
         opt.aggregator,
+        opt.connection_aggregation,
         opt.debug_show_dim,
     )
 
@@ -167,6 +169,7 @@ class HierarchicalDecoder2d(nn.Module):
         hidden_channels: int,
         latent_dim: int,
         conv_params: list[dict[str, list[int]]],
+        aggregation: str,
         debug_show_dim: bool = False,
     ) -> None:
         super().__init__()
@@ -180,6 +183,7 @@ class HierarchicalDecoder2d(nn.Module):
             out_channels,
             hidden_channels,
             conv_params,
+            aggregation,
             debug_show_dim,
         )
         self.debug_show_dim = debug_show_dim
@@ -203,6 +207,7 @@ class HierarchicalDecoder3d(nn.Module):
         hidden_channels: int,
         latent_dim: int,
         conv_params: list[dict[str, list[int]]],
+        aggregation: str,
         debug_show_dim: bool = False,
     ) -> None:
         super().__init__()
@@ -216,6 +221,7 @@ class HierarchicalDecoder3d(nn.Module):
             out_channels,
             hidden_channels,
             conv_params,
+            aggregation,
             debug_show_dim,
         )
         self.debug_show_dim = debug_show_dim
@@ -243,6 +249,7 @@ class HRDAE2d(nn.Module):
         motion_encoder: MotionEncoder1d,
         activation: str,
         aggregator: str,
+        connection_aggregation: str,
         debug_show_dim: bool = False,
     ) -> None:
         super().__init__()
@@ -263,6 +270,7 @@ class HRDAE2d(nn.Module):
             dec_hidden_channels,
             2 * latent_dim if aggregator == "concatenation" else latent_dim,
             conv_params[::-1],
+            connection_aggregation,
             debug_show_dim,
         )
         self.aggregator = create_aggregator2d(aggregator, latent_dim, latent_dim)
@@ -342,6 +350,7 @@ class HRDAE3d(nn.Module):
         motion_encoder: MotionEncoder2d,
         activation: str,
         aggregator: str,
+        connection_aggregation: str,
         debug_show_dim: bool = False,
     ) -> None:
         super().__init__()
@@ -362,6 +371,7 @@ class HRDAE3d(nn.Module):
             dec_hidden_channels,
             2 * latent_dim if aggregator == "concatenation" else latent_dim,
             conv_params[::-1],
+            connection_aggregation,
             debug_show_dim,
         )
         self.aggregator = create_aggregator2d(aggregator, latent_dim, latent_dim)

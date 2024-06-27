@@ -18,6 +18,7 @@ class HierarchicalConvDecoder1d(ConvModuleBase):
         out_channels: int,
         latent_dim: int,
         conv_params: list[dict[str, list[int]]],
+        aggregation: str,
         debug_show_dim: bool = False,
     ) -> None:
         super().__init__()
@@ -58,6 +59,7 @@ class HierarchicalConvDecoder1d(ConvModuleBase):
 
         self.debug_show_dim = debug_show_dim
         self.use_skip = True
+        self.aggregation = aggregation
 
     def forward(self, x: Tensor, hs: list[Tensor]) -> Tensor:
         return self._forward(x, hs)[0]
@@ -70,6 +72,7 @@ class HierarchicalConvDecoder2d(ConvModuleBase):
         out_channels: int,
         latent_dim: int,
         conv_params: list[dict[str, list[int]]],
+        aggregation: str,
         debug_show_dim: bool = False,
     ) -> None:
         super().__init__()
@@ -110,6 +113,7 @@ class HierarchicalConvDecoder2d(ConvModuleBase):
 
         self.debug_show_dim = debug_show_dim
         self.use_skip = True
+        self.aggregation = aggregation
 
     def forward(self, x: Tensor, hs: list[Tensor]) -> Tensor:
         return self._forward(x, hs)[0]
@@ -122,6 +126,7 @@ class HierarchicalConvDecoder3d(ConvModuleBase):
         out_channels: int,
         latent_dim: int,
         conv_params: list[dict[str, list[int]]],
+        aggregation: str,
         debug_show_dim: bool = False,
     ) -> None:
         super().__init__()
@@ -162,6 +167,7 @@ class HierarchicalConvDecoder3d(ConvModuleBase):
 
         self.debug_show_dim = debug_show_dim
         self.use_skip = True
+        self.aggregation = aggregation
 
     def forward(self, x: Tensor, hs: list[Tensor]) -> Tensor:
         return self._forward(x, hs)[0]
