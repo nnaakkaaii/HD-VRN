@@ -15,8 +15,10 @@ def main(cfg: DictConfig):
         opt.experiment.result_dir
         / opt.experiment.dataloader.__class__.__name__
         / opt.experiment.model.__class__.__name__
-        / datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     )
+    if hasattr(opt.experiment.model, "network"):
+        opt.experiment.result_dir /= opt.experiment.model.network.__class__.__name__
+    opt.experiment.result_dir /= datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     save_options(opt, opt.experiment.result_dir)
     if (
         isinstance(opt.experiment, TrainExpOption)

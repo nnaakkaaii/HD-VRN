@@ -69,7 +69,7 @@ def save_reconstructed_images(
         )
     elif len(original.shape) == 5:
         b, _, _, _, _ = original.shape
-        for bi in range(0, b, 5):
+        for bi in range(b):
             _save_images(
                 original[bi],  # (t, 1, h, w)
                 reconstructed[bi],  # (t, 1, h, w)
@@ -78,7 +78,7 @@ def save_reconstructed_images(
             )
     elif len(original.shape) == 6:
         b, _, _, d, h, w = original.shape
-        for bi in range(0, b, 5):
+        for bi in range(b):
             _save_images(
                 original[bi, :, :, :, :, w // 2],  # (t, 1, d, h)
                 reconstructed[bi, :, :, :, :, w // 2],  # (t, 1, d, h)
