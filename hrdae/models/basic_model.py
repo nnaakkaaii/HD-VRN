@@ -1,3 +1,4 @@
+import json
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -45,6 +46,7 @@ class BasicModel(Model):
         if torch.cuda.is_available():
             print("GPU is enabled")
             self.device = torch.device("cuda:0")
+            self.network = nn.DataParallel(network).to(self.device)
         else:
             print("GPU is not enabled")
             self.device = torch.device("cpu")
@@ -64,6 +66,7 @@ class BasicModel(Model):
         self.network.to(self.device)
 
         least_val_loss = float("inf")
+        training_history: dict[str, list[dict[str, int | float]]] = {"history": []}
 
         for epoch in range(n_epoch):
             self.network.train()
@@ -143,6 +146,17 @@ class BasicModel(Model):
                         "best",
                     )
 
+            training_history["history"].append(
+                {
+                    "epoch": int(epoch + 1),
+                    "train_loss": float(running_loss),
+                    "val_loss": float(avg_val_loss),
+                }
+            )
+
+            with open(result_dir / "training_history.json", "w") as f:
+                json.dump(training_history, f)
+
             if epoch % 10 == 0:
                 data = next(iter(val_loader))
 
@@ -168,6 +182,9 @@ class BasicModel(Model):
                     result_dir / "weights",
                     f"epoch_{epoch}",
                 )
+
+        with open(result_dir / "training_history.json", "w") as f:
+            json.dump(training_history, f)
 
         return least_val_loss
 

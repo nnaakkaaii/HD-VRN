@@ -80,8 +80,7 @@ def test_hierarchical_decoder2d():
     hidden = 16
     latent = 4
 
-    m = randn((b * n, latent, h // 4, w // 4))
-    c = randn((b * n, latent, h // 4, w // 4))
+    x = randn((b * n, latent, h // 4, w // 4))
     cs = [
         randn((b * n, hidden, h // 4, w // 4)),
         randn((b * n, hidden, h // 2, w // 2)),
@@ -99,10 +98,9 @@ def test_hierarchical_decoder2d():
             }
         ]
         * 2,
-        aggregator="addition",
         debug_show_dim=False,
     )
-    x = net(m, c, cs)
+    x = net(x, cs)
     assert x.size() == (b * n, c_, h, w)
 
 
@@ -111,11 +109,10 @@ def test_hierarchical_decoder3d():
     hidden = 16
     latent = 4
 
-    m = randn((b * n, latent, d, h, w))
-    c = randn((b * n, latent, h // 4, h // 4, w // 4))
+    x = randn((b * n, latent, d // 4, h // 4, w // 4))
     cs = [
-        randn((b * n, hidden, h // 4, h // 4, w // 4)),
-        randn((b * n, hidden, h // 2, h // 2, w // 2)),
+        randn((b * n, hidden, d // 4, h // 4, w // 4)),
+        randn((b * n, hidden, d // 2, h // 2, w // 2)),
     ]
     net = HierarchicalDecoder3d(
         c_,
@@ -130,10 +127,9 @@ def test_hierarchical_decoder3d():
             }
         ]
         * 2,
-        aggregator="addition",
         debug_show_dim=False,
     )
-    x = net(m, c, cs)
+    x = net(x, cs)
     assert x.size() == (b * n, c_, d, h, w)
 
 
