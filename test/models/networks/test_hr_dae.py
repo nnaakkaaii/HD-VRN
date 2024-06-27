@@ -98,6 +98,7 @@ def test_hierarchical_decoder2d():
             }
         ]
         * 2,
+        aggregation="concatenation",
         debug_show_dim=False,
     )
     x = net(x, cs)
@@ -127,6 +128,7 @@ def test_hierarchical_decoder3d():
             }
         ]
         * 2,
+        aggregation="concatenation",
         debug_show_dim=False,
     )
     x = net(x, cs)

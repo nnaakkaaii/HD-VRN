@@ -85,6 +85,7 @@ def create_hrdae3d(out_channels: int, opt: HRDAE3dOption) -> nn.Module:
             motion_encoder,
             opt.activation,
             opt.aggregator,
+            opt.connection_aggregation,
             opt.debug_show_dim,
         )
     return HRDAE3d(
@@ -96,6 +97,7 @@ def create_hrdae3d(out_channels: int, opt: HRDAE3dOption) -> nn.Module:
         motion_encoder,
         opt.activation,
         opt.aggregator,
+        opt.connection_aggregation,
         opt.debug_show_dim,
     )
 
