@@ -30,13 +30,17 @@ class MStdLoss(nn.Module):
         feature = feature.view(b * t, -1)
         square_distances = torch.cdist(feature, feature, p=2)
 
-        labels = 1 - torch.eye(b*t).to(input.device)
+        labels = 1 - torch.eye(b * t).to(input.device)
         for i in range(b):
-            labels[i*t:(i+1)*t, i*t:(i+1)*t] = 0
+            labels[i * t : (i + 1) * t, i * t : (i + 1) * t] = 0
 
         positive_loss = (1 - labels) * 0.5 * torch.pow(square_distances, 2)
-        negative_loss = labels * 0.5 * torch.pow(torch.clamp(self.margin - square_distances, min=0.0), 2)
-        
+        negative_loss = (
+            labels
+            * 0.5
+            * torch.pow(torch.clamp(self.margin - square_distances, min=0.0), 2)
+        )
+
         loss = torch.sum(positive_loss + negative_loss) / (b * t * (b * t - 1))
-        
+
         return loss

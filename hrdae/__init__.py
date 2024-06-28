@@ -19,13 +19,13 @@ from .dataloaders.transforms import (
 from .models import BasicModelOption, GANModelOption, PVRModelOption, VRModelOption
 from .models.losses import (
     BCEWithLogitsLossOption,
+    ContrastiveLossOption,
     MSELossOption,
     MStdLossOption,
     PJC2dLossOption,
     PJC3dLossOption,
     TemporalSimilarityLossOption,
     WeightedMSELossOption,
-    ContrastiveLossOption,
 )
 from .models.networks import (
     AutoEncoder2dNetworkOption,

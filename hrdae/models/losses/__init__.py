@@ -42,10 +42,7 @@ def create_loss(opt: LossOption) -> nn.Module:
         return create_tsim_loss()
     if isinstance(opt, MStdLossOption) and type(opt) is MStdLossOption:
         return create_mstd_loss()
-    if (
-        isinstance(opt, ContrastiveLossOption)
-        and type(opt) is ContrastiveLossOption
-    ):
+    if isinstance(opt, ContrastiveLossOption) and type(opt) is ContrastiveLossOption:
         return create_contrastive_loss(opt)
     if isinstance(opt, MStdLossOption) and type(opt) is MStdLossOption:
         return create_mstd_loss()
