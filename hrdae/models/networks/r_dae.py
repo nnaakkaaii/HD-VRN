@@ -40,6 +40,18 @@ def create_rdae2d(out_channels: int, opt: RDAE2dOption) -> nn.Module:
     motion_encoder = create_motion_encoder1d(
         opt.latent_dim, opt.debug_show_dim, opt.motion_encoder
     )
+    if opt.cycle:
+        return CycleRDAE2d(
+            opt.in_channels,
+            out_channels,
+            opt.hidden_channels,
+            opt.latent_dim,
+            opt.conv_params,
+            motion_encoder,
+            opt.activation,
+            opt.aggregator,
+            opt.debug_show_dim,
+        )
     return RDAE2d(
         opt.in_channels,
         out_channels,
@@ -57,6 +69,18 @@ def create_rdae3d(out_channels: int, opt: RDAE3dOption) -> nn.Module:
     motion_encoder = create_motion_encoder2d(
         opt.latent_dim, opt.debug_show_dim, opt.motion_encoder
     )
+    if opt.cycle:
+        return CycleRDAE3d(
+            opt.in_channels,
+            out_channels,
+            opt.hidden_channels,
+            opt.latent_dim,
+            opt.conv_params,
+            motion_encoder,
+            opt.activation,
+            opt.aggregator,
+            opt.debug_show_dim,
+        )
     return RDAE3d(
         opt.in_channels,
         out_channels,
