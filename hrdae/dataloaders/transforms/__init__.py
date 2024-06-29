@@ -6,7 +6,12 @@ from torchvision import transforms
 from .normalization import MinMaxNormalization, MinMaxNormalizationOption
 from .option import TransformOption
 from .pool import Pool3dOption, create_pool3d
-from .random_shift import RandomShift3dOption, create_random_shift3d
+from .random_shift import (
+    RandomShift2dOption,
+    RandomShift3dOption,
+    create_random_shift2d,
+    create_random_shift3d,
+)
 from .typing import Transform
 from .uniform_shape import UniformShape3dOption, create_uniform_shape3d
 
@@ -46,6 +51,8 @@ def create_transform(opt: TransformOption) -> Transform:
         and type(opt) is MinMaxNormalizationOption
     ):
         return MinMaxNormalization()
+    if isinstance(opt, RandomShift2dOption) and type(opt) is RandomShift2dOption:
+        return create_random_shift2d(opt)
     if isinstance(opt, RandomShift3dOption) and type(opt) is RandomShift3dOption:
         return create_random_shift3d(opt)
     if isinstance(opt, UniformShape3dOption) and type(opt) is UniformShape3dOption:

@@ -12,6 +12,7 @@ from .dataloaders.transforms import (
     Normalize2dOption,
     Pad2dOption,
     Pool3dOption,
+    RandomShift2dOption,
     RandomShift3dOption,
     ToTensorOption,
     UniformShape3dOption,
@@ -101,6 +102,11 @@ cs.store(
     group="config/experiment/dataloader/transform",
     name="min_max_normalization",
     node=MinMaxNormalizationOption,
+)
+cs.store(
+    group="config/experiment/dataloader/transform",
+    name="random_shift2d",
+    node=RandomShift2dOption,
 )
 cs.store(
     group="config/experiment/dataloader/transform",
