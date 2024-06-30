@@ -18,6 +18,8 @@ def main(cfg: DictConfig):
     )
     if hasattr(opt.experiment.model, "network"):
         opt.experiment.result_dir /= opt.experiment.model.network.__class__.__name__
+    if hasattr(opt.experiment.model, "generator"):
+        opt.experiment.result_dir /= opt.experiment.model.generator.__class__.__name__
     opt.experiment.result_dir /= datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     save_options(opt, opt.experiment.result_dir)
     if (

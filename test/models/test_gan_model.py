@@ -1,21 +1,23 @@
 from tempfile import TemporaryDirectory
 from pathlib import Path
 
-from torch import rand, Tensor, nn
+from torch import rand, Tensor, nn, randint, cat, arange
 from torch.utils.data import Dataset
 from torch.optim import Adam
 from torch.optim.lr_scheduler import StepLR
 from torch.utils.data import DataLoader
 
 from hrdae.models.gan_model import GANModel
-from hrdae.models.losses import LossMixer, TemporalSimilarityLossOption, create_loss
+from hrdae.models.losses import LossMixer, MStdLossOption, MSELossOption, BCEWithLogitsLossOption, create_loss
 
 
 class FakeDataset(Dataset):
     def __getitem__(self, idx: int) -> dict[str, Tensor]:
         return {
-            "x": rand((10, 1, 16, 16)),
-            "t": rand((10, 1, 16, 16)),
+            "xm": rand((10, 3, 32)),
+            "xm_0": rand((2, 32)),
+            "xp": rand((10, 1, 32, 32)),
+            "xp_0": rand((2, 32, 32)),
         }
 
     def __len__(self) -> int:
@@ -23,17 +25,37 @@ class FakeDataset(Dataset):
 
 
 class FakeGenerator(nn.Module):
-    def __init__(self) -> None:
+    def __init__(
+            self,
+            num_slices: int,
+            content_phase: str = "all",
+            motion_phase: str = "0",
+            motion_aggregator: str = "concat",
+    ) -> None:
         super().__init__()
 
-        self.conv = nn.Sequential(
-            nn.Conv2d(1, 4, 3, 2, 1),
+        m = num_slices
+        if motion_aggregator == "concat":
+            if motion_phase in ["0", "t"]:
+                m *= 2
+            elif motion_phase == "all":
+                m *= 3
+        self.conv1d = nn.Sequential(
+            nn.Conv1d(m, 4, 3, 2, 1),
+            nn.ReLU(),
+            nn.Conv1d(4, 4, 3, 2, 1),
+            nn.ReLU(),
+            nn.Conv1d(4, 4, 3, 2, 1),
+        )
+        c = 2 if content_phase == "all" else 1
+        self.conv2d = nn.Sequential(
+            nn.Conv2d(c, 4, 3, 2, 1),
             nn.ReLU(),
             nn.Conv2d(4, 4, 3, 2, 1),
             nn.ReLU(),
             nn.Conv2d(4, 4, 3, 2, 1),
         )
-        self.deconv = nn.Sequential(
+        self.deconv2d = nn.Sequential(
             nn.ConvTranspose2d(4, 4, 3, 2, 1, 1),
             nn.ReLU(),
             nn.ConvTranspose2d(4, 4, 3, 2, 1, 1),
@@ -42,9 +64,35 @@ class FakeGenerator(nn.Module):
             nn.Sigmoid(),
         )
 
-    def forward(self, x: Tensor) -> tuple[Tensor, Tensor]:
-        latent = self.conv(x)
-        return self.deconv(latent), latent
+    def forward(
+            self,
+            xm: Tensor,
+            xp_0: Tensor,
+            xm_0: Tensor,
+    ) -> tuple[Tensor, list[Tensor]]:
+        c = 4
+        b, n, s, h = xm.size()
+        _, _, _, w = xp_0.size()
+        # xm (40, 1, 32)
+        xm = xm.reshape(b * n, s, h)
+        # ym (40, 4, 4)
+        ym = self.conv1d(xm)
+        # ym (4, 10, 4, 4, 1)
+        ym = ym.reshape(b, n, c, h // 8, 1)
+
+        # yp_0 (4, 4, 4, 4)
+        yp_0 = self.conv2d(xp_0)
+        # yp_0 (4, 1, 4, 4, 4)
+        yp_0 = yp_0.reshape(b, 1, c, h // 8, w // 8)
+
+        # y (4, 10, 4, 4, 4)
+        y = ym + yp_0
+        # y (40, 4, 4, 4)
+        y = y.reshape(b * n, c, h // 8, w // 8)
+
+        # x (40, 1, 32, 32)
+        x = self.deconv2d(y)
+        return x.reshape(b, n, 1, h, w), [ym]
 
 
 class FakeDiscriminator(nn.Module):
@@ -52,36 +100,45 @@ class FakeDiscriminator(nn.Module):
         super().__init__()
 
         self.conv = nn.Sequential(
-            nn.Conv2d(1, 4, 3, 2, 1),
+            nn.Conv2d(2, 4, 3, 2, 1),
             nn.ReLU(),
             nn.Conv2d(4, 4, 3, 2, 1),
             nn.ReLU(),
             nn.Conv2d(4, 4, 3, 2, 1),
         )
 
-    def forward(self, x: Tensor) -> Tensor:
+    def forward(self, y: Tensor, xp: Tensor) -> Tensor:
+        # それぞれから任意の2フレームを選択
+        b, n = y.size()[:2]
+        idx_y = randint(0, 10, (b,))
+        idx_xp = randint(0, 10, (b,))
+        x = cat([
+            y[arange(b), idx_y],
+            xp[arange(b), idx_xp],
+        ], dim=1)
         return self.conv(x).mean(2).mean(2)
 
 
 def test_basic_model():
 
-    generator = FakeGenerator()
+    generator = FakeGenerator(1, "all", "all", "concat")
     discriminator = FakeDiscriminator()
     optimizer_g = Adam(generator.parameters())
     optimizer_d = Adam(discriminator.parameters())
     scheduler_g = StepLR(optimizer_g, step_size=1)
     scheduler_d = StepLR(optimizer_d, step_size=1)
-    criterion_g = LossMixer(
+    criterion = LossMixer(
         {
-            "bce": nn.BCEWithLogitsLoss(),
-            "tsim": create_loss(TemporalSimilarityLossOption()),
+            "mse": create_loss(MSELossOption()),
+            "mstd": create_loss(MStdLossOption()),
         },
-        {"bce": 0.5, "tsim": 0.5},
+        {
+            "mse": 0.5,
+            "mstd": 0.5,
+        }
     )
-    criterion_d = LossMixer(
-        {"bce": nn.BCEWithLogitsLoss()},
-        {"bce": 1},
-    )
+    criterion_g = create_loss(BCEWithLogitsLossOption())
+    criterion_d = create_loss(BCEWithLogitsLossOption())
     dataloader = DataLoader(FakeDataset(), batch_size=4)
 
     model = GANModel(
@@ -91,6 +148,7 @@ def test_basic_model():
         optimizer_d,
         scheduler_g,
         scheduler_d,
+        criterion,
         criterion_g,
         criterion_d,
         serialize=True,

@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 
-from torch import Tensor, nn
+from torch import Tensor, arange, cat, nn, randint
 
 from .modules import ConvModule2d, ConvModule3d, PixelWiseConv2d, PixelWiseConv3d
 from .option import NetworkOption
@@ -52,9 +52,18 @@ class Discriminator2d(nn.Module):
             act_norm=False,
         )
 
-    def forward(self, x: Tensor) -> Tensor:
-        y = self.cnn(x)
-        z = self.bottleneck(y)
+    def forward(self, y: Tensor, xp: Tensor) -> Tensor:
+        b, n = y.size()[:2]
+        idx_y = randint(0, n, (b,))
+        idx_xp = randint(0, n, (b,))
+        x = cat(
+            [
+                y[arange(b), idx_y],
+                xp[arange(b), idx_xp],
+            ],
+            dim=1,
+        )
+        z = self.bottleneck(self.cnn(x))
         return z.mean(2).mean(2)
 
 
@@ -104,7 +113,16 @@ class Discriminator3d(nn.Module):
             act_norm=False,
         )
 
-    def forward(self, x: Tensor) -> Tensor:
-        y = self.cnn(x)
-        z = self.bottleneck(y)
+    def forward(self, y: Tensor, xp: Tensor) -> Tensor:
+        b, n = y.size()[:2]
+        idx_y = randint(0, n, (b,))
+        idx_xp = randint(0, n, (b,))
+        x = cat(
+            [
+                y[arange(b), idx_y],
+                xp[arange(b), idx_xp],
+            ],
+            dim=1,
+        )
+        z = self.bottleneck(self.cnn(x))
         return z.mean(2).mean(2).mean(2)
