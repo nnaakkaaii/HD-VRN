@@ -44,20 +44,20 @@ class RandomShift2d:
         if dx != 0:
             if dx > 0:
                 x = pad(x, (dx, 0, 0, 0), value=min_val)
-                x = x[:, :, dx:]
+                x = x[:, :, :, dx:]
             else:
                 x = pad(x, (0, -dx, 0, 0), value=min_val)
-                x = x[:, :, :dx]
+                x = x[:, :, :, :dx]
 
         # H dimension (dy)
         dy = randint(-self.dy, self.dy)
         if dy != 0:
             if dy > 0:
                 x = pad(x, (0, 0, dy, 0), value=min_val)
-                x = x[:, dy:, :]
+                x = x[:, :, dy:, :]
             else:
                 x = pad(x, (0, 0, 0, -dy), value=min_val)
-                x = x[:, :dy, :]
+                x = x[:, :, :dy, :]
 
         return x
 
