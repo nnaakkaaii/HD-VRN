@@ -109,7 +109,7 @@ class GANModel(Model):
                 loss_g_basic = self.criterion(y, xp, latent=latent)
                 loss_g_adv = self.criterion_g(y_pred, torch.ones_like(y_pred))
 
-                loss_g = loss_g_basic + 0.01 * loss_g_adv
+                loss_g = loss_g_basic + 0.001 * loss_g_adv
                 loss_g.backward()
                 self.optimizer_g.step()
 
