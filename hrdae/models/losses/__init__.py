@@ -9,6 +9,7 @@ from .option import LossOption
 from .pjc import PJC2dLossOption, PJC3dLossOption, create_pjc2d_loss, create_pjc3d_loss
 from .t_sim import TemporalSimilarityLossOption, create_tsim_loss
 from .weighted_mse import WeightedMSELossOption, create_weighted_mse_loss
+from .perceptual import PerceptualLossOption, create_perceptual_loss
 
 
 @dataclass
@@ -46,6 +47,8 @@ def create_loss(opt: LossOption) -> nn.Module:
         return create_contrastive_loss(opt)
     if isinstance(opt, MStdLossOption) and type(opt) is MStdLossOption:
         return create_mstd_loss()
+    if isinstance(opt, PerceptualLossOption) and type(opt) is PerceptualLossOption:
+        return create_perceptual_loss(opt)
     raise NotImplementedError(f"{opt.__class__.__name__} is not implemented")
 
 

@@ -6,6 +6,8 @@ from torch import Tensor, nn
 from .modules import (
     ConvModule2d,
     ConvModule3d,
+    HierarchicalConvEncoder2d,
+    HierarchicalConvEncoder3d,
     IdenticalConvBlockConvParams,
     PixelWiseConv2d,
     PixelWiseConv3d,
@@ -50,12 +52,11 @@ class Encoder2d(nn.Module):
     ) -> None:
         super().__init__()
 
-        self.cnn = ConvModule2d(
+        self.cnn = HierarchicalConvEncoder2d(
             in_channels,
             hidden_channels,
             hidden_channels,
             conv_params,
-            transpose=False,
             act_norm=True,
             debug_show_dim=debug_show_dim,
         )
@@ -66,8 +67,8 @@ class Encoder2d(nn.Module):
         )
         self.debug_show_dim = debug_show_dim
 
-    def forward(self, x: Tensor) -> Tensor:
-        y = self.cnn(x)
+    def forward(self, x: Tensor) -> tuple[Tensor, list[Tensor]]:
+        y, latent = self.cnn(x)
         z = self.bottleneck(y)
 
         if self.debug_show_dim:
@@ -75,7 +76,7 @@ class Encoder2d(nn.Module):
             print("Output", y.size())
             print("Latent", z.size())
 
-        return z
+        return z, latent
 
 
 class Decoder2d(nn.Module):
@@ -198,12 +199,11 @@ class Encoder3d(nn.Module):
     ) -> None:
         super().__init__()
 
-        self.cnn = ConvModule3d(
+        self.cnn = HierarchicalConvEncoder3d(
             in_channels,
             hidden_channels,
             hidden_channels,
             conv_params,
-            transpose=False,
             act_norm=True,
             debug_show_dim=debug_show_dim,
         )
@@ -214,8 +214,8 @@ class Encoder3d(nn.Module):
         )
         self.debug_show_dim = debug_show_dim
 
-    def forward(self, x: Tensor) -> Tensor:
-        y = self.cnn(x)
+    def forward(self, x: Tensor) -> tuple[Tensor, list[Tensor]]:
+        y, latent = self.cnn(x)
         z = self.bottleneck(y)
 
         if self.debug_show_dim:
@@ -223,7 +223,7 @@ class Encoder3d(nn.Module):
             print("Output", y.size())
             print("Latent", z.size())
 
-        return z
+        return z, latent
 
 
 class Decoder3d(nn.Module):
