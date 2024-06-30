@@ -77,7 +77,6 @@ class GANModel(Model):
         max_iter = None
         if debug:
             max_iter = 5
-        clamp_adversarial_loss = True
 
         least_val_loss_g = float("inf")
         training_history: dict[str, list[dict[str, int | float]]] = {"history": []}
@@ -110,12 +109,7 @@ class GANModel(Model):
                 loss_g_basic = self.criterion(y, xp, latent=latent)
                 loss_g_adv = self.criterion_g(y_pred, torch.ones_like(y_pred))
 
-                if clamp_adversarial_loss:
-                    loss_g = loss_g_basic + torch.clamp(
-                        loss_g_adv, max=loss_g_basic.item()
-                    )
-                else:
-                    loss_g = loss_g_basic + loss_g_adv
+                loss_g = loss_g_basic + 0.01 * loss_g_adv
                 loss_g.backward()
                 self.optimizer_g.step()
 
