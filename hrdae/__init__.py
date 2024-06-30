@@ -23,11 +23,11 @@ from .models.losses import (
     ContrastiveLossOption,
     MSELossOption,
     MStdLossOption,
+    Perceptual2dLossOption,
     PJC2dLossOption,
     PJC3dLossOption,
     TemporalSimilarityLossOption,
     WeightedMSELossOption,
-    PerceptualLossOption,
 )
 from .models.networks import (
     AutoEncoder2dNetworkOption,
@@ -154,8 +154,8 @@ cs.store(
 )
 cs.store(
     group="config/experiment/model/loss",
-    name="perceptual",
-    node=PerceptualLossOption,
+    name="perceptual2d",
+    node=Perceptual2dLossOption,
 )
 cs.store(
     group="config/experiment/model/network",

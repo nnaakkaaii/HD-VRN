@@ -1,8 +1,12 @@
 from torch import nn
 
 from .autoencoder import (
+    AEEncoder2dNetworkOption,
+    AEEncoder3dNetworkOption,
     AutoEncoder2dNetworkOption,
     AutoEncoder3dNetworkOption,
+    create_ae_encoder2d,
+    create_ae_encoder3d,
     create_autoencoder2d,
     create_autoencoder3d,
 )
@@ -23,6 +27,16 @@ def create_network(out_channels: int, opt: NetworkOption) -> nn.Module:
         return create_discriminator2d(out_channels, opt)
     if isinstance(opt, Discriminator3dOption) and type(opt) is Discriminator3dOption:
         return create_discriminator3d(out_channels, opt)
+    if (
+        isinstance(opt, AEEncoder2dNetworkOption)
+        and type(opt) is AEEncoder2dNetworkOption
+    ):
+        return create_ae_encoder2d(opt)
+    if (
+        isinstance(opt, AEEncoder3dNetworkOption)
+        and type(opt) is AEEncoder3dNetworkOption
+    ):
+        return create_ae_encoder3d(opt)
     if (
         isinstance(opt, AutoEncoder2dNetworkOption)
         and type(opt) is AutoEncoder2dNetworkOption
@@ -51,6 +65,8 @@ def create_network(out_channels: int, opt: NetworkOption) -> nn.Module:
 __all__ = [
     "Discriminator2dOption",
     "Discriminator3dOption",
+    "AEEncoder2dNetworkOption",
+    "AEEncoder3dNetworkOption",
     "AutoEncoder2dNetworkOption",
     "AutoEncoder3dNetworkOption",
     "HRDAE2dOption",

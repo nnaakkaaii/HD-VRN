@@ -5,7 +5,7 @@ from dataclasses import dataclass
 
 from torch import Tensor, nn
 
-from .autoencoder import Decoder2d, Decoder3d, Encoder2d, Encoder3d
+from .autoencoder import AEDecoder2d, AEDecoder3d, AEEncoder2d, AEEncoder3d
 from .functions import upsample_motion_tensor
 from .modules import (
     IdenticalConvBlockConvParams,
@@ -109,7 +109,7 @@ class RDAE2d(nn.Module):
     ) -> None:
         super().__init__()
 
-        self.content_encoder = Encoder2d(
+        self.content_encoder = AEEncoder2d(
             in_channels,
             hidden_channels,
             latent_dim,
@@ -117,7 +117,7 @@ class RDAE2d(nn.Module):
             debug_show_dim,
         )
         self.motion_encoder = motion_encoder
-        self.decoder = Decoder2d(
+        self.decoder = AEDecoder2d(
             out_channels,
             hidden_channels,
             2 * latent_dim if aggregator == "concatenation" else latent_dim,
@@ -133,7 +133,7 @@ class RDAE2d(nn.Module):
         x_2d_0: Tensor,
         x_1d_0: Tensor | None = None,
     ) -> tuple[Tensor, list[Tensor]]:
-        c = self.content_encoder(x_2d_0)
+        c, _ = self.content_encoder(x_2d_0)
         m = self.motion_encoder(x_1d, x_1d_0)
         b, t, c_, h_, w = m.size()
         m = m.reshape(b * t, c_, h_, w)
@@ -158,7 +158,7 @@ class CycleRDAE2d(RDAE2d):
         y, cs = super().forward(x_1d, x_2d_0, x_1d_0)
         b, t, c, h, w = y.size()
         y_seq = y.reshape(b * t, c, h, w)
-        d = self.content_encoder(y_seq)
+        d, _ = self.content_encoder(y_seq)
         assert len(cs) == 1
         assert d.size(0) == b * t
         d = d.reshape(b, t, *d.size()[1:]) - cs[0].unsqueeze(1)
@@ -179,7 +179,7 @@ class RDAE3d(nn.Module):
         debug_show_dim: bool = False,
     ) -> None:
         super().__init__()
-        self.content_encoder = Encoder3d(
+        self.content_encoder = AEEncoder3d(
             in_channels,
             hidden_channels,
             latent_dim,
@@ -187,7 +187,7 @@ class RDAE3d(nn.Module):
             debug_show_dim,
         )
         self.motion_encoder = motion_encoder
-        self.decoder = Decoder3d(
+        self.decoder = AEDecoder3d(
             out_channels,
             hidden_channels,
             2 * latent_dim if aggregator == "concatenation" else latent_dim,
@@ -203,7 +203,7 @@ class RDAE3d(nn.Module):
         x_3d_0: Tensor,
         x_2d_0: Tensor | None = None,
     ) -> tuple[Tensor, list[Tensor]]:
-        c = self.content_encoder(x_3d_0)
+        c, _ = self.content_encoder(x_3d_0)
         m = self.motion_encoder(x_2d, x_2d_0)
         b, t, c_, d, h_, w = m.size()
         m = m.reshape(b * t, c_, d, h_, w)
@@ -228,7 +228,7 @@ class CycleRDAE3d(RDAE3d):
         y, cs = super().forward(x_2d, x_3d_0, x_2d_0)
         b, t, c, d_, h, w = y.size()
         y_seq = y.reshape(b * t, c, d_, h, w)
-        d = self.content_encoder(y_seq)
+        d, _ = self.content_encoder(y_seq)
         assert len(cs) == 1
         assert d.size(0) == b * t
         d = d.reshape(b, t, *d.size()[1:]) - cs[0].unsqueeze(1)

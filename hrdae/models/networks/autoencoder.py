@@ -1,6 +1,7 @@
 import sys
 from dataclasses import dataclass, field
 
+from omegaconf import MISSING
 from torch import Tensor, nn
 
 from .modules import (
@@ -41,7 +42,25 @@ def create_autoencoder2d(
     )
 
 
-class Encoder2d(nn.Module):
+@dataclass
+class AEEncoder2dNetworkOption(NetworkOption):
+    in_channels: int = MISSING
+    hidden_channels: int = MISSING
+    latent_dim: int = MISSING
+    conv_params: list[dict[str, list[int]]] = MISSING
+
+
+def create_ae_encoder2d(opt: AEEncoder2dNetworkOption) -> nn.Module:
+    return AEEncoder2d(
+        opt.in_channels,
+        opt.hidden_channels,
+        opt.latent_dim,
+        opt.conv_params,
+        debug_show_dim=False,
+    )
+
+
+class AEEncoder2d(nn.Module):
     def __init__(
         self,
         in_channels: int,
@@ -79,7 +98,7 @@ class Encoder2d(nn.Module):
         return z, latent
 
 
-class Decoder2d(nn.Module):
+class AEDecoder2d(nn.Module):
     def __init__(
         self,
         out_channels: int,
@@ -130,14 +149,14 @@ class AutoEncoder2d(nn.Module):
     ) -> None:
         super().__init__()
 
-        self.encoder = Encoder2d(
+        self.encoder = AEEncoder2d(
             in_channels,
             hidden_channels,
             latent_dim,
             conv_params + [IdenticalConvBlockConvParams],
             debug_show_dim=debug_show_dim,
         )
-        self.decoder = Decoder2d(
+        self.decoder = AEDecoder2d(
             in_channels,
             hidden_channels,
             latent_dim,
@@ -149,7 +168,7 @@ class AutoEncoder2d(nn.Module):
         self.debug_show_dim = debug_show_dim
 
     def forward(self, x: Tensor) -> tuple[Tensor, Tensor]:
-        z = self.encoder(x)
+        z, _ = self.encoder(x)
         y = self.decoder(z)
         if self.activation is not None:
             y = self.activation(y)
@@ -188,7 +207,25 @@ def create_autoencoder3d(
     )
 
 
-class Encoder3d(nn.Module):
+@dataclass
+class AEEncoder3dNetworkOption(NetworkOption):
+    in_channels: int = MISSING
+    hidden_channels: int = MISSING
+    latent_dim: int = MISSING
+    conv_params: list[dict[str, list[int]]] = MISSING
+
+
+def create_ae_encoder3d(opt: AEEncoder3dNetworkOption) -> nn.Module:
+    return AEEncoder3d(
+        opt.in_channels,
+        opt.hidden_channels,
+        opt.latent_dim,
+        opt.conv_params,
+        debug_show_dim=False,
+    )
+
+
+class AEEncoder3d(nn.Module):
     def __init__(
         self,
         in_channels: int,
@@ -226,7 +263,7 @@ class Encoder3d(nn.Module):
         return z, latent
 
 
-class Decoder3d(nn.Module):
+class AEDecoder3d(nn.Module):
     def __init__(
         self,
         out_channels: int,
@@ -277,14 +314,14 @@ class AutoEncoder3d(nn.Module):
     ) -> None:
         super().__init__()
 
-        self.encoder = Encoder3d(
+        self.encoder = AEEncoder3d(
             in_channels,
             hidden_channels,
             latent_dim,
             conv_params + [IdenticalConvBlockConvParams],
             debug_show_dim=debug_show_dim,
         )
-        self.decoder = Decoder3d(
+        self.decoder = AEDecoder3d(
             in_channels,
             hidden_channels,
             latent_dim,
@@ -296,7 +333,7 @@ class AutoEncoder3d(nn.Module):
         self.debug_show_dim = debug_show_dim
 
     def forward(self, x: Tensor) -> tuple[Tensor, Tensor]:
-        z = self.encoder(x)
+        z, _ = self.encoder(x)
         y = self.decoder(z)
         if self.activation is not None:
             y = self.activation(y)

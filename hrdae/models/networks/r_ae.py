@@ -7,7 +7,7 @@ from omegaconf import MISSING
 from torch import Tensor, nn
 from torch.nn.functional import interpolate
 
-from .autoencoder import Decoder2d, Decoder3d
+from .autoencoder import AEDecoder2d, AEDecoder3d
 from .modules import create_activation
 from .motion_encoder import (
     MotionEncoder1d,
@@ -92,7 +92,7 @@ class RAE2d(nn.Module):
     ) -> None:
         super().__init__()
         self.motion_encoder = motion_encoder
-        self.decoder = Decoder2d(
+        self.decoder = AEDecoder2d(
             out_channels,
             hidden_channels,
             latent_dim,
@@ -134,7 +134,7 @@ class RAE3d(nn.Module):
     ) -> None:
         super().__init__()
         self.motion_encoder = motion_encoder
-        self.decoder = Decoder3d(
+        self.decoder = AEDecoder3d(
             out_channels,
             hidden_channels,
             latent_dim,

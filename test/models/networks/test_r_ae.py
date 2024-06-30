@@ -1,8 +1,8 @@
 from torch import randn
 
 from hrdae.models.networks.r_ae import (
-    Decoder2d,
-    Decoder3d,
+    AEDecoder2d,
+    AEDecoder3d,
     RAE2d,
     RAE3d,
 )
@@ -18,7 +18,7 @@ def test_decoder2d():
     latent = 4
 
     m = randn((b * n, latent, h // 4, w // 4))
-    net = Decoder2d(
+    net = AEDecoder2d(
         c_,
         hidden,
         latent,
@@ -43,7 +43,7 @@ def test_decoder3d():
     latent = 4
 
     m = randn((b * n, latent, d // 4, h // 4, w // 4))
-    net = Decoder3d(
+    net = AEDecoder3d(
         c_,
         hidden,
         latent,
