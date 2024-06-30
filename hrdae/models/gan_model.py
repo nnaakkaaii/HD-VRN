@@ -77,16 +77,21 @@ class GANModel(Model):
         max_iter = None
         if debug:
             max_iter = 5
+        clamp_adversarial_loss = True
 
-        least_val_g_loss = float("inf")
+        least_val_loss_g = float("inf")
         training_history: dict[str, list[dict[str, int | float]]] = {"history": []}
 
         for epoch in range(n_epoch):
             self.generator.train()
             self.discriminator.train()
 
-            running_g_loss = 0.0
-            running_d_loss = 0.0
+            running_loss_g = 0.0
+            running_loss_g_basic = 0.0
+            running_loss_g_adv = 0.0
+            running_loss_d_adv = 0.0
+            running_loss_d_adv_fake = 0.0
+            running_loss_d_adv_real = 0.0
 
             for idx, data in enumerate(train_loader):
                 if max_iter is not None and idx >= max_iter:
@@ -102,35 +107,53 @@ class GANModel(Model):
                 y, latent = self.generator(xm, xp_0, xm_0)
 
                 y_pred = self.discriminator(y, xp)
-                loss_g = self.criterion(y, xp, latent=latent) + self.criterion_g(
-                    y_pred, torch.ones_like(y_pred)
-                )
+                loss_g_basic = self.criterion(y, xp, latent=latent)
+                loss_g_adv = self.criterion_g(y_pred, torch.ones_like(y_pred))
+
+                if clamp_adversarial_loss:
+                    loss_g = loss_g_basic + torch.clamp(
+                        loss_g_adv, max=loss_g_basic.item()
+                    )
+                else:
+                    loss_g = loss_g_basic + loss_g_adv
                 loss_g.backward()
                 self.optimizer_g.step()
 
-                running_g_loss += loss_g.item()
+                running_loss_g_basic += loss_g_basic.item()
+                running_loss_g_adv += loss_g_adv.item()
+                running_loss_g += loss_g.item()
 
-                # train discriminator
                 self.optimizer_d.zero_grad()
                 xp_pred = self.discriminator(xp, xp)
-                loss_d = self.criterion_d(
-                    xp_pred, torch.ones_like(xp_pred)
-                ) + self.criterion_d(y_pred.detach(), torch.zeros_like(y_pred))
-                loss_d.backward()
+                y_pred = self.discriminator(y.detach(), xp)
+                loss_d_adv_real = self.criterion_d(xp_pred, torch.ones_like(xp_pred))
+                loss_d_adv_fake = self.criterion_d(y_pred, torch.zeros_like(y_pred))
+                loss_d_adv = loss_d_adv_real + loss_d_adv_fake
+                loss_d_adv.backward()
                 self.optimizer_d.step()
 
-                running_d_loss += loss_d.item()
+                running_loss_d_adv_real += loss_d_adv_real.item()
+                running_loss_d_adv_fake += loss_d_adv_fake.item()
+                running_loss_d_adv += loss_d_adv.item()
 
                 if idx % 100 == 0:
                     print(
                         f"Epoch: {epoch+1}, "
                         f"Batch: {idx}, "
-                        f"Loss D: {loss_d.item():.6f}, "
-                        f"Loss G: {loss_g.item():.6f}"
+                        f"Loss D Adv: {loss_d_adv.item():.6f}, "
+                        f"Loss D Adv (Fake): {loss_d_adv_fake.item():.6f}, "
+                        f"Loss D Adv (Real): {loss_d_adv_real.item():.6f}, "
+                        f"Loss G: {loss_g.item():.6f}, "
+                        f"Loss G Adv: {loss_g_adv.item():.6f}, "
+                        f"Loss G Basic: {loss_g_basic.item():.6f}, "
                     )
 
-            running_g_loss /= len(train_loader)
-            running_d_loss /= len(train_loader)
+            running_loss_g /= len(train_loader)
+            running_loss_g_basic /= len(train_loader)
+            running_loss_g_adv /= len(train_loader)
+            running_loss_d_adv /= len(train_loader)
+            running_loss_d_adv_real /= len(train_loader)
+            running_loss_d_adv_fake /= len(train_loader)
 
             self.scheduler_g.step()
             self.scheduler_d.step()
@@ -138,8 +161,12 @@ class GANModel(Model):
             self.generator.eval()
             self.discriminator.eval()
             with torch.no_grad():
-                total_val_g_loss = 0.0
-                total_val_d_loss = 0.0
+                total_val_loss_g = 0.0
+                total_val_loss_g_basic = 0.0
+                total_val_loss_g_adv = 0.0
+                total_val_loss_d_adv = 0.0
+                total_val_loss_d_adv_fake = 0.0
+                total_val_loss_d_adv_real = 0.0
                 xp = torch.tensor([0.0], device=self.device)
                 y = torch.tensor([0.0], device=self.device)
 
@@ -156,31 +183,49 @@ class GANModel(Model):
                     y_pred = self.discriminator(y, xp)
                     xp_pred = self.discriminator(xp, xp)
                     y = y.detach().clone()
-                    loss_g = self.criterion(y, xp, latent=latent) + self.criterion_g(
-                        y_pred, torch.ones_like(y_pred)
-                    )
-                    loss_d = self.criterion_d(
+                    loss_g_basic = self.criterion(y, xp, latent=latent)
+                    loss_g_adv = self.criterion_g(y_pred, torch.ones_like(y_pred))
+                    loss_g = loss_g_basic + loss_g_adv
+                    loss_d_adv_real = self.criterion_d(
                         xp_pred, torch.ones_like(xp_pred)
-                    ) + self.criterion_d(y_pred, torch.zeros_like(y_pred))
+                    )
+                    loss_d_adv_fake = self.criterion_d(y_pred, torch.zeros_like(y_pred))
+                    loss_d_adv = loss_d_adv_fake + loss_d_adv_real
 
-                    total_val_g_loss += loss_g.item()
-                    total_val_d_loss += loss_d.item()
+                    total_val_loss_g += loss_g.item()
+                    total_val_loss_g_basic += loss_g_basic.item()
+                    total_val_loss_g_adv += loss_g_adv.item()
+                    total_val_loss_d_adv += loss_d_adv.item()
+                    total_val_loss_d_adv_fake += loss_d_adv_fake.item()
+                    total_val_loss_d_adv_real += loss_d_adv_real.item()
 
-                total_val_g_loss /= len(val_loader)
-                total_val_d_loss /= len(val_loader)
+                total_val_loss_g /= len(val_loader)
+                total_val_loss_g_basic /= len(val_loader)
+                total_val_loss_g_adv /= len(val_loader)
+                total_val_loss_d_adv /= len(val_loader)
+                total_val_loss_d_adv_fake /= len(val_loader)
+                total_val_loss_d_adv_real /= len(val_loader)
 
                 print(
                     f"Epoch: {epoch+1} "
                     f"[train] "
-                    f"Loss D: {running_d_loss:.6f}, "
-                    f"Loss G: {running_g_loss:.6f} "
+                    f"Loss D Adv: {running_loss_d_adv:.6f}, "
+                    f"Loss D Adv (Fake): {running_loss_d_adv_fake:.6f}, "
+                    f"Loss D Adv (Real): {running_loss_d_adv_real:.6f}, "
+                    f"Loss G: {running_loss_g:.6f}, "
+                    f"Loss G Adv: {running_loss_g_adv:.6f}, "
+                    f"Loss G Basic: {running_loss_g_basic:.6f}, "
                     f"[val] "
-                    f"Loss D: {total_val_d_loss:.6f}, "
-                    f"Loss G: {total_val_g_loss:.6f}"
+                    f"Loss D Adv: {total_val_loss_d_adv:.6f}, "
+                    f"Loss D Adv (Fake): {total_val_loss_d_adv_fake:.6f}, "
+                    f"Loss D Adv (Real): {total_val_loss_d_adv_real:.6f}, "
+                    f"Loss G: {total_val_loss_g:.6f}, "
+                    f"Loss G Adv: {total_val_loss_g_adv:.6f}, "
+                    f"Loss G Basic: {total_val_loss_g_basic:.6f}, "
                 )
 
-                if total_val_g_loss < least_val_g_loss:
-                    least_val_g_loss = total_val_g_loss
+                if total_val_loss_g < least_val_loss_g:
+                    least_val_loss_g = total_val_loss_g
                     torch.save(
                         self.generator.state_dict(), result_dir / "generator.pth"
                     )
@@ -204,10 +249,18 @@ class GANModel(Model):
             training_history["history"].append(
                 {
                     "epoch": int(epoch + 1),
-                    "train_loss_g": float(running_g_loss),
-                    "train_loss_d": float(running_d_loss),
-                    "val_loss_g": float(total_val_g_loss),
-                    "val_loss_d": float(total_val_d_loss),
+                    "train_loss_g": float(running_loss_g),
+                    "train_loss_g_basic": float(running_loss_g_basic),
+                    "train_loss_g_adv": float(running_loss_g_adv),
+                    "train_loss_d_adv": float(running_loss_d_adv),
+                    "train_loss_d_adv_fake": float(running_loss_d_adv_fake),
+                    "train_loss_d_adv_real": float(running_loss_d_adv_real),
+                    "val_loss_g": float(total_val_loss_g),
+                    "val_loss_g_basic": float(total_val_loss_g_basic),
+                    "val_loss_g_adv": float(total_val_loss_g_adv),
+                    "val_loss_d_adv": float(total_val_loss_d_adv),
+                    "val_loss_d_adv_fake": float(total_val_loss_d_adv_fake),
+                    "val_loss_d_adv_real": float(total_val_loss_d_adv_real),
                 }
             )
 
@@ -237,7 +290,7 @@ class GANModel(Model):
         with open(result_dir / "training_history.json", "w") as f:
             json.dump(training_history, f)
 
-        return least_val_g_loss
+        return least_val_loss_g
 
 
 def _save_model(
@@ -247,16 +300,6 @@ def _save_model(
         generator = generator.module
     if isinstance(discriminator, nn.DataParallel):
         discriminator = discriminator.module
-    if hasattr(generator, "encoder"):
-        save_model(
-            generator.encoder,
-            save_dir / f"{name}_generator_encoder.pth",
-        )
-    if hasattr(generator, "decoder"):
-        save_model(
-            generator.encoder,
-            save_dir / f"{name}_generator_decoder.pth",
-        )
     save_model(
         generator,
         save_dir / f"{name}_generator.pth",
