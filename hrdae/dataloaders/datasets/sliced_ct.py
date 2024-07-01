@@ -20,7 +20,7 @@ class SlicedCTDatasetOption(DatasetOption):
     motion_phase: str = "0"
     motion_aggregation: str = "concat"
     slice_axis: str = "y"  # y or z
-    slice_num: int = MISSING
+    slice_range: list[int] = MISSING
 
 
 def create_sliced_ct_dataset(
@@ -32,6 +32,7 @@ def create_sliced_ct_dataset(
     return SlicedCT(
         root=opt.root,
         slice_indexer=slice_indexer,
+        slice_range=opt.slice_range,
         transform=transform,
         in_memory=opt.in_memory,
         is_train=is_train,
@@ -39,7 +40,6 @@ def create_sliced_ct_dataset(
         motion_phase=opt.motion_phase,
         motion_aggregation=opt.motion_aggregation,
         slice_axis=opt.slice_axis,
-        slice_num=opt.slice_num,
     )
 
 
@@ -51,6 +51,7 @@ class SlicedCT(CT):
         self,
         root: Path,
         slice_indexer: Callable[[Tensor], Tensor],
+        slice_range: list[int],
         transform: Transform | None = None,
         in_memory: bool = True,
         is_train: bool = True,
@@ -58,7 +59,6 @@ class SlicedCT(CT):
         motion_phase: str = "0",
         motion_aggregation: str = "concat",  # "concat" | "sum"
         slice_axis: str = "y",
-        slice_num: int = 0,
     ) -> None:
         super().__init__(
             root=root,
@@ -71,7 +71,9 @@ class SlicedCT(CT):
             motion_aggregation=motion_aggregation,
         )
         self.slice_axis = slice_axis
-        self.slice_num = slice_num
+        assert len(slice_range) == 2
+        self.slice_range = slice_range
+        self.slice_num = slice_range[1] - slice_range[0]
 
     def __len__(self) -> int:
         return len(self.paths) * self.slice_num
@@ -83,7 +85,7 @@ class SlicedCT(CT):
         assert "xp" in output  # (n, _, d, h, w)
         assert "xp_0" in output  # (_, d, h, w)
 
-        slice_index = index % self.slice_num
+        slice_index = index % self.slice_num + self.slice_range[0]
         if self.slice_axis == "y":
             # slice by h
             return {

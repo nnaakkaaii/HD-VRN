@@ -32,7 +32,7 @@ def test_SlicedCT():
             motion_phase="0",
             motion_aggregation="none",
             slice_axis="z",
-            slice_num=10,
+            slice_range=[2, 8],
         )
         transform = transforms.Compose(
             [
