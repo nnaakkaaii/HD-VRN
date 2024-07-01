@@ -53,5 +53,3 @@ def test_CT():
         assert data["xm_0"].shape == (1, 16, 16)
         assert data["xp"].shape == (10, 1, 16, 16, 16)
         assert data["xp_0"].shape == (2, 16, 16, 16)
-        assert data["slice_idx"].shape == (1,)
-        assert data["idx_expanded"].shape == (10, 1, 16, 16)

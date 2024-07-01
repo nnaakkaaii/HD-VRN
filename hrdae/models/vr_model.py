@@ -74,12 +74,16 @@ class VRModel(Model):
                 xm_0 = data["xm_0"].to(self.device)
                 xp = data["xp"].to(self.device)
                 xp_0 = data["xp_0"].to(self.device)
-                idx_expanded = data["idx_expanded"].to(self.device)
 
                 self.optimizer.zero_grad()
-                y, latent = self.network(xm, xp_0, xm_0)
+                y, latent, cycled_latent = self.network(xm, xp_0, xm_0)
 
-                loss = self.criterion(y, xp, idx_expanded=idx_expanded, latent=latent)
+                loss = self.criterion(
+                    y,
+                    xp,
+                    latent=latent,
+                    cycled_latent=cycled_latent,
+                )
                 loss.backward()
                 self.optimizer.step()
 
@@ -107,11 +111,13 @@ class VRModel(Model):
                     xm_0 = data["xm_0"].to(self.device)
                     xp = data["xp"].to(self.device)
                     xp_0 = data["xp_0"].to(self.device)
-                    idx_expanded = data["idx_expanded"].to(self.device)
-                    y, latent = self.network(xm, xp_0, xm_0)
+                    y, latent, cycled_latent = self.network(xm, xp_0, xm_0)
 
                     loss = self.criterion(
-                        y, xp, idx_expanded=idx_expanded, latent=latent
+                        y,
+                        xp,
+                        latent=latent,
+                        cycled_latent=cycled_latent,
                     )
                     total_val_loss += loss.item()
 
@@ -147,7 +153,7 @@ class VRModel(Model):
                 xp = data["xp"].to(self.device)
                 xp_0 = data["xp_0"].to(self.device)
 
-                y, _ = self.network(xm, xp_0, xm_0)
+                y, _, _ = self.network(xm, xp_0, xm_0)
 
                 save_reconstructed_images(
                     xp.data.cpu().clone().detach().numpy(),

@@ -177,11 +177,16 @@ def test_hrdae2d():
         activation="sigmoid",
     )
     net = create_network(1, opt)
-    out, _ = net(
+    out, cs, ds = net(
         randn((b, n, s, h)),
         randn((b, 2, h, w)),
     )
     assert out.size() == (b, n, 1, h, w)
+    assert len(cs) == 3
+    assert cs[0].size() == (b, latent, h // 4, w // 4)
+    assert cs[1].size() == (b, hidden, h // 2, w // 2)
+    assert cs[2].size() == (b, hidden, h // 4, w // 4)
+    assert len(ds) == 0
 
 
 def test_hrdae2d__concatenation():
@@ -226,11 +231,16 @@ def test_hrdae2d__concatenation():
         activation="sigmoid",
     )
     net = create_network(1, opt)
-    out, _ = net(
+    out, cs, ds = net(
         randn((b, n, s, h)),
         randn((b, 2, h, w)),
     )
     assert out.size() == (b, n, 1, h, w)
+    assert len(cs) == 3
+    assert cs[0].size() == (b, latent, h // 4, w // 4)
+    assert cs[1].size() == (b, hidden, h // 2, w // 2)
+    assert cs[2].size() == (b, hidden, h // 4, w // 4)
+    assert len(ds) == 0
 
 
 def test_hrdae3d():
@@ -275,11 +285,16 @@ def test_hrdae3d():
         activation="sigmoid",
     )
     net = create_network(1, opt)
-    out, _ = net(
+    out, cs, ds = net(
         randn((b, n, s, d, h)),
         randn((b, 2, d, h, w)),
     )
     assert out.size() == (b, n, 1, d, h, w)
+    assert len(cs) == 3
+    assert cs[0].size() == (b, latent, d // 4, h // 4, w // 4)
+    assert cs[1].size() == (b, hidden, d // 2, h // 2, w // 2)
+    assert cs[2].size() == (b, hidden, d // 4, h // 4, w // 4)
+    assert len(ds) == 0
 
 
 def test_hrdae3d__concatenation():
@@ -324,11 +339,16 @@ def test_hrdae3d__concatenation():
         activation="sigmoid",
     )
     net = create_network(1, opt)
-    out, _ = net(
+    out, cs, ds = net(
         randn((b, n, s, d, h)),
         randn((b, 2, d, h, w)),
     )
     assert out.size() == (b, n, 1, d, h, w)
+    assert len(cs) == 3
+    assert cs[0].size() == (b, latent, d // 4, h // 4, w // 4)
+    assert cs[1].size() == (b, hidden, d // 2, h // 2, w // 2)
+    assert cs[2].size() == (b, hidden, d // 4, h // 4, w // 4)
+    assert len(ds) == 0
 
 
 def test_cycle_hrdae2d():
@@ -374,14 +394,19 @@ def test_cycle_hrdae2d():
         cycle=True,
     )
     net = create_network(1, opt)
-    out, cs = net(
+    out, cs, ds = net(
         randn((b, n, s, h)),
         randn((b, 1, h, w)),
     )
     assert out.size() == (b, n, 1, h, w)
-    assert cs[0].size() == (b, n, latent, h // 4, w // 4)
-    assert cs[1].size() == (b, n, hidden, h // 2, w // 2)
-    assert cs[2].size() == (b, n, hidden, h // 4, w // 4)
+    assert len(cs) == 3
+    assert cs[0].size() == (b, 1, latent, h // 4, w // 4)
+    assert cs[1].size() == (b, 1, hidden, h // 2, w // 2)
+    assert cs[2].size() == (b, 1, hidden, h // 4, w // 4)
+    assert len(ds) == 3
+    assert ds[0].size() == (b, n, latent, h // 4, w // 4)
+    assert ds[1].size() == (b, n, hidden, h // 2, w // 2)
+    assert ds[2].size() == (b, n, hidden, h // 4, w // 4)
 
 
 def test_cycle_hrdae3d():
@@ -427,11 +452,16 @@ def test_cycle_hrdae3d():
         cycle=True,
     )
     net = create_network(1, opt)
-    out, cs = net(
+    out, cs, ds = net(
         randn((b, n, s, d, h)),
         randn((b, 1, d, h, w)),
     )
     assert out.size() == (b, n, 1, d, h, w)
-    assert cs[0].size() == (b, n, latent, d // 4, h // 4, w // 4)
-    assert cs[1].size() == (b, n, hidden, d // 2, h // 2, w // 2)
-    assert cs[2].size() == (b, n, hidden, d // 4, h // 4, w // 4)
+    assert len(cs) == 3
+    assert cs[0].size() == (b, 1, latent, d // 4, h // 4, w // 4)
+    assert cs[1].size() == (b, 1, hidden, d // 2, h // 2, w // 2)
+    assert cs[2].size() == (b, 1, hidden, d // 4, h // 4, w // 4)
+    assert len(ds) == 3
+    assert ds[0].size() == (b, n, latent, d // 4, h // 4, w // 4)
+    assert ds[1].size() == (b, n, hidden, d // 2, h // 2, w // 2)
+    assert ds[2].size() == (b, n, hidden, d // 4, h // 4, w // 4)

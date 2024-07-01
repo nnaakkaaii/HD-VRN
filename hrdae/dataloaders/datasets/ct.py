@@ -160,10 +160,8 @@ class CT(Dataset):
         x_3d_t = x_3d_t.unsqueeze(0)
         # (2 * c, d, h, w)
         x_3d_all = cat([x_3d_0, x_3d_t], dim=0)
-        # (n, d, h, s) -> (n, s, d, h)
-        idx_expanded = idx_expanded.permute(0, 3, 1, 2)
 
-        output = optimize_output(
+        return optimize_output(
             x_2d,
             x_2d_0,
             x_2d_t,
@@ -178,9 +176,3 @@ class CT(Dataset):
             self.motion_phase,
             self.motion_aggregation,
         )
-        output["x"] = x_3d
-        output["t"] = x_3d
-        output["slice_idx"] = slice_idx
-        output["idx_expanded"] = idx_expanded
-
-        return output

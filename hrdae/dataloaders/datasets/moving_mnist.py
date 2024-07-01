@@ -67,10 +67,8 @@ class MovingMNIST(datasets.MovingMNIST):
         x_2d_rt = x_2d_rt.unsqueeze(0)
         # (2 * c, h, w)
         x_2d_all = cat([x_2d_0, x_2d_t], dim=0)
-        # (n, h, s) -> (n, s, h)
-        idx_expanded = idx_expanded.permute(0, 2, 1)
 
-        output = optimize_output(
+        return optimize_output(
             x_1d,
             x_1d_0,
             x_1d_t,
@@ -85,12 +83,6 @@ class MovingMNIST(datasets.MovingMNIST):
             self.motion_phase,
             self.motion_aggregator,
         )
-        output["x"] = x_2d
-        output["t"] = x_2d
-        output["slice_idx"] = slice_idx
-        output["idx_expanded"] = idx_expanded
-
-        return output
 
 
 def create_moving_mnist_dataset(

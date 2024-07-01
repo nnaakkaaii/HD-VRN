@@ -107,7 +107,7 @@ class RAE2d(nn.Module):
         x_1d: Tensor,
         x_2d_0: Tensor | None = None,
         x_1d_0: Tensor | None = None,
-    ) -> tuple[Tensor, list[Tensor]]:
+    ) -> tuple[Tensor, list[Tensor], list[Tensor]]:
         m = self.motion_encoder(x_1d, x_1d_0)
         b, t, c_, h, w = m.size()
         m = m.reshape(b * t, c_, h, w)
@@ -117,7 +117,7 @@ class RAE2d(nn.Module):
         y = y.reshape(b, t, c_, h, w)
         if self.activation is not None:
             y = self.activation(y)
-        return y, []
+        return y, [], []
 
 
 class RAE3d(nn.Module):
@@ -149,7 +149,7 @@ class RAE3d(nn.Module):
         x_2d: Tensor,
         x_3d_0: Tensor | None = None,
         x_2d_0: Tensor | None = None,
-    ) -> tuple[Tensor, list[Tensor]]:
+    ) -> tuple[Tensor, list[Tensor], list[Tensor]]:
         m = self.motion_encoder(x_2d, x_2d_0)
         b, t, c_, d, h, w = m.size()
         m = m.reshape(b * t, c_, d, h, w)
@@ -161,4 +161,4 @@ class RAE3d(nn.Module):
         y = y.reshape(b, t, c_, d, h, w)
         if self.activation is not None:
             y = self.activation(y)
-        return y, []
+        return y, [], []

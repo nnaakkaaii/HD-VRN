@@ -132,7 +132,7 @@ class RDAE2d(nn.Module):
         x_1d: Tensor,
         x_2d_0: Tensor,
         x_1d_0: Tensor | None = None,
-    ) -> tuple[Tensor, list[Tensor]]:
+    ) -> tuple[Tensor, list[Tensor], list[Tensor]]:
         c, _ = self.content_encoder(x_2d_0)
         m = self.motion_encoder(x_1d, x_1d_0)
         b, t, c_, h_, w = m.size()
@@ -145,7 +145,7 @@ class RDAE2d(nn.Module):
         y = y.reshape(b, t, c_, h_, w)
         if self.activation is not None:
             y = self.activation(y)
-        return y, [c]
+        return y, [c], []
 
 
 class CycleRDAE2d(RDAE2d):
@@ -154,15 +154,15 @@ class CycleRDAE2d(RDAE2d):
         x_1d: Tensor,
         x_2d_0: Tensor,
         x_1d_0: Tensor | None = None,
-    ) -> tuple[Tensor, list[Tensor]]:
-        y, cs = super().forward(x_1d, x_2d_0, x_1d_0)
+    ) -> tuple[Tensor, list[Tensor], list[Tensor]]:
+        y, cs, _ = super().forward(x_1d, x_2d_0, x_1d_0)
         b, t, c, h, w = y.size()
         y_seq = y.reshape(b * t, c, h, w)
         d, _ = self.content_encoder(y_seq)
         assert len(cs) == 1
         assert d.size(0) == b * t
-        d = d.reshape(b, t, *d.size()[1:]) - cs[0].unsqueeze(1)
-        return y, [d]
+        d = d.reshape(b, t, *d.size()[1:])
+        return y, [c.unsqueeze(1) for c in cs], [d]
 
 
 class RDAE3d(nn.Module):
@@ -202,7 +202,7 @@ class RDAE3d(nn.Module):
         x_2d: Tensor,
         x_3d_0: Tensor,
         x_2d_0: Tensor | None = None,
-    ) -> tuple[Tensor, list[Tensor]]:
+    ) -> tuple[Tensor, list[Tensor], list[Tensor]]:
         c, _ = self.content_encoder(x_3d_0)
         m = self.motion_encoder(x_2d, x_2d_0)
         b, t, c_, d, h_, w = m.size()
@@ -215,7 +215,7 @@ class RDAE3d(nn.Module):
         y = y.reshape(b, t, c_, d, h_, w)
         if self.activation is not None:
             y = self.activation(y)
-        return y, [c]
+        return y, [c], []
 
 
 class CycleRDAE3d(RDAE3d):
@@ -224,12 +224,12 @@ class CycleRDAE3d(RDAE3d):
         x_2d: Tensor,
         x_3d_0: Tensor,
         x_2d_0: Tensor | None = None,
-    ) -> tuple[Tensor, list[Tensor]]:
-        y, cs = super().forward(x_2d, x_3d_0, x_2d_0)
+    ) -> tuple[Tensor, list[Tensor], list[Tensor]]:
+        y, cs, _ = super().forward(x_2d, x_3d_0, x_2d_0)
         b, t, c, d_, h, w = y.size()
         y_seq = y.reshape(b * t, c, d_, h, w)
         d, _ = self.content_encoder(y_seq)
         assert len(cs) == 1
         assert d.size(0) == b * t
-        d = d.reshape(b, t, *d.size()[1:]) - cs[0].unsqueeze(1)
-        return y, [d]
+        d = d.reshape(b, t, *d.size()[1:])
+        return y, [c.unsqueeze(1) for c in cs], [d]

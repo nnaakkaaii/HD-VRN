@@ -18,7 +18,17 @@ def create_mstd_loss() -> nn.Module:
 class MStdLoss(nn.Module):
     @property
     def required_kwargs(self) -> list[str]:
-        return ["latent"]
+        return ["latent", "cycled_latent"]
 
-    def forward(self, input: Tensor, target: Tensor, latent: list[Tensor]) -> Tensor:
-        return sum([torch.sqrt(torch.mean(v**2)) for v in latent])  # type: ignore
+    def forward(
+        self,
+        input: Tensor,
+        target: Tensor,
+        latent: list[Tensor],
+        cycled_latent: list[Tensor],
+    ) -> Tensor:
+        assert len(latent) == len(cycled_latent)
+        return sum([  # type: ignore
+            torch.sqrt(((v1 - v2) ** 2).mean())
+            for v1, v2 in zip(latent, cycled_latent)
+        ])

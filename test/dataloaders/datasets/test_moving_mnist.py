@@ -29,5 +29,3 @@ def test_MovingMNIST():
         assert data["xm_0"].shape == (2, 64)
         assert data["xp"].shape == (10, 1, 64, 64)
         assert data["xp_0"].shape == (2, 64, 64)
-        assert data["slice_idx"].shape == (1,)
-        assert data["idx_expanded"].shape == (10, 1, 64)

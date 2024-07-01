@@ -103,10 +103,15 @@ class GANModel(Model):
 
                 # train generator
                 self.optimizer_g.zero_grad()
-                y, latent = self.generator(xm, xp_0, xm_0)
+                y, latent, cycled_latent = self.generator(xm, xp_0, xm_0)
 
                 y_pred = self.discriminator(y, xp)
-                loss_g_basic = self.criterion(y, xp, latent=latent)
+                loss_g_basic = self.criterion(
+                    y,
+                    xp,
+                    latent=latent,
+                    cycled_latent=cycled_latent,
+                )
                 loss_g_adv = self.criterion_g(y_pred, torch.ones_like(y_pred))
 
                 loss_g = loss_g_basic + 0.001 * loss_g_adv
@@ -172,12 +177,17 @@ class GANModel(Model):
                     xm_0 = data["xm_0"].to(self.device)
                     xp = data["xp"].to(self.device)
                     xp_0 = data["xp_0"].to(self.device)
-                    y, latent = self.generator(xm, xp_0, xm_0)
+                    y, cs, ds = self.generator(xm, xp_0, xm_0)
 
                     y_pred = self.discriminator(y, xp)
                     xp_pred = self.discriminator(xp, xp)
                     y = y.detach().clone()
-                    loss_g_basic = self.criterion(y, xp, latent=latent)
+                    loss_g_basic = self.criterion(
+                        y,
+                        xp,
+                        latent=cs,
+                        cycled_latent=ds,
+                    )
                     loss_g_adv = self.criterion_g(y_pred, torch.ones_like(y_pred))
                     loss_g = loss_g_basic + loss_g_adv
                     loss_d_adv_real = self.criterion_d(
@@ -266,7 +276,7 @@ class GANModel(Model):
                 xp = data["xp"].to(self.device)
                 xp_0 = data["xp_0"].to(self.device)
 
-                y, _ = self.generator(xm, xp_0, xm_0)
+                y, _, _ = self.generator(xm, xp_0, xm_0)
 
                 save_reconstructed_images(
                     xp.data.cpu().clone().detach().numpy()[:10],

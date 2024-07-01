@@ -73,13 +73,11 @@ class BasicModel(Model):
             running_loss = 0.0
 
             for idx, data in enumerate(train_loader):
-                assert "x" in data and "t" in data, 'Data must have keys "x" and "t"'
-
                 if max_iter and max_iter <= idx:
                     break
 
-                x = data["x"].to(self.device)
-                t = data["t"].to(self.device)
+                x = data["xp"].to(self.device)
+                t = data["xp"].to(self.device)
 
                 b, n = x.size()[:2]
 
@@ -114,8 +112,8 @@ class BasicModel(Model):
                     if max_iter and max_iter <= idx:
                         break
 
-                    x = data["x"].to(self.device)
-                    t = data["t"].to(self.device)
+                    x = data["xp"].to(self.device)
+                    t = data["xp"].to(self.device)
 
                     b, n = x.size()[:2]
 
@@ -160,8 +158,8 @@ class BasicModel(Model):
             if epoch % 10 == 0:
                 data = next(iter(val_loader))
 
-                x = data["x"].to(self.device)
-                t = data["t"].to(self.device)
+                x = data["xp"].to(self.device)
+                t = data["xp"].to(self.device)
 
                 b, n = x.size()[:2]
 

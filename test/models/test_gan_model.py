@@ -8,7 +8,7 @@ from torch.optim.lr_scheduler import StepLR
 from torch.utils.data import DataLoader
 
 from hrdae.models.gan_model import GANModel
-from hrdae.models.losses import LossMixer, MStdLossOption, MSELossOption, BCEWithLogitsLossOption, create_loss
+from hrdae.models.losses import LossMixer, ContrastiveLossOption, MSELossOption, BCEWithLogitsLossOption, create_loss
 
 
 class FakeDataset(Dataset):
@@ -69,7 +69,7 @@ class FakeGenerator(nn.Module):
             xm: Tensor,
             xp_0: Tensor,
             xm_0: Tensor,
-    ) -> tuple[Tensor, list[Tensor]]:
+    ) -> tuple[Tensor, list[Tensor], list[Tensor]]:
         c = 4
         b, n, s, h = xm.size()
         _, _, _, w = xp_0.size()
@@ -92,7 +92,7 @@ class FakeGenerator(nn.Module):
 
         # x (40, 1, 32, 32)
         x = self.deconv2d(y)
-        return x.reshape(b, n, 1, h, w), [ym]
+        return x.reshape(b, n, 1, h, w), [ym], []
 
 
 class FakeDiscriminator(nn.Module):
@@ -130,11 +130,11 @@ def test_basic_model():
     criterion = LossMixer(
         {
             "mse": create_loss(MSELossOption()),
-            "mstd": create_loss(MStdLossOption()),
+            "contrastive": create_loss(ContrastiveLossOption()),
         },
         {
             "mse": 0.5,
-            "mstd": 0.5,
+            "contrastive": 0.5,
         }
     )
     criterion_g = create_loss(BCEWithLogitsLossOption())

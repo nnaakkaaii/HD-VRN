@@ -154,7 +154,7 @@ cs.store(
 )
 cs.store(
     group="config/experiment/model/loss",
-    name="perceptual2d",
+    name="perceptual",
     node=Perceptual2dLossOption,
 )
 cs.store(

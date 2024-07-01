@@ -14,8 +14,7 @@ from hrdae.models.losses import LossMixer
 class FakeDataset(Dataset):
     def __getitem__(self, idx: int) -> dict[str, Tensor]:
         return {
-            "x": rand((1, 32, 32)),
-            "t": rand((1, 32, 32)),
+            "xp": rand((1, 32, 32)),
         }
 
     def __len__(self) -> int:
