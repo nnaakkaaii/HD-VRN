@@ -10,6 +10,7 @@ from .moving_mnist import (
 )
 from .option import DatasetOption
 from .seq_divide_wrapper import SeqDivideWrapper
+from .sliced_ct import SlicedCT, SlicedCTDatasetOption, create_sliced_ct_dataset
 
 
 def create_dataset(
@@ -31,5 +32,10 @@ def create_dataset(
         dataset = create_ct_dataset(opt, transform, is_train)
         if not opt.sequential:
             return SeqDivideWrapper(dataset, CT.PERIOD)
+        return dataset
+    if isinstance(opt, SlicedCTDatasetOption) and type(opt) is SlicedCTDatasetOption:
+        dataset = create_sliced_ct_dataset(opt, transform, is_train)
+        if not opt.sequential:
+            return SeqDivideWrapper(dataset, SlicedCT.PERIOD)
         return dataset
     raise NotImplementedError(f"dataset {opt.__class__.__name__} not implemented")

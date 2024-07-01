@@ -16,7 +16,7 @@ from hrdae.dataloaders.transforms import (
 
 def test_SlicedCT():
     with TemporaryDirectory() as root:
-        data_root = Path(root) / "SlicedCT"
+        data_root = Path(root) / "CT"
         data_root.mkdir(parents=True, exist_ok=True)
         np.savez(
             data_root / "sample1.npz",

@@ -28,7 +28,9 @@ class MStdLoss(nn.Module):
         cycled_latent: list[Tensor],
     ) -> Tensor:
         assert len(latent) == len(cycled_latent)
-        return sum([  # type: ignore
-            torch.sqrt(((v1 - v2) ** 2).mean())
-            for v1, v2 in zip(latent, cycled_latent)
-        ])
+        return sum(
+            [  # type: ignore
+                torch.sqrt(((v1 - v2) ** 2).mean())
+                for v1, v2 in zip(latent, cycled_latent)
+            ]
+        )

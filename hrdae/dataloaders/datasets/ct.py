@@ -87,7 +87,7 @@ class CT(Dataset):
         super().__init__()
 
         self.paths = []
-        data_root = root / self.__class__.__name__
+        data_root = root / "CT"
         for i, path in enumerate(sorted(data_root.glob("**/*"))):
             if is_train and i % (1 + self.TRAIN_PER_TEST) != 0:
                 self.paths.append(path)
@@ -151,6 +151,7 @@ class CT(Dataset):
         # (d, h, s) -> (s, d, h)
         x_2d_0 = x_2d_0.permute(2, 0, 1)
         x_2d_t = x_2d_t.permute(2, 0, 1)
+        x_2d_rt = x_2d_rt.unsqueeze(0)
         # (2 * s, d, h)
         x_2d_all = cat([x_2d_0, x_2d_t], dim=0)
         # (n, d, h, w) -> (n, c, d, h, w)
@@ -158,6 +159,7 @@ class CT(Dataset):
         # (d, h, w) -> (c, d, h, w)
         x_3d_0 = x_3d_0.unsqueeze(0)
         x_3d_t = x_3d_t.unsqueeze(0)
+        x_3d_rt = x_3d_rt.unsqueeze(0)
         # (2 * c, d, h, w)
         x_3d_all = cat([x_3d_0, x_3d_t], dim=0)
 

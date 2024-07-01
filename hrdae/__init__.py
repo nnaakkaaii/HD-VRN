@@ -5,6 +5,7 @@ from .dataloaders.datasets import (
     CTDatasetOption,
     MNISTDatasetOption,
     MovingMNISTDatasetOption,
+    SlicedCTDatasetOption,
 )
 from .dataloaders.transforms import (
     Crop2dOption,
@@ -78,6 +79,11 @@ cs.store(
     group="config/experiment/dataloader/dataset",
     name="ct",
     node=CTDatasetOption,
+)
+cs.store(
+    group="config/experiment/dataloader/dataset",
+    name="sliced_ct",
+    node=SlicedCTDatasetOption,
 )
 cs.store(
     group="config/experiment/dataloader/transform",
