@@ -44,6 +44,7 @@ class Perceptual2dLoss(nn.Module):
         if torch.cuda.is_available():
             self.network.to("cuda:0")
             self.network = nn.DataParallel(self.network)
+        self.network.eval()
 
     def forward(self, input: Tensor, target: Tensor) -> Tensor:
         b, t = input.size()[:2]
