@@ -5,7 +5,12 @@ from torchvision import transforms
 
 from .normalization import MinMaxNormalization, MinMaxNormalizationOption
 from .option import TransformOption
-from .pool import Pool3dOption, create_pool3d
+from .pool import (
+    Pool2dOption,
+    Pool3dOption,
+    create_pool2d,
+    create_pool3d,
+)
 from .random_shift import (
     RandomShift2dOption,
     RandomShift3dOption,
@@ -57,6 +62,8 @@ def create_transform(opt: TransformOption) -> Transform:
         return create_random_shift3d(opt)
     if isinstance(opt, UniformShape3dOption) and type(opt) is UniformShape3dOption:
         return create_uniform_shape3d(opt)
+    if isinstance(opt, Pool2dOption) and type(opt) is Pool2dOption:
+        return create_pool2d(opt)
     if isinstance(opt, Pool3dOption) and type(opt) is Pool3dOption:
         return create_pool3d(opt)
     raise NotImplementedError(f"{opt.__class__.__name__} is not implemented")

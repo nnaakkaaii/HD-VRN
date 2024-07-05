@@ -12,6 +12,7 @@ from .dataloaders.transforms import (
     MinMaxNormalizationOption,
     Normalize2dOption,
     Pad2dOption,
+    Pool2dOption,
     Pool3dOption,
     RandomShift2dOption,
     RandomShift3dOption,
@@ -124,6 +125,11 @@ cs.store(
     group="config/experiment/dataloader/transform",
     name="uniform_shape3d",
     node=UniformShape3dOption,
+)
+cs.store(
+    group="config/experiment/dataloader/transform",
+    name="pool2d",
+    node=Pool2dOption,
 )
 cs.store(
     group="config/experiment/dataloader/transform",
