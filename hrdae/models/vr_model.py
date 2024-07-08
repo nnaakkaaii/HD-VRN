@@ -144,6 +144,8 @@ class VRModel(Model):
                     "val_loss": float(avg_val_loss),
                 }
             )
+            with open(result_dir / "training_history.json", "w") as f:
+                json.dump(training_history, f)
 
             if epoch % 10 == 0:
                 data = next(iter(val_loader))
@@ -165,9 +167,6 @@ class VRModel(Model):
                     self.network,
                     result_dir / "weights" / f"model_{epoch}.pth",
                 )
-
-        with open(result_dir / "training_history.json", "w") as f:
-            json.dump(training_history, f)
 
         return least_val_loss
 

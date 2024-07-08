@@ -181,9 +181,6 @@ class BasicModel(Model):
                     f"epoch_{epoch}",
                 )
 
-        with open(result_dir / "training_history.json", "w") as f:
-            json.dump(training_history, f)
-
         return least_val_loss
 
 
