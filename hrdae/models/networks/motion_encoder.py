@@ -78,7 +78,7 @@ def create_motion_encoder1d(
         return MotionConv2dEncoder1d(
             opt.in_channels,
             opt.hidden_channels,
-            opt.hidden_channels,
+            latent_dim,
             opt.conv_params,
             opt.deconv_params,
             debug_show_dim,
