@@ -1,3 +1,4 @@
+import warnings
 from datetime import datetime
 
 import hydra
@@ -6,6 +7,8 @@ from omegaconf import DictConfig, OmegaConf
 from .dataloaders import create_dataloader
 from .models import create_model
 from .option import Option, TrainExpOption, save_options
+
+warnings.filterwarnings("ignore")
 
 
 @hydra.main(version_base=None, config_path="conf", config_name="config")
