@@ -98,6 +98,8 @@ class CT(Dataset):
         if in_memory:
             for path in tqdm(self.paths, desc="loading datasets..."):
                 t = from_numpy(np.load(path)["arr_0"])
+                if transform is not None:
+                    t = transform(t)
                 self.data.append(t)
 
         self.slice_indexer = slice_indexer
@@ -117,8 +119,8 @@ class CT(Dataset):
         else:  # not in memory
             assert not self.in_memory
             x_3d = from_numpy(np.load(str(self.paths[index]))["arr_0"])
-        if self.transform is not None:
-            x_3d = self.transform(x_3d)
+            if self.transform is not None:
+                x_3d = self.transform(x_3d)
 
         x_3d = x_3d.float()
         n, d, h, w = x_3d.size()
