@@ -1,4 +1,4 @@
-from torch import randn, randint
+from torch import randint, randn
 
 from hrdae.models.losses.pjc import PJC2dLoss, PJC3dLoss
 

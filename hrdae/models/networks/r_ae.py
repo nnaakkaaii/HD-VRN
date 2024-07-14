@@ -107,17 +107,19 @@ class RAE2d(nn.Module):
         x_1d: Tensor,
         x_2d_0: Tensor | None = None,
         x_1d_0: Tensor | None = None,
-    ) -> tuple[Tensor, list[Tensor], list[Tensor]]:
+    ) -> tuple[Tensor, list[Tensor], Tensor, list[Tensor]]:
         m = self.motion_encoder(x_1d, x_1d_0)
         b, t, c_, h, w = m.size()
-        m = m.reshape(b * t, c_, h, w)
-        m = interpolate(m, size=self.upsample_size, mode="bilinear", align_corners=True)
-        y = self.decoder(m)
+        m_reshaped = m.reshape(b * t, c_, h, w)
+        m_reshaped = interpolate(
+            m_reshaped, size=self.upsample_size, mode="bilinear", align_corners=True
+        )
+        y = self.decoder(m_reshaped)
         _, c_, h, w = y.size()
         y = y.reshape(b, t, c_, h, w)
         if self.activation is not None:
             y = self.activation(y)
-        return y, [], []
+        return y, [], m, []
 
 
 class RAE3d(nn.Module):
@@ -149,16 +151,16 @@ class RAE3d(nn.Module):
         x_2d: Tensor,
         x_3d_0: Tensor | None = None,
         x_2d_0: Tensor | None = None,
-    ) -> tuple[Tensor, list[Tensor], list[Tensor]]:
+    ) -> tuple[Tensor, list[Tensor], Tensor, list[Tensor]]:
         m = self.motion_encoder(x_2d, x_2d_0)
         b, t, c_, d, h, w = m.size()
-        m = m.reshape(b * t, c_, d, h, w)
-        m = interpolate(
-            m, size=self.upsample_size, mode="trilinear", align_corners=True
+        m_reshaped = m.reshape(b * t, c_, d, h, w)
+        m_reshaped = interpolate(
+            m_reshaped, size=self.upsample_size, mode="trilinear", align_corners=True
         )
-        y = self.decoder(m)
+        y = self.decoder(m_reshaped)
         _, c_, d, h, w = y.size()
         y = y.reshape(b, t, c_, d, h, w)
         if self.activation is not None:
             y = self.activation(y)
-        return y, [], []
+        return y, [], m, []

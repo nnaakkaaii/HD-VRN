@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 
-from torch import Tensor, arange, cat, nn, randint
+from torch import Tensor, nn
 
 from .modules import ConvModule2d, ConvModule3d
 from .option import NetworkOption
@@ -8,7 +8,8 @@ from .option import NetworkOption
 
 @dataclass
 class Discriminator2dOption(NetworkOption):
-    hidden_channels: int = 64
+    in_channels: int = 8
+    hidden_channels: int = 256
     image_size: list[int] = field(default_factory=lambda: [4, 4])
     conv_params: list[dict[str, list[int]]] = field(
         default_factory=lambda: [
@@ -18,9 +19,9 @@ class Discriminator2dOption(NetworkOption):
     debug_show_dim: bool = False
 
 
-def create_discriminator2d(out_channels: int, opt: Discriminator2dOption) -> nn.Module:
+def create_discriminator2d(opt: Discriminator2dOption) -> nn.Module:
     return Discriminator2d(
-        in_channels=out_channels,
+        in_channels=opt.in_channels,
         out_channels=1,
         hidden_channels=opt.hidden_channels,
         image_size=opt.image_size,
@@ -56,25 +57,16 @@ class Discriminator2d(nn.Module):
             nn.Linear(hidden_channels, out_channels),
         )
 
-    def forward(self, y: Tensor, xp: Tensor) -> Tensor:
-        b, n = y.size()[:2]
-        idx_y = randint(0, n, (b,))
-        idx_xp = randint(0, n, (b,))
-        x = cat(
-            [
-                y[arange(b), idx_y],
-                xp[arange(b), idx_xp],
-            ],
-            dim=1,
-        )
+    def forward(self, x: Tensor) -> Tensor:
         h = self.cnn(x)
-        z = self.bottleneck(h.reshape(b, -1))
+        z = self.bottleneck(h.reshape(h.size(0), -1))
         return z
 
 
 @dataclass
 class Discriminator3dOption(NetworkOption):
-    hidden_channels: int = 64
+    in_channels: int = 8
+    hidden_channels: int = 256
     image_size: list[int] = field(default_factory=lambda: [4, 4, 4])
     conv_params: list[dict[str, list[int]]] = field(
         default_factory=lambda: [
@@ -84,9 +76,9 @@ class Discriminator3dOption(NetworkOption):
     debug_show_dim: bool = False
 
 
-def create_discriminator3d(out_channels: int, opt: Discriminator3dOption) -> nn.Module:
+def create_discriminator3d(opt: Discriminator3dOption) -> nn.Module:
     return Discriminator3d(
-        in_channels=out_channels,
+        in_channels=opt.in_channels,
         out_channels=1,
         hidden_channels=opt.hidden_channels,
         image_size=opt.image_size,
@@ -122,17 +114,7 @@ class Discriminator3d(nn.Module):
             nn.Linear(hidden_channels, out_channels),
         )
 
-    def forward(self, y: Tensor, xp: Tensor) -> Tensor:
-        b, n = y.size()[:2]
-        idx_y = randint(0, n, (b,))
-        idx_xp = randint(0, n, (b,))
-        x = cat(
-            [
-                y[arange(b), idx_y],
-                xp[arange(b), idx_xp],
-            ],
-            dim=1,
-        )
+    def forward(self, x: Tensor) -> Tensor:
         h = self.cnn(x)
-        z = self.bottleneck(h.reshape(b, -1))
+        z = self.bottleneck(h.reshape(h.size(0), -1))
         return z

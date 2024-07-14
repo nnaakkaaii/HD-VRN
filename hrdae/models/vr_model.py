@@ -79,7 +79,7 @@ class VRModel(Model):
                 xp_0 = data["xp_0"].to(self.device)
 
                 self.optimizer.zero_grad()
-                y, latent, cycled_latent = self.network(xm, xp_0, xm_0)
+                y, latent_c, latent_m, cycled_latent = self.network(xm, xp_0, xm_0)
                 # triplet
                 indices = shuffled_indices(len(xp))
                 positive = tensor(0.0)
@@ -91,7 +91,7 @@ class VRModel(Model):
                 loss = self.criterion(
                     y,
                     xp,
-                    latent=latent,
+                    latent=latent_c,
                     cycled_latent=cycled_latent,
                     positive=positive,
                     negative=negative,
@@ -123,7 +123,7 @@ class VRModel(Model):
                     xm_0 = data["xm_0"].to(self.device)
                     xp = data["xp"].to(self.device)
                     xp_0 = data["xp_0"].to(self.device)
-                    y, latent, cycled_latent = self.network(xm, xp_0, xm_0)
+                    y, latent_c, latent_m, cycled_latent = self.network(xm, xp_0, xm_0)
                     # triplet
                     indices = shuffled_indices(len(xp))
                     positive = tensor(0.0)
@@ -135,7 +135,7 @@ class VRModel(Model):
                     loss = self.criterion(
                         y,
                         xp,
-                        latent=latent,
+                        latent=latent_c,
                         cycled_latent=cycled_latent,
                         positive=positive,
                         negative=negative,
@@ -176,7 +176,7 @@ class VRModel(Model):
                 xp = data["xp"].to(self.device)
                 xp_0 = data["xp_0"].to(self.device)
 
-                y, _, _ = self.network(xm, xp_0, xm_0)
+                y, _, _, _ = self.network(xm, xp_0, xm_0)
 
                 save_reconstructed_images(
                     xp.data.cpu().clone().detach().numpy(),

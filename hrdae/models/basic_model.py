@@ -227,4 +227,6 @@ def create_basic_model(
     criterion = LossMixer(
         {k: create_loss(v) for k, v in opt.loss.items()}, opt.loss_coef
     )
-    return BasicModel(network, opt.network_weight, optimizer, scheduler, criterion, opt.serialize)
+    return BasicModel(
+        network, opt.network_weight, optimizer, scheduler, criterion, opt.serialize
+    )

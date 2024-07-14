@@ -1,15 +1,10 @@
 from torch import randn
 
-from hrdae.models.networks.r_dae import (
-    RDAE2d,
-    RDAE3d,
-    CycleRDAE2d,
-    CycleRDAE3d,
-)
 from hrdae.models.networks.motion_encoder import (
     MotionNormalEncoder1d,
     MotionNormalEncoder2d,
 )
+from hrdae.models.networks.r_dae import CycleRDAE2d, CycleRDAE3d, RDAE2d, RDAE3d
 
 
 def test_rdae2d():
@@ -54,13 +49,14 @@ def test_rdae2d():
         aggregator="addition",
         activation="sigmoid",
     )
-    out, cs, ds = net(
+    out, cs, m, ds = net(
         randn((b, n, s, h)),
         randn((b, 2, h, w)),
     )
     assert out.size() == (b, n, c, h, w)
     assert len(cs) == 1
     assert cs[0].size() == (b, latent, h // 4, w // 4)
+    assert m.size() == (b, n, latent, h // 4, 1)
     assert len(ds) == 0
 
 
@@ -106,13 +102,14 @@ def test_cycle_rdae2d():
         aggregator="addition",
         activation="sigmoid",
     )
-    out, cs, ds = net(
+    out, cs, m, ds = net(
         randn((b, n, s, h)),
         randn((b, 1, h, w)),
     )
     assert out.size() == (b, n, c, h, w)
     assert len(cs) == 1
     assert cs[0].size() == (b, 1, latent, h // 4, w // 4)
+    assert m.size() == (b, n, latent, h // 4, 1)
     assert len(ds) == 1
     assert cs[0].size() == (b, 1, latent, h // 4, w // 4)
 
@@ -159,13 +156,14 @@ def test_rdae3d():
         aggregator="addition",
         activation="sigmoid",
     )
-    out, cs, ds = net(
+    out, cs, m, ds = net(
         randn((b, n, s, d, h)),
         randn((b, 2, d, h, w)),
     )
     assert out.size() == (b, n, c, d, h, w)
     assert len(cs) == 1
     assert cs[0].size() == (b, latent, d // 4, h // 4, w // 4)
+    assert m.size() == (b, n, latent, d // 4, h // 4, 1)
     assert len(ds) == 0
 
 
@@ -211,12 +209,13 @@ def test_cycle_rdae3d():
         aggregator="addition",
         activation="sigmoid",
     )
-    out, cs, ds = net(
+    out, cs, m, ds = net(
         randn((b, n, s, d, h)),
         randn((b, 1, d, h, w)),
     )
     assert out.size() == (b, n, c, d, h, w)
     assert len(cs) == 1
     assert cs[0].size() == (b, 1, latent, d // 4, h // 4, w // 4)
+    assert m.size() == (b, n, latent, d // 4, h // 4, 1)
     assert len(ds) == 1
     assert ds[0].size() == (b, n, latent, d // 4, h // 4, w // 4)

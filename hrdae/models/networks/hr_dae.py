@@ -300,25 +300,25 @@ class HRDAE2d(nn.Module):
         x_1d: Tensor,
         x_2d_0: Tensor,
         x_1d_0: Tensor | None = None,
-    ) -> tuple[Tensor, list[Tensor], list[Tensor]]:
+    ) -> tuple[Tensor, list[Tensor], Tensor, list[Tensor]]:
         c, cs = self.content_encoder(x_2d_0)
         m = self.motion_encoder(x_1d, x_1d_0)
         b, t, c_, h, w = m.size()
-        m = m.reshape(b * t, c_, h, w)
+        m_reshaped = m.reshape(b * t, c_, h, w)
         c_exp = c.repeat(t, 1, 1, 1)
         cs_exp = [c_.repeat(t, 1, 1, 1) for c_ in cs]
 
         assert len(self.mgc) == len(cs_exp)
-        z = self.aggregator((c_exp, upsample_motion_tensor(m, c_exp)))
+        z = self.aggregator((c_exp, upsample_motion_tensor(m_reshaped, c_exp)))
         for i, mgc in enumerate(self.mgc):
-            cs_exp[i] = mgc((cs_exp[i], upsample_motion_tensor(m, cs_exp[i])))
+            cs_exp[i] = mgc((cs_exp[i], upsample_motion_tensor(m_reshaped, cs_exp[i])))
         y = self.decoder(z, cs_exp[::-1])
 
         _, c_, h, w = y.size()
         y = y.reshape(b, t, c_, h, w)
         if self.activation is not None:
             y = self.activation(y)
-        return y, [c] + cs, []
+        return y, [c] + cs, m, []
 
 
 class CycleHRDAE2d(HRDAE2d):
@@ -327,8 +327,8 @@ class CycleHRDAE2d(HRDAE2d):
         x_1d: Tensor,
         x_2d_0: Tensor,
         x_1d_0: Tensor | None = None,
-    ) -> tuple[Tensor, list[Tensor], list[Tensor]]:
-        y, cs, _ = super().forward(x_1d, x_2d_0, x_1d_0)
+    ) -> tuple[Tensor, list[Tensor], Tensor, list[Tensor]]:
+        y, cs, m, _ = super().forward(x_1d, x_2d_0, x_1d_0)
         b, t, c, h, w = y.size()
         y_seq = y.reshape(b * t, c, h, w)
         d, ds = self.content_encoder(y_seq)
@@ -338,7 +338,7 @@ class CycleHRDAE2d(HRDAE2d):
         for i, di in enumerate(ds):
             assert di.size(0) == b * t
             ds[i] = di.reshape(b, t, *di.size()[1:])
-        return y, [c.unsqueeze(1) for c in cs], [d] + ds
+        return y, [c.unsqueeze(1) for c in cs], m, [d] + ds
 
 
 class HRDAE3d(nn.Module):
@@ -401,25 +401,25 @@ class HRDAE3d(nn.Module):
         x_2d: Tensor,
         x_3d_0: Tensor,
         x_2d_0: Tensor | None = None,
-    ) -> tuple[Tensor, list[Tensor], list[Tensor]]:
+    ) -> tuple[Tensor, list[Tensor], Tensor, list[Tensor]]:
         c, cs = self.content_encoder(x_3d_0)
         m = self.motion_encoder(x_2d, x_2d_0)
         b, t, c_, d, h, w = m.size()
-        m = m.reshape(b * t, c_, d, h, w)
+        m_reshaped = m.reshape(b * t, c_, d, h, w)
         c_exp = c.repeat(t, 1, 1, 1, 1)
         cs_exp = [c_.repeat(t, 1, 1, 1, 1) for c_ in cs]
 
         assert len(self.mgc) == len(cs_exp)
-        z = self.aggregator((c_exp, upsample_motion_tensor(m, c_exp)))
+        z = self.aggregator((c_exp, upsample_motion_tensor(m_reshaped, c_exp)))
         for i, mgc in enumerate(self.mgc):
-            cs_exp[i] = mgc((cs_exp[i], upsample_motion_tensor(m, cs_exp[i])))
+            cs_exp[i] = mgc((cs_exp[i], upsample_motion_tensor(m_reshaped, cs_exp[i])))
         y = self.decoder(z, cs_exp[::-1])
 
         _, c_, d, h, w = y.size()
         y = y.reshape(b, t, c_, d, h, w)
         if self.activation is not None:
             y = self.activation(y)
-        return y, [c] + cs, []
+        return y, [c] + cs, m, []
 
 
 class CycleHRDAE3d(HRDAE3d):
@@ -428,8 +428,8 @@ class CycleHRDAE3d(HRDAE3d):
         x_2d: Tensor,
         x_3d_0: Tensor,
         x_2d_0: Tensor | None = None,
-    ) -> tuple[Tensor, list[Tensor], list[Tensor]]:
-        y, cs, _ = super().forward(x_2d, x_3d_0, x_2d_0)
+    ) -> tuple[Tensor, list[Tensor], Tensor, list[Tensor]]:
+        y, cs, m, _ = super().forward(x_2d, x_3d_0, x_2d_0)
         b, t, c, d_, h, w = y.size()
         y_seq = y.reshape(b * t, c, d_, h, w)
         d, ds = self.content_encoder(y_seq)
@@ -440,4 +440,4 @@ class CycleHRDAE3d(HRDAE3d):
         for i, di in enumerate(ds):
             assert di.size(0) == b * t
             ds[i] = di.reshape(b, t, *di.size()[1:])
-        return y, [c.unsqueeze(1) for c in cs], [d] + ds
+        return y, [c.unsqueeze(1) for c in cs], m, [d] + ds

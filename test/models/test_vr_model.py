@@ -1,11 +1,10 @@
-from tempfile import TemporaryDirectory
 from pathlib import Path
+from tempfile import TemporaryDirectory
 
-from torch import rand, Tensor, nn
-from torch.utils.data import Dataset
+from torch import Tensor, nn, rand
 from torch.optim import Adam
 from torch.optim.lr_scheduler import StepLR
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Dataset
 
 from hrdae.models.losses import LossMixer
 from hrdae.models.vr_model import VRModel
@@ -71,7 +70,7 @@ class FakeNetwork(nn.Module):
         xm: Tensor,
         xp_0: Tensor,
         xm_0: Tensor,
-    ) -> tuple[Tensor, list[Tensor], list[Tensor]]:
+    ) -> tuple[Tensor, list[Tensor], Tensor, list[Tensor]]:
         c = 4
         b, n, s, h = xm.size()
         _, _, _, w = xp_0.size()
@@ -94,7 +93,7 @@ class FakeNetwork(nn.Module):
 
         # x (40, 1, 32, 32)
         x = self.deconv2d(y)
-        return x.reshape(b, n, 1, h, w), [ym], []
+        return x.reshape(b, n, 1, h, w), [ym], y, []
 
 
 def test_vr_model():

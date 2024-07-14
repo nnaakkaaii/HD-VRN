@@ -1,11 +1,10 @@
-from tempfile import TemporaryDirectory
 from pathlib import Path
+from tempfile import TemporaryDirectory
 
-from torch import rand, Tensor, nn
-from torch.utils.data import Dataset
+from torch import Tensor, nn, rand
 from torch.optim import Adam
 from torch.optim.lr_scheduler import StepLR
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Dataset
 
 from hrdae.models.basic_model import BasicModel
 from hrdae.models.losses import LossMixer

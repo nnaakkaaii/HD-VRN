@@ -8,8 +8,8 @@ from hrdae.dataloaders.datasets.ct import CT, BasicSliceIndexer
 from hrdae.dataloaders.transforms import (
     MinMaxNormalizationOption,
     Pool3dOption,
-    UniformShape3dOption,
     RandomShift3dOption,
+    UniformShape3dOption,
     create_transform,
 )
 

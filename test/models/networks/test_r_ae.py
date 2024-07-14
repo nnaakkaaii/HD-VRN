@@ -1,15 +1,10 @@
 from torch import randn
 
-from hrdae.models.networks.r_ae import (
-    AEDecoder2d,
-    AEDecoder3d,
-    RAE2d,
-    RAE3d,
-)
 from hrdae.models.networks.motion_encoder import (
     MotionNormalEncoder1d,
     MotionNormalEncoder2d,
 )
+from hrdae.models.networks.r_ae import AEDecoder2d, AEDecoder3d, RAE2d, RAE3d
 
 
 def test_decoder2d():
@@ -103,11 +98,12 @@ def test_rae2d():
         upsample_size=[h // 4, w // 4],
         activation="sigmoid",
     )
-    out, _, _ = net(
+    out, _, m, _ = net(
         randn((b, n, s, h)),
         randn((b, 2, h, w)),
     )
     assert out.size() == (b, n, c, h, w)
+    assert m.size() == (b, n, latent, h // 4, 1)
 
 
 def test_rae3d():
@@ -151,8 +147,9 @@ def test_rae3d():
         upsample_size=[d // 4, h // 4, w // 4],
         activation="sigmoid",
     )
-    out, _, _ = net(
+    out, _, m, _ = net(
         randn((b, n, s, d, h)),
         randn((b, 2, d, h, w)),
     )
     assert out.size() == (b, n, c, d, h, w)
+    assert m.size() == (b, n, latent, d // 4, h // 4, 1)

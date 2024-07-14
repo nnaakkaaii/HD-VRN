@@ -4,12 +4,15 @@ from tempfile import TemporaryDirectory
 import numpy as np
 from torchvision import transforms
 
-from hrdae.dataloaders.datasets.sliced_ct import SlicedCTDatasetOption, create_sliced_ct_dataset
+from hrdae.dataloaders.datasets.sliced_ct import (
+    SlicedCTDatasetOption,
+    create_sliced_ct_dataset,
+)
 from hrdae.dataloaders.transforms import (
     MinMaxNormalizationOption,
     Pool3dOption,
-    UniformShape3dOption,
     RandomShift3dOption,
+    UniformShape3dOption,
     create_transform,
 )
 

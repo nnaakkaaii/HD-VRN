@@ -1,12 +1,12 @@
 from torch import randn
 
 from hrdae.models.networks.motion_encoder import (
+    MotionConv2dEncoder1d,
+    MotionConv3dEncoder2d,
     MotionNormalEncoder1d,
     MotionNormalEncoder2d,
     MotionRNNEncoder1d,
     MotionRNNEncoder2d,
-    MotionConv2dEncoder1d,
-    MotionConv3dEncoder2d,
 )
 from hrdae.models.networks.rnn import GRU1d, GRU2d
 

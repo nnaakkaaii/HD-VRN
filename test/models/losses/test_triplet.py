@@ -1,6 +1,6 @@
 from torch import randn
 
-from hrdae.models.losses import create_loss, TripletLossOption
+from hrdae.models.losses import TripletLossOption, create_loss
 
 
 def test_triplet_loss():

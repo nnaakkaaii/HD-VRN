@@ -1,11 +1,11 @@
 from torch import randn
 
-from hrdae.models.networks import create_network, HRDAE2dOption, HRDAE3dOption
+from hrdae.models.networks import HRDAE2dOption, HRDAE3dOption, create_network
 from hrdae.models.networks.hr_dae import (
-    HierarchicalEncoder2d,
     HierarchicalDecoder2d,
-    HierarchicalEncoder3d,
     HierarchicalDecoder3d,
+    HierarchicalEncoder2d,
+    HierarchicalEncoder3d,
 )
 from hrdae.models.networks.motion_encoder import (
     MotionNormalEncoder1dOption,
@@ -177,7 +177,7 @@ def test_hrdae2d():
         activation="sigmoid",
     )
     net = create_network(1, opt)
-    out, cs, ds = net(
+    out, cs, m, ds = net(
         randn((b, n, s, h)),
         randn((b, 2, h, w)),
     )
@@ -186,6 +186,7 @@ def test_hrdae2d():
     assert cs[0].size() == (b, latent, h // 4, w // 4)
     assert cs[1].size() == (b, hidden, h // 2, w // 2)
     assert cs[2].size() == (b, hidden, h // 4, w // 4)
+    assert m.size() == (b, n, latent, h // 4, w // 4)
     assert len(ds) == 0
 
 
@@ -231,7 +232,7 @@ def test_hrdae2d__concatenation():
         activation="sigmoid",
     )
     net = create_network(1, opt)
-    out, cs, ds = net(
+    out, cs, m, ds = net(
         randn((b, n, s, h)),
         randn((b, 2, h, w)),
     )
@@ -240,6 +241,7 @@ def test_hrdae2d__concatenation():
     assert cs[0].size() == (b, latent, h // 4, w // 4)
     assert cs[1].size() == (b, hidden, h // 2, w // 2)
     assert cs[2].size() == (b, hidden, h // 4, w // 4)
+    assert m.size() == (b, n, latent, h // 4, w // 4)
     assert len(ds) == 0
 
 
@@ -285,7 +287,7 @@ def test_hrdae3d():
         activation="sigmoid",
     )
     net = create_network(1, opt)
-    out, cs, ds = net(
+    out, cs, m, ds = net(
         randn((b, n, s, d, h)),
         randn((b, 2, d, h, w)),
     )
@@ -294,6 +296,7 @@ def test_hrdae3d():
     assert cs[0].size() == (b, latent, d // 4, h // 4, w // 4)
     assert cs[1].size() == (b, hidden, d // 2, h // 2, w // 2)
     assert cs[2].size() == (b, hidden, d // 4, h // 4, w // 4)
+    assert m.size() == (b, n, latent, d // 4, h // 4, w // 4)
     assert len(ds) == 0
 
 
@@ -339,7 +342,7 @@ def test_hrdae3d__concatenation():
         activation="sigmoid",
     )
     net = create_network(1, opt)
-    out, cs, ds = net(
+    out, cs, m, ds = net(
         randn((b, n, s, d, h)),
         randn((b, 2, d, h, w)),
     )
@@ -348,6 +351,7 @@ def test_hrdae3d__concatenation():
     assert cs[0].size() == (b, latent, d // 4, h // 4, w // 4)
     assert cs[1].size() == (b, hidden, d // 2, h // 2, w // 2)
     assert cs[2].size() == (b, hidden, d // 4, h // 4, w // 4)
+    assert m.size() == (b, n, latent, d // 4, h // 4, w // 4)
     assert len(ds) == 0
 
 
@@ -394,7 +398,7 @@ def test_cycle_hrdae2d():
         cycle=True,
     )
     net = create_network(1, opt)
-    out, cs, ds = net(
+    out, cs, m, ds = net(
         randn((b, n, s, h)),
         randn((b, 1, h, w)),
     )
@@ -403,6 +407,7 @@ def test_cycle_hrdae2d():
     assert cs[0].size() == (b, 1, latent, h // 4, w // 4)
     assert cs[1].size() == (b, 1, hidden, h // 2, w // 2)
     assert cs[2].size() == (b, 1, hidden, h // 4, w // 4)
+    assert m.size() == (b, n, latent, h // 4, w // 4)
     assert len(ds) == 3
     assert ds[0].size() == (b, n, latent, h // 4, w // 4)
     assert ds[1].size() == (b, n, hidden, h // 2, w // 2)
@@ -452,7 +457,7 @@ def test_cycle_hrdae3d():
         cycle=True,
     )
     net = create_network(1, opt)
-    out, cs, ds = net(
+    out, cs, m, ds = net(
         randn((b, n, s, d, h)),
         randn((b, 1, d, h, w)),
     )
@@ -461,6 +466,7 @@ def test_cycle_hrdae3d():
     assert cs[0].size() == (b, 1, latent, d // 4, h // 4, w // 4)
     assert cs[1].size() == (b, 1, hidden, d // 2, h // 2, w // 2)
     assert cs[2].size() == (b, 1, hidden, d // 4, h // 4, w // 4)
+    assert m.size() == (b, n, latent, d // 4, h // 4, w // 4)
     assert len(ds) == 3
     assert ds[0].size() == (b, n, latent, d // 4, h // 4, w // 4)
     assert ds[1].size() == (b, n, hidden, d // 2, h // 2, w // 2)

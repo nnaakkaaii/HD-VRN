@@ -1,14 +1,19 @@
-from tempfile import TemporaryDirectory
 from pathlib import Path
+from tempfile import TemporaryDirectory
 
-from torch import rand, Tensor, nn, randint, cat, arange
-from torch.utils.data import Dataset
+from torch import Tensor, nn, rand
 from torch.optim import Adam
 from torch.optim.lr_scheduler import StepLR
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Dataset
 
 from hrdae.models.gan_model import GANModel
-from hrdae.models.losses import LossMixer, ContrastiveLossOption, MSELossOption, BCEWithLogitsLossOption, create_loss
+from hrdae.models.losses import (
+    BCEWithLogitsLossOption,
+    ContrastiveLossOption,
+    LossMixer,
+    MSELossOption,
+    create_loss,
+)
 
 
 class FakeDataset(Dataset):
@@ -26,11 +31,11 @@ class FakeDataset(Dataset):
 
 class FakeGenerator(nn.Module):
     def __init__(
-            self,
-            num_slices: int,
-            content_phase: str = "all",
-            motion_phase: str = "0",
-            motion_aggregator: str = "concat",
+        self,
+        num_slices: int,
+        content_phase: str = "all",
+        motion_phase: str = "0",
+        motion_aggregator: str = "concat",
     ) -> None:
         super().__init__()
 
@@ -65,11 +70,11 @@ class FakeGenerator(nn.Module):
         )
 
     def forward(
-            self,
-            xm: Tensor,
-            xp_0: Tensor,
-            xm_0: Tensor,
-    ) -> tuple[Tensor, list[Tensor], list[Tensor]]:
+        self,
+        xm: Tensor,
+        xp_0: Tensor,
+        xm_0: Tensor,
+    ) -> tuple[Tensor, list[Tensor], Tensor, list[Tensor]]:
         c = 4
         b, n, s, h = xm.size()
         _, _, _, w = xp_0.size()
@@ -88,11 +93,11 @@ class FakeGenerator(nn.Module):
         # y (4, 10, 4, 4, 4)
         y = ym + yp_0
         # y (40, 4, 4, 4)
-        y = y.reshape(b * n, c, h // 8, w // 8)
+        y_reshaped = y.reshape(b * n, c, h // 8, w // 8)
 
         # x (40, 1, 32, 32)
-        x = self.deconv2d(y)
-        return x.reshape(b, n, 1, h, w), [ym], []
+        x = self.deconv2d(y_reshaped)
+        return x.reshape(b, n, 1, h, w), [ym], y, []
 
 
 class FakeDiscriminator(nn.Module):
@@ -100,22 +105,14 @@ class FakeDiscriminator(nn.Module):
         super().__init__()
 
         self.conv = nn.Sequential(
-            nn.Conv2d(2, 4, 3, 2, 1),
+            nn.Conv2d(8, 16, 3, 2, 1),
             nn.ReLU(),
-            nn.Conv2d(4, 4, 3, 2, 1),
+            nn.Conv2d(16, 16, 3, 2, 1),
             nn.ReLU(),
-            nn.Conv2d(4, 4, 3, 2, 1),
+            nn.Conv2d(16, 16, 3, 2, 1),
         )
 
-    def forward(self, y: Tensor, xp: Tensor) -> Tensor:
-        # それぞれから任意の2フレームを選択
-        b, n = y.size()[:2]
-        idx_y = randint(0, 10, (b,))
-        idx_xp = randint(0, 10, (b,))
-        x = cat([
-            y[arange(b), idx_y],
-            xp[arange(b), idx_xp],
-        ], dim=1)
+    def forward(self, x: Tensor) -> Tensor:
         return self.conv(x).mean(2).mean(2)
 
 
@@ -135,7 +132,7 @@ def test_basic_model():
         {
             "mse": 0.5,
             "contrastive": 0.5,
-        }
+        },
     )
     criterion_g = create_loss(BCEWithLogitsLossOption())
     criterion_d = create_loss(BCEWithLogitsLossOption())

@@ -24,9 +24,9 @@ from .r_dae import RDAE2dOption, RDAE3dOption, create_rdae2d, create_rdae3d
 
 def create_network(out_channels: int, opt: NetworkOption) -> nn.Module:
     if isinstance(opt, Discriminator2dOption) and type(opt) is Discriminator2dOption:
-        return create_discriminator2d(out_channels, opt)
+        return create_discriminator2d(opt)
     if isinstance(opt, Discriminator3dOption) and type(opt) is Discriminator3dOption:
-        return create_discriminator3d(out_channels, opt)
+        return create_discriminator3d(opt)
     if (
         isinstance(opt, AEEncoder2dNetworkOption)
         and type(opt) is AEEncoder2dNetworkOption

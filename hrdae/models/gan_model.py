@@ -8,7 +8,7 @@ from torch import nn
 from torch.optim.optimizer import Optimizer
 from torch.utils.data import DataLoader
 
-from .functions import save_model, save_reconstructed_images
+from .functions import save_model, save_reconstructed_images, shuffled_indices
 from .losses import LossMixer, LossOption, create_loss
 from .networks import NetworkOption, create_network
 from .optimizers import OptimizerOption, create_optimizer
@@ -77,6 +77,7 @@ class GANModel(Model):
         max_iter = None
         if debug:
             max_iter = 5
+        adv_ratio = 0.01
 
         least_val_loss_g = float("inf")
         training_history: dict[str, list[dict[str, int | float]]] = {"history": []}
@@ -89,8 +90,6 @@ class GANModel(Model):
             running_loss_g_basic = 0.0
             running_loss_g_adv = 0.0
             running_loss_d_adv = 0.0
-            running_loss_d_adv_fake = 0.0
-            running_loss_d_adv_real = 0.0
 
             for idx, data in enumerate(train_loader):
                 if max_iter is not None and idx >= max_iter:
@@ -100,21 +99,33 @@ class GANModel(Model):
                 xm_0 = data["xm_0"].to(self.device)
                 xp = data["xp"].to(self.device)
                 xp_0 = data["xp_0"].to(self.device)
+                batch_size, num_frames = xm.size()[:2]
 
                 # train generator
                 self.optimizer_g.zero_grad()
-                y, latent, cycled_latent = self.generator(xm, xp_0, xm_0)
+                y, latent_c, latent_m, cycled_latent = self.generator(xm, xp_0, xm_0)
 
-                y_pred = self.discriminator(y, xp)
+                indices = torch.randint(0, num_frames, (batch_size, 2))
+                state1 = latent_m[torch.arange(batch_size), indices[:, 0]]
+                state2 = latent_m[torch.arange(batch_size), indices[:, 1]]
+                mixed_state1 = state1[shuffled_indices(batch_size)]
+
+                same = self.discriminator(torch.cat([state1, state2], dim=1))
+                diff = self.discriminator(torch.cat([state1, mixed_state1], dim=1))
+
                 loss_g_basic = self.criterion(
                     y,
                     xp,
-                    latent=latent,
+                    latent=latent_c,
                     cycled_latent=cycled_latent,
                 )
-                loss_g_adv = self.criterion_g(y_pred, torch.ones_like(y_pred))
+                # same == onesなら、同じビデオと見破られたことになるため、state encoderのロスは最大となる
+                # diff == zerosなら、異なるビデオと見破られたことになるため、state encoderのロスは最大となる
+                loss_g_adv = self.criterion_g(
+                    same, torch.zeros_like(same)
+                ) + self.criterion_g(diff, torch.ones_like(diff))
 
-                loss_g = loss_g_basic + 0.001 * loss_g_adv
+                loss_g = loss_g_basic + adv_ratio * loss_g_adv
                 loss_g.backward()
                 self.optimizer_g.step()
 
@@ -123,16 +134,20 @@ class GANModel(Model):
                 running_loss_g += loss_g.item()
 
                 self.optimizer_d.zero_grad()
-                xp_pred = self.discriminator(xp, xp)
-                y_pred = self.discriminator(y.detach(), xp)
-                loss_d_adv_real = self.criterion_d(xp_pred, torch.ones_like(xp_pred))
-                loss_d_adv_fake = self.criterion_d(y_pred, torch.zeros_like(y_pred))
-                loss_d_adv = loss_d_adv_real + loss_d_adv_fake
+                # same == onesなら、同じビデオと見破ったことになるため、discriminatorのロスは最小となる
+                # diff == zerosなら、異なるビデオと見破ったことになるため、discriminatorのロスは最小となる
+                same = self.discriminator(
+                    torch.cat([state1.detach(), state2.detach()], dim=1)
+                )
+                diff = self.discriminator(
+                    torch.cat([state1.detach(), mixed_state1.detach()], dim=1)
+                )
+                loss_d_adv = self.criterion_d(
+                    same, torch.ones_like(same)
+                ) + self.criterion_d(diff, torch.zeros_like(diff))
                 loss_d_adv.backward()
                 self.optimizer_d.step()
 
-                running_loss_d_adv_real += loss_d_adv_real.item()
-                running_loss_d_adv_fake += loss_d_adv_fake.item()
                 running_loss_d_adv += loss_d_adv.item()
 
                 if idx % 100 == 0:
@@ -140,8 +155,6 @@ class GANModel(Model):
                         f"Epoch: {epoch+1}, "
                         f"Batch: {idx}, "
                         f"Loss D Adv: {loss_d_adv.item():.6f}, "
-                        f"Loss D Adv (Fake): {loss_d_adv_fake.item():.6f}, "
-                        f"Loss D Adv (Real): {loss_d_adv_real.item():.6f}, "
                         f"Loss G: {loss_g.item():.6f}, "
                         f"Loss G Adv: {loss_g_adv.item():.6f}, "
                         f"Loss G Basic: {loss_g_basic.item():.6f}, "
@@ -151,8 +164,6 @@ class GANModel(Model):
             running_loss_g_basic /= len(train_loader)
             running_loss_g_adv /= len(train_loader)
             running_loss_d_adv /= len(train_loader)
-            running_loss_d_adv_real /= len(train_loader)
-            running_loss_d_adv_fake /= len(train_loader)
 
             self.scheduler_g.step()
             self.scheduler_d.step()
@@ -164,8 +175,6 @@ class GANModel(Model):
                 total_val_loss_g_basic = 0.0
                 total_val_loss_g_adv = 0.0
                 total_val_loss_d_adv = 0.0
-                total_val_loss_d_adv_fake = 0.0
-                total_val_loss_d_adv_real = 0.0
                 xp = torch.tensor([0.0], device=self.device)
                 y = torch.tensor([0.0], device=self.device)
 
@@ -177,52 +186,54 @@ class GANModel(Model):
                     xm_0 = data["xm_0"].to(self.device)
                     xp = data["xp"].to(self.device)
                     xp_0 = data["xp_0"].to(self.device)
-                    y, cs, ds = self.generator(xm, xp_0, xm_0)
+                    batch_size, num_frames = xm.size()[:2]
+                    y, latent_c, latent_m, cycled_latent = self.generator(
+                        xm, xp_0, xm_0
+                    )
 
-                    y_pred = self.discriminator(y, xp)
-                    xp_pred = self.discriminator(xp, xp)
+                    indices = torch.randint(0, num_frames, (batch_size, 2))
+                    state1 = latent_m[torch.arange(batch_size), indices[:, 0]]
+                    state2 = latent_m[torch.arange(batch_size), indices[:, 1]]
+                    mixed_state1 = state1[shuffled_indices(batch_size)]
+
+                    same = self.discriminator(torch.cat([state1, state2], dim=1))
+                    diff = self.discriminator(torch.cat([state1, mixed_state1], dim=1))
+
                     y = y.detach().clone()
                     loss_g_basic = self.criterion(
                         y,
                         xp,
-                        latent=cs,
-                        cycled_latent=ds,
+                        latent=latent_c,
+                        cycled_latent=cycled_latent,
                     )
-                    loss_g_adv = self.criterion_g(y_pred, torch.ones_like(y_pred))
-                    loss_g = loss_g_basic + loss_g_adv
-                    loss_d_adv_real = self.criterion_d(
-                        xp_pred, torch.ones_like(xp_pred)
-                    )
-                    loss_d_adv_fake = self.criterion_d(y_pred, torch.zeros_like(y_pred))
-                    loss_d_adv = loss_d_adv_fake + loss_d_adv_real
+                    loss_g_adv = self.criterion_g(
+                        same, torch.zeros_like(same)
+                    ) + self.criterion_g(diff, torch.ones_like(diff))
+
+                    loss_g = loss_g_basic + adv_ratio * loss_g_adv
+                    loss_d_adv = self.criterion_d(
+                        same, torch.ones_like(same)
+                    ) + self.criterion_d(diff, torch.zeros_like(diff))
 
                     total_val_loss_g += loss_g.item()
                     total_val_loss_g_basic += loss_g_basic.item()
                     total_val_loss_g_adv += loss_g_adv.item()
                     total_val_loss_d_adv += loss_d_adv.item()
-                    total_val_loss_d_adv_fake += loss_d_adv_fake.item()
-                    total_val_loss_d_adv_real += loss_d_adv_real.item()
 
                 total_val_loss_g /= len(val_loader)
                 total_val_loss_g_basic /= len(val_loader)
                 total_val_loss_g_adv /= len(val_loader)
                 total_val_loss_d_adv /= len(val_loader)
-                total_val_loss_d_adv_fake /= len(val_loader)
-                total_val_loss_d_adv_real /= len(val_loader)
 
                 print(
                     f"Epoch: {epoch+1} "
                     f"[train] "
                     f"Loss D Adv: {running_loss_d_adv:.6f}, "
-                    f"Loss D Adv (Fake): {running_loss_d_adv_fake:.6f}, "
-                    f"Loss D Adv (Real): {running_loss_d_adv_real:.6f}, "
                     f"Loss G: {running_loss_g:.6f}, "
                     f"Loss G Adv: {running_loss_g_adv:.6f}, "
                     f"Loss G Basic: {running_loss_g_basic:.6f}, "
                     f"[val] "
                     f"Loss D Adv: {total_val_loss_d_adv:.6f}, "
-                    f"Loss D Adv (Fake): {total_val_loss_d_adv_fake:.6f}, "
-                    f"Loss D Adv (Real): {total_val_loss_d_adv_real:.6f}, "
                     f"Loss G: {total_val_loss_g:.6f}, "
                     f"Loss G Adv: {total_val_loss_g_adv:.6f}, "
                     f"Loss G Basic: {total_val_loss_g_basic:.6f}, "
@@ -257,14 +268,10 @@ class GANModel(Model):
                     "train_loss_g_basic": float(running_loss_g_basic),
                     "train_loss_g_adv": float(running_loss_g_adv),
                     "train_loss_d_adv": float(running_loss_d_adv),
-                    "train_loss_d_adv_fake": float(running_loss_d_adv_fake),
-                    "train_loss_d_adv_real": float(running_loss_d_adv_real),
                     "val_loss_g": float(total_val_loss_g),
                     "val_loss_g_basic": float(total_val_loss_g_basic),
                     "val_loss_g_adv": float(total_val_loss_g_adv),
                     "val_loss_d_adv": float(total_val_loss_d_adv),
-                    "val_loss_d_adv_fake": float(total_val_loss_d_adv_fake),
-                    "val_loss_d_adv_real": float(total_val_loss_d_adv_real),
                 }
             )
 
@@ -276,7 +283,7 @@ class GANModel(Model):
                 xp = data["xp"].to(self.device)
                 xp_0 = data["xp_0"].to(self.device)
 
-                y, _, _ = self.generator(xm, xp_0, xm_0)
+                y, _, _, _ = self.generator(xm, xp_0, xm_0)
 
                 save_reconstructed_images(
                     xp.data.cpu().clone().detach().numpy()[:10],
