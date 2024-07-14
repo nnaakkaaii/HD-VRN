@@ -112,6 +112,7 @@ def test_vr_model():
         optimizer,
         scheduler,
         criterion,
+        False,
     )
     with TemporaryDirectory() as tempdir:
         model.train(

@@ -35,7 +35,7 @@ class TripletLoss(nn.Module):
     ) -> Tensor:
         num_frames = positive[0].size(1)
 
-        anchor = latent[0].unsqueeze(1).expand(-1, num_frames, -1, -1, -1)
+        anchor = latent[0].expand(-1, num_frames, -1, -1, -1)
         pos_dist = torch.norm(anchor - positive[0], p=2, dim=[2, 3, 4])
         neg_dist = torch.norm(anchor - negative[0], p=2, dim=[2, 3, 4])
 
