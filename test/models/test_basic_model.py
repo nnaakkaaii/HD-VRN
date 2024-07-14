@@ -57,7 +57,7 @@ def test_basic_model():
     )
     dataloader = DataLoader(FakeDataset(), batch_size=4)
 
-    model = BasicModel(network, optimizer, scheduler, criterion)
+    model = BasicModel(network, "", optimizer, scheduler, criterion)
     with TemporaryDirectory() as tempdir:
         model.train(
             dataloader,
