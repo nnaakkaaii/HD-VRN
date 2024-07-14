@@ -258,16 +258,6 @@ cs.store(
     node=Discriminator3dOption,
 )
 cs.store(
-    group="config/experiment/model/generator",
-    name="autoencoder2d",
-    node=AutoEncoder2dNetworkOption,
-)
-cs.store(
-    group="config/experiment/model/generator",
-    name="autoencoder3d",
-    node=AutoEncoder3dNetworkOption,
-)
-cs.store(
     group="config/experiment/model/optimizer", name="adam", node=AdamOptimizerOption
 )
 cs.store(

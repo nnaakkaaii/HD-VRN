@@ -19,7 +19,7 @@ from .typing import Model
 
 @dataclass
 class GANModelOption(ModelOption):
-    generator: NetworkOption = MISSING
+    network: NetworkOption = MISSING
     discriminator: NetworkOption = MISSING
     optimizer_g: OptimizerOption = MISSING
     optimizer_d: OptimizerOption = MISSING
@@ -29,7 +29,6 @@ class GANModelOption(ModelOption):
     loss_coef: dict[str, float] = MISSING
     loss_g: LossOption = MISSING
     loss_d: LossOption = MISSING
-    serialize: bool = False
 
 
 class GANModel(Model):
@@ -44,7 +43,6 @@ class GANModel(Model):
         criterion: nn.Module,
         criterion_g: nn.Module,
         criterion_d: nn.Module,
-        serialize: bool = False,
     ) -> None:
         self.generator = generator
         self.discriminator = discriminator
@@ -55,7 +53,6 @@ class GANModel(Model):
         self.criterion = criterion
         self.criterion_g = criterion_g
         self.criterion_d = criterion_d
-        self.serialize = serialize
 
         if torch.cuda.is_available():
             print("GPU is enabled")
@@ -77,7 +74,7 @@ class GANModel(Model):
         max_iter = None
         if debug:
             max_iter = 5
-        adv_ratio = 0.01
+        adv_ratio = 0.1
 
         least_val_loss_g = float("inf")
         training_history: dict[str, list[dict[str, int | float]]] = {"history": []}
@@ -326,7 +323,7 @@ def create_gan_model(
     n_epoch: int,
     steps_per_epoch: int,
 ) -> Model:
-    generator = create_network(1, opt.generator)
+    generator = create_network(1, opt.network)
     discriminator = create_network(2, opt.discriminator)
     optimizer_g = create_optimizer(
         opt.optimizer_g,
@@ -364,5 +361,4 @@ def create_gan_model(
         criterion,
         criterion_g,
         criterion_d,
-        opt.serialize,
     )
