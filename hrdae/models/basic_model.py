@@ -20,6 +20,7 @@ from .typing import Model
 @dataclass
 class BasicModelOption(ModelOption):
     network: NetworkOption = MISSING
+    network_weight: str = ""
     optimizer: OptimizerOption = MISSING
     scheduler: SchedulerOption = MISSING
     loss: dict[str, LossOption] = MISSING
@@ -32,6 +33,7 @@ class BasicModel(Model):
     def __init__(
         self,
         network: nn.Module,
+        network_weight: str,
         optimizer: Optimizer,
         scheduler: LRScheduler,
         criterion: nn.Module,
@@ -42,6 +44,9 @@ class BasicModel(Model):
         self.scheduler = scheduler
         self.criterion = criterion
         self.serialize = serialize
+
+        if network_weight != "":
+            self.network.load_state_dict(torch.load(network_weight))
 
         if torch.cuda.is_available():
             print("GPU is enabled")
@@ -222,4 +227,4 @@ def create_basic_model(
     criterion = LossMixer(
         {k: create_loss(v) for k, v in opt.loss.items()}, opt.loss_coef
     )
-    return BasicModel(network, optimizer, scheduler, criterion, opt.serialize)
+    return BasicModel(network, opt.network_weight, optimizer, scheduler, criterion, opt.serialize)
