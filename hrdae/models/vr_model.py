@@ -8,7 +8,7 @@ from torch import nn, tensor
 from torch.optim.optimizer import Optimizer
 from torch.utils.data import DataLoader
 
-from .functions import save_model, save_reconstructed_images
+from .functions import save_model, save_reconstructed_images, shuffled_indices
 from .losses import LossMixer, LossOption, create_loss
 from .networks import NetworkOption, create_network
 from .optimizers import OptimizerOption, create_optimizer
@@ -24,6 +24,7 @@ class VRModelOption(ModelOption):
     scheduler: SchedulerOption = MISSING
     loss: dict[str, LossOption] = MISSING
     loss_coef: dict[str, float] = MISSING
+    use_triplet: bool = False
 
 
 class VRModel(Model):
@@ -33,11 +34,13 @@ class VRModel(Model):
         optimizer: Optimizer,
         scheduler: LRScheduler,
         criterion: nn.Module,
+        use_triplet: bool,
     ) -> None:
         self.network = network
         self.optimizer = optimizer
         self.scheduler = scheduler
         self.criterion = criterion
+        self.use_triplet = use_triplet
 
         if torch.cuda.is_available():
             print("GPU is enabled")
@@ -77,12 +80,21 @@ class VRModel(Model):
 
                 self.optimizer.zero_grad()
                 y, latent, cycled_latent = self.network(xm, xp_0, xm_0)
+                # triplet
+                indices = shuffled_indices(len(xp))
+                positive = tensor(0.0)
+                negative = tensor(0.0)
+                if self.use_triplet:
+                    _, _, positive = self.network(xm[indices], xp_0, xm_0[indices])
+                    _, _, negative = self.network(xm, xp_0[indices], xm_0)
 
                 loss = self.criterion(
                     y,
                     xp,
                     latent=latent,
                     cycled_latent=cycled_latent,
+                    positive=positive,
+                    negative=negative,
                 )
                 loss.backward()
                 self.optimizer.step()
@@ -112,12 +124,21 @@ class VRModel(Model):
                     xp = data["xp"].to(self.device)
                     xp_0 = data["xp_0"].to(self.device)
                     y, latent, cycled_latent = self.network(xm, xp_0, xm_0)
+                    # triplet
+                    indices = shuffled_indices(len(xp))
+                    positive = tensor(0.0)
+                    negative = tensor(0.0)
+                    if self.use_triplet:
+                        _, positive, _ = self.network(xm[indices], xp_0, xm_0[indices])
+                        _, negative, _ = self.network(xm, xp_0[indices], xm_0)
 
                     loss = self.criterion(
                         y,
                         xp,
                         latent=latent,
                         cycled_latent=cycled_latent,
+                        positive=positive,
+                        negative=negative,
                     )
                     total_val_loss += loss.item()
 
@@ -195,4 +216,5 @@ def create_vr_model(
         optimizer,
         scheduler,
         criterion,
+        opt.use_triplet,
     )

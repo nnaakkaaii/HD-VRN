@@ -30,6 +30,7 @@ class PVRModel(VRModel):
         optimizer: Optimizer,
         scheduler: LRScheduler,
         criterion: nn.Module,
+        use_triplet: bool,
     ) -> None:
         for k, v in network_weight.items():
             if not hasattr(network, k):
@@ -48,6 +49,7 @@ class PVRModel(VRModel):
             optimizer,
             scheduler,
             criterion,
+            use_triplet,
         )
 
 
@@ -81,4 +83,5 @@ def create_pvr_model(
         optimizer,
         scheduler,
         criterion,
+        opt.use_triplet,
     )

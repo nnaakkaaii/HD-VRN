@@ -29,6 +29,7 @@ from .models.losses import (
     PJC2dLossOption,
     PJC3dLossOption,
     TemporalSimilarityLossOption,
+    TripletLossOption,
     WeightedMSELossOption,
 )
 from .models.networks import (
@@ -154,6 +155,7 @@ cs.store(
     group="config/experiment/model/loss", name="tsim", node=TemporalSimilarityLossOption
 )
 cs.store(group="config/experiment/model/loss", name="mstd", node=MStdLossOption)
+cs.store(group="config/experiment/model/loss", name="triplet", node=TripletLossOption)
 cs.store(
     group="config/experiment/model/loss_g",
     name="tsim",
