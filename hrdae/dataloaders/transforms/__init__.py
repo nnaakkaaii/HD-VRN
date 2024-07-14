@@ -5,12 +5,7 @@ from torchvision import transforms
 
 from .normalization import MinMaxNormalization, MinMaxNormalizationOption
 from .option import TransformOption
-from .pool import (
-    Pool2dOption,
-    Pool3dOption,
-    create_pool2d,
-    create_pool3d,
-)
+from .pool import Pool2dOption, Pool3dOption, create_pool2d, create_pool3d
 from .random_shift import (
     RandomShift2dOption,
     RandomShift3dOption,

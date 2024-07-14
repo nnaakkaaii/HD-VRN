@@ -89,7 +89,7 @@ class BasicModel(Model):
                     y = y.reshape(b, n, *y.size()[1:])
                     z = z.reshape(b, n, *z.size()[1:])
 
-                loss = self.criterion(t, y, latent=z)
+                loss = self.criterion(y, t, latent=z)
                 loss.backward()
                 self.optimizer.step()
 
@@ -124,7 +124,7 @@ class BasicModel(Model):
                         y = y.reshape(b, n, *y.size()[1:])
                         z = z.reshape(b, n, *z.size()[1:])
 
-                    loss = self.criterion(t, y, latent=z)
+                    loss = self.criterion(y, t, latent=z)
                     total_val_loss += loss.item()
 
                 avg_val_loss = total_val_loss / len(val_loader)
