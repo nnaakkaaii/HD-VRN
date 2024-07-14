@@ -148,7 +148,6 @@ def test_basic_model():
         criterion,
         criterion_g,
         criterion_d,
-        serialize=True,
     )
     with TemporaryDirectory() as tempdir:
         model.train(
