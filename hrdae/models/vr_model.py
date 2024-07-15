@@ -20,6 +20,7 @@ from .typing import Model
 @dataclass
 class VRModelOption(ModelOption):
     network: NetworkOption = MISSING
+    network_weight: str = ""
     optimizer: OptimizerOption = MISSING
     scheduler: SchedulerOption = MISSING
     loss: dict[str, LossOption] = MISSING
@@ -31,6 +32,7 @@ class VRModel(Model):
     def __init__(
         self,
         network: nn.Module,
+        network_weight: str,
         optimizer: Optimizer,
         scheduler: LRScheduler,
         criterion: nn.Module,
@@ -41,6 +43,9 @@ class VRModel(Model):
         self.scheduler = scheduler
         self.criterion = criterion
         self.use_triplet = use_triplet
+
+        if network_weight != "":
+            self.network.load_state_dict(torch.load(network_weight))
 
         if torch.cuda.is_available():
             print("GPU is enabled")
@@ -213,6 +218,7 @@ def create_vr_model(
     )
     return VRModel(
         network,
+        opt.network_weight,
         optimizer,
         scheduler,
         criterion,

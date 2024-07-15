@@ -20,6 +20,7 @@ from .typing import Model
 @dataclass
 class GANModelOption(ModelOption):
     network: NetworkOption = MISSING
+    network_weight: str = ""
     discriminator: NetworkOption = MISSING
     optimizer_g: OptimizerOption = MISSING
     optimizer_d: OptimizerOption = MISSING
@@ -35,6 +36,7 @@ class GANModel(Model):
     def __init__(
         self,
         generator: nn.Module,
+        generator_weight: str,
         discriminator: nn.Module,
         optimizer_g: Optimizer,
         optimizer_d: Optimizer,
@@ -53,6 +55,9 @@ class GANModel(Model):
         self.criterion = criterion
         self.criterion_g = criterion_g
         self.criterion_d = criterion_d
+
+        if generator_weight != "":
+            self.generator.load_state_dict(torch.load(generator_weight))
 
         if torch.cuda.is_available():
             print("GPU is enabled")
@@ -108,7 +113,7 @@ class GANModel(Model):
                 mixed_state1 = state1[shuffled_indices(batch_size)]
 
                 same = self.discriminator(torch.cat([state1, state2], dim=1))
-                diff = self.discriminator(torch.cat([state1, mixed_state1], dim=1))
+                # diff = self.discriminator(torch.cat([state1, mixed_state1], dim=1))
 
                 loss_g_basic = self.criterion(
                     y,
@@ -120,7 +125,7 @@ class GANModel(Model):
                 # diff == zerosなら、異なるビデオと見破られたことになるため、state encoderのロスは最大となる
                 loss_g_adv = self.criterion_g(
                     same, torch.zeros_like(same)
-                ) + self.criterion_g(diff, torch.ones_like(diff))
+                ) # + self.criterion_g(diff, torch.ones_like(diff))
 
                 loss_g = loss_g_basic + adv_ratio * loss_g_adv
                 loss_g.backward()
@@ -139,9 +144,9 @@ class GANModel(Model):
                 diff = self.discriminator(
                     torch.cat([state1.detach(), mixed_state1.detach()], dim=1)
                 )
-                loss_d_adv = self.criterion_d(
-                    same, torch.ones_like(same)
-                ) + self.criterion_d(diff, torch.zeros_like(diff))
+                loss_d_adv_same = self.criterion_d(same, torch.ones_like(same))
+                loss_d_adv_diff = self.criterion_d(diff, torch.zeros_like(diff))
+                loss_d_adv = (loss_d_adv_same + loss_d_adv_diff) / 2
                 loss_d_adv.backward()
                 self.optimizer_d.step()
 
@@ -152,6 +157,8 @@ class GANModel(Model):
                         f"Epoch: {epoch+1}, "
                         f"Batch: {idx}, "
                         f"Loss D Adv: {loss_d_adv.item():.6f}, "
+                        f"Loss D Adv (same): {loss_d_adv_same.item():.6f}, "
+                        f"Loss D Adv (diff): {loss_d_adv_diff.item():.6f}, "
                         f"Loss G: {loss_g.item():.6f}, "
                         f"Loss G Adv: {loss_g_adv.item():.6f}, "
                         f"Loss G Basic: {loss_g_basic.item():.6f}, "
@@ -194,7 +201,7 @@ class GANModel(Model):
                     mixed_state1 = state1[shuffled_indices(batch_size)]
 
                     same = self.discriminator(torch.cat([state1, state2], dim=1))
-                    diff = self.discriminator(torch.cat([state1, mixed_state1], dim=1))
+                    # diff = self.discriminator(torch.cat([state1, mixed_state1], dim=1))
 
                     y = y.detach().clone()
                     loss_g_basic = self.criterion(
@@ -205,12 +212,12 @@ class GANModel(Model):
                     )
                     loss_g_adv = self.criterion_g(
                         same, torch.zeros_like(same)
-                    ) + self.criterion_g(diff, torch.ones_like(diff))
+                    ) # + self.criterion_g(diff, torch.ones_like(diff))
 
                     loss_g = loss_g_basic + adv_ratio * loss_g_adv
-                    loss_d_adv = self.criterion_d(
-                        same, torch.ones_like(same)
-                    ) + self.criterion_d(diff, torch.zeros_like(diff))
+                    loss_d_adv_same = self.criterion_d(same, torch.ones_like(same))
+                    loss_d_adv_diff = self.criterion_d(diff, torch.zeros_like(diff))
+                    loss_d_adv = (loss_d_adv_same + loss_d_adv_diff) / 2
 
                     total_val_loss_g += loss_g.item()
                     total_val_loss_g_basic += loss_g_basic.item()
@@ -272,6 +279,9 @@ class GANModel(Model):
                 }
             )
 
+            with open(result_dir / "training_history.json", "w") as f:
+                json.dump(training_history, f, indent=2)
+
             if epoch % 10 == 0:
                 data = next(iter(val_loader))
 
@@ -294,9 +304,6 @@ class GANModel(Model):
                     result_dir / "weights",
                     f"epoch_{epoch}",
                 )
-
-        with open(result_dir / "training_history.json", "w") as f:
-            json.dump(training_history, f)
 
         return least_val_loss_g
 
@@ -353,6 +360,7 @@ def create_gan_model(
     criterion_d = create_loss(opt.loss_d)
     return GANModel(
         generator,
+        opt.network_weight,
         discriminator,
         optimizer_g,
         optimizer_d,
