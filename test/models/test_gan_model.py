@@ -140,6 +140,7 @@ def test_basic_model():
 
     model = GANModel(
         generator,
+        "",
         discriminator,
         optimizer_g,
         optimizer_d,

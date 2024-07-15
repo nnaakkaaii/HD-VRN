@@ -19,7 +19,7 @@ from .dataloaders.transforms import (
     ToTensorOption,
     UniformShape3dOption,
 )
-from .models import BasicModelOption, GANModelOption, PVRModelOption, VRModelOption
+from .models import BasicModelOption, GANModelOption, VRModelOption
 from .models.losses import (
     BCEWithLogitsLossOption,
     ContrastiveLossOption,
@@ -139,7 +139,6 @@ cs.store(
 )
 cs.store(group="config/experiment/model", name="basic", node=BasicModelOption)
 cs.store(group="config/experiment/model", name="vr", node=VRModelOption)
-cs.store(group="config/experiment/model", name="pvr", node=PVRModelOption)
 cs.store(group="config/experiment/model", name="gan", node=GANModelOption)
 cs.store(group="config/experiment/model/loss", name="mse", node=MSELossOption)
 cs.store(

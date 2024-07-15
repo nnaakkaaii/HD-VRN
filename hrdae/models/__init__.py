@@ -1,7 +1,6 @@
 from .basic_model import BasicModelOption, create_basic_model
 from .gan_model import GANModelOption, create_gan_model
 from .option import ModelOption
-from .pvr_model import PVRModelOption, create_pvr_model
 from .vr_model import VRModelOption, create_vr_model
 
 
@@ -14,8 +13,6 @@ def create_model(
         return create_basic_model(opt, n_epoch, steps_per_epoch)
     if isinstance(opt, VRModelOption) and type(opt) is VRModelOption:
         return create_vr_model(opt, n_epoch, steps_per_epoch)
-    if isinstance(opt, PVRModelOption) and type(opt) is PVRModelOption:
-        return create_pvr_model(opt, n_epoch, steps_per_epoch)
     if isinstance(opt, GANModelOption) and type(opt) is GANModelOption:
         return create_gan_model(opt, n_epoch, steps_per_epoch)
     raise NotImplementedError(f"{opt.__class__.__name__} not implemented")

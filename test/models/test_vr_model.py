@@ -108,6 +108,7 @@ def test_vr_model():
 
     model = VRModel(
         network,
+        "",
         optimizer,
         scheduler,
         criterion,

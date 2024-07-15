@@ -125,7 +125,7 @@ class GANModel(Model):
                 # diff == zerosなら、異なるビデオと見破られたことになるため、state encoderのロスは最大となる
                 loss_g_adv = self.criterion_g(
                     same, torch.zeros_like(same)
-                ) # + self.criterion_g(diff, torch.ones_like(diff))
+                )  # + self.criterion_g(diff, torch.ones_like(diff))
 
                 loss_g = loss_g_basic + adv_ratio * loss_g_adv
                 loss_g.backward()
@@ -212,7 +212,7 @@ class GANModel(Model):
                     )
                     loss_g_adv = self.criterion_g(
                         same, torch.zeros_like(same)
-                    ) # + self.criterion_g(diff, torch.ones_like(diff))
+                    )  # + self.criterion_g(diff, torch.ones_like(diff))
 
                     loss_g = loss_g_basic + adv_ratio * loss_g_adv
                     loss_d_adv_same = self.criterion_d(same, torch.ones_like(same))

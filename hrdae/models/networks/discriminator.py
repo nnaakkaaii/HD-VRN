@@ -48,7 +48,8 @@ class Discriminator2d(nn.Module):
                 nn.BatchNorm1d(hidden_channels),
                 nn.ReLU(),
                 nn.Dropout1d(dropout_rate),
-            ] * fc_layer,
+            ]
+            * fc_layer,
             nn.Linear(hidden_channels, out_channels),
         )
 
