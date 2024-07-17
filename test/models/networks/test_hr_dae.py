@@ -155,6 +155,7 @@ def test_hrdae2d():
         motion_encoder=MotionNormalEncoder1dOption(
             in_channels=s,
             hidden_channels=hidden,
+            latent_dim=latent,
             conv_params=[
                 {
                     "kernel_size": [3],
@@ -210,6 +211,7 @@ def test_hrdae2d__concatenation():
         motion_encoder=MotionNormalEncoder1dOption(
             in_channels=s,
             hidden_channels=hidden,
+            latent_dim=latent,
             conv_params=[
                 {
                     "kernel_size": [3],
@@ -265,6 +267,7 @@ def test_hrdae3d():
         motion_encoder=MotionNormalEncoder2dOption(
             in_channels=s,
             hidden_channels=hidden,
+            latent_dim=latent,
             conv_params=[
                 {
                     "kernel_size": [3],
@@ -320,6 +323,7 @@ def test_hrdae3d__concatenation():
         motion_encoder=MotionNormalEncoder2dOption(
             in_channels=s,
             hidden_channels=hidden,
+            latent_dim=latent,
             conv_params=[
                 {
                     "kernel_size": [3],
@@ -375,6 +379,7 @@ def test_cycle_hrdae2d():
         motion_encoder=MotionNormalEncoder1dOption(
             in_channels=s,
             hidden_channels=hidden,
+            latent_dim=latent,
             conv_params=[
                 {
                     "kernel_size": [3],
@@ -434,6 +439,7 @@ def test_cycle_hrdae3d():
         motion_encoder=MotionNormalEncoder2dOption(
             in_channels=s,
             hidden_channels=hidden,
+            latent_dim=latent,
             conv_params=[
                 {
                     "kernel_size": [3],

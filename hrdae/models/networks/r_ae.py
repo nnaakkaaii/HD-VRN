@@ -47,9 +47,7 @@ class RAE3dOption(NetworkOption):
 
 
 def create_rae2d(out_channels: int, opt: RAE2dOption) -> nn.Module:
-    motion_encoder = create_motion_encoder1d(
-        opt.latent_dim, opt.debug_show_dim, opt.motion_encoder
-    )
+    motion_encoder = create_motion_encoder1d(opt.motion_encoder)
     return RAE2d(
         out_channels,
         opt.hidden_channels,
@@ -63,9 +61,7 @@ def create_rae2d(out_channels: int, opt: RAE2dOption) -> nn.Module:
 
 
 def create_rae3d(out_channels: int, opt: RAE3dOption) -> nn.Module:
-    motion_encoder = create_motion_encoder2d(
-        opt.latent_dim, opt.debug_show_dim, opt.motion_encoder
-    )
+    motion_encoder = create_motion_encoder2d(opt.motion_encoder)
     return RAE3d(
         out_channels,
         opt.hidden_channels,

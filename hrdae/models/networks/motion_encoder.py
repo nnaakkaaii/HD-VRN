@@ -19,6 +19,7 @@ class MotionEncoder1dOption:
     # num slices * (1 (agg=diff|none) | 2 (phase=0, t) | 3 (phase=all))
     in_channels: int
     hidden_channels: int
+    latent_dim: int
     conv_params: list[dict[str, list[int]]] = field(
         default_factory=lambda: [{"kernel_size": [3], "stride": [2], "padding": [1]}]
         * 3,
@@ -27,12 +28,14 @@ class MotionEncoder1dOption:
         default_factory=lambda: [{"kernel_size": [3], "stride": [2], "padding": [1]}]
         * 3,
     )
+    debug_show_dim: bool = False
 
 
 @dataclass
 class MotionEncoder2dOption:
     in_channels: int
     hidden_channels: int
+    latent_dim: int
     conv_params: list[dict[str, list[int]]] = field(
         default_factory=lambda: [{"kernel_size": [3], "stride": [2], "padding": [1]}]
         * 3,
@@ -41,11 +44,10 @@ class MotionEncoder2dOption:
         default_factory=lambda: [{"kernel_size": [3], "stride": [2], "padding": [1]}]
         * 3,
     )
+    debug_show_dim: bool = False
 
 
-def create_motion_encoder1d(
-    latent_dim: int, debug_show_dim: bool, opt: MotionEncoder1dOption
-) -> "MotionEncoder1d":
+def create_motion_encoder1d(opt: MotionEncoder1dOption) -> "MotionEncoder1d":
     if (
         isinstance(opt, MotionRNNEncoder1dOption)
         and type(opt) is MotionRNNEncoder1dOption
@@ -53,11 +55,11 @@ def create_motion_encoder1d(
         return MotionRNNEncoder1d(
             opt.in_channels,
             opt.hidden_channels,
-            latent_dim,
+            opt.latent_dim,
             opt.conv_params,
             opt.deconv_params,
             create_rnn1d(opt.hidden_channels, opt.rnn),
-            debug_show_dim,
+            opt.debug_show_dim,
         )
     if (
         isinstance(opt, MotionNormalEncoder1dOption)
@@ -66,10 +68,10 @@ def create_motion_encoder1d(
         return MotionNormalEncoder1d(
             opt.in_channels,
             opt.hidden_channels,
-            latent_dim,
+            opt.latent_dim,
             opt.conv_params,
             opt.deconv_params,
-            debug_show_dim,
+            opt.debug_show_dim,
         )
     if (
         isinstance(opt, MotionConv2dEncoder1dOption)
@@ -78,17 +80,15 @@ def create_motion_encoder1d(
         return MotionConv2dEncoder1d(
             opt.in_channels,
             opt.hidden_channels,
-            latent_dim,
+            opt.latent_dim,
             opt.conv_params,
             opt.deconv_params,
-            debug_show_dim,
+            opt.debug_show_dim,
         )
     raise NotImplementedError(f"{opt.__class__.__name__} not implemented")
 
 
-def create_motion_encoder2d(
-    latent_dim: int, debug_show_dim: bool, opt: MotionEncoder2dOption
-) -> "MotionEncoder2d":
+def create_motion_encoder2d(opt: MotionEncoder2dOption) -> "MotionEncoder2d":
     if (
         isinstance(opt, MotionRNNEncoder2dOption)
         and type(opt) is MotionRNNEncoder2dOption
@@ -96,11 +96,11 @@ def create_motion_encoder2d(
         return MotionRNNEncoder2d(
             opt.in_channels,
             opt.hidden_channels,
-            latent_dim,
+            opt.latent_dim,
             opt.conv_params,
             opt.deconv_params,
             create_rnn2d(opt.hidden_channels, opt.rnn),
-            debug_show_dim,
+            opt.debug_show_dim,
         )
     if (
         isinstance(opt, MotionNormalEncoder2dOption)
@@ -109,10 +109,10 @@ def create_motion_encoder2d(
         return MotionNormalEncoder2d(
             opt.in_channels,
             opt.hidden_channels,
-            latent_dim,
+            opt.latent_dim,
             opt.conv_params,
             opt.deconv_params,
-            debug_show_dim,
+            opt.debug_show_dim,
         )
     if (
         isinstance(opt, MotionConv3dEncoder2dOption)
@@ -121,10 +121,10 @@ def create_motion_encoder2d(
         return MotionConv3dEncoder2d(
             opt.in_channels,
             opt.hidden_channels,
-            latent_dim,
+            opt.latent_dim,
             opt.conv_params,
             opt.deconv_params,
-            debug_show_dim,
+            opt.debug_show_dim,
         )
     raise NotImplementedError(f"{opt.__class__.__name__} not implemented")
 
@@ -382,7 +382,6 @@ class MotionRNNEncoder2d(MotionEncoder2d):
         x = x.reshape(b * t, *x.size()[2:])
         y = self.cnn(x)
         y = y.reshape(b, t, *y.size()[1:])
-        print(y.shape)
         y, _ = self.rnn(y)
         y = y.reshape(b * t, *y.size()[2:])
         y = y.unsqueeze(-1)

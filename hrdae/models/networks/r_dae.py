@@ -14,8 +14,8 @@ from .modules import (
     create_aggregator3d,
 )
 from .motion_encoder import (
-    MotionEncoder1d,
-    MotionEncoder2d,
+    MotionEncoder1dOption,
+    MotionEncoder2dOption,
     create_motion_encoder1d,
     create_motion_encoder2d,
 )
@@ -37,9 +37,6 @@ class RDAE3dOption(RAE3dOption):
 
 
 def create_rdae2d(out_channels: int, opt: RDAE2dOption) -> nn.Module:
-    motion_encoder = create_motion_encoder1d(
-        opt.latent_dim, opt.debug_show_dim, opt.motion_encoder
-    )
     if opt.cycle:
         return CycleRDAE2d(
             opt.in_channels,
@@ -47,7 +44,7 @@ def create_rdae2d(out_channels: int, opt: RDAE2dOption) -> nn.Module:
             opt.hidden_channels,
             opt.latent_dim,
             opt.conv_params,
-            motion_encoder,
+            opt.motion_encoder,
             opt.activation,
             opt.aggregator,
             opt.debug_show_dim,
@@ -58,7 +55,7 @@ def create_rdae2d(out_channels: int, opt: RDAE2dOption) -> nn.Module:
         opt.hidden_channels,
         opt.latent_dim,
         opt.conv_params,
-        motion_encoder,
+        opt.motion_encoder,
         opt.activation,
         opt.aggregator,
         opt.debug_show_dim,
@@ -66,9 +63,6 @@ def create_rdae2d(out_channels: int, opt: RDAE2dOption) -> nn.Module:
 
 
 def create_rdae3d(out_channels: int, opt: RDAE3dOption) -> nn.Module:
-    motion_encoder = create_motion_encoder2d(
-        opt.latent_dim, opt.debug_show_dim, opt.motion_encoder
-    )
     if opt.cycle:
         return CycleRDAE3d(
             opt.in_channels,
@@ -76,7 +70,7 @@ def create_rdae3d(out_channels: int, opt: RDAE3dOption) -> nn.Module:
             opt.hidden_channels,
             opt.latent_dim,
             opt.conv_params,
-            motion_encoder,
+            opt.motion_encoder,
             opt.activation,
             opt.aggregator,
             opt.debug_show_dim,
@@ -87,7 +81,7 @@ def create_rdae3d(out_channels: int, opt: RDAE3dOption) -> nn.Module:
         opt.hidden_channels,
         opt.latent_dim,
         opt.conv_params,
-        motion_encoder,
+        opt.motion_encoder,
         opt.activation,
         opt.aggregator,
         opt.debug_show_dim,
@@ -102,7 +96,7 @@ class RDAE2d(nn.Module):
         hidden_channels: int,
         latent_dim: int,
         conv_params: list[dict[str, list[int]]],
-        motion_encoder: MotionEncoder1d,
+        motion_encoder: MotionEncoder1dOption,
         activation: str,
         aggregator: str,
         debug_show_dim: bool = False,
@@ -116,11 +110,14 @@ class RDAE2d(nn.Module):
             conv_params + [IdenticalConvBlockConvParams],
             debug_show_dim,
         )
-        self.motion_encoder = motion_encoder
+        self.motion_encoder = create_motion_encoder1d(motion_encoder)
+        dec_latent_dim = latent_dim
+        if aggregator == "concatenation":
+            dec_latent_dim += motion_encoder.latent_dim
         self.decoder = AEDecoder2d(
             out_channels,
             hidden_channels,
-            2 * latent_dim if aggregator == "concatenation" else latent_dim,
+            dec_latent_dim,
             conv_params[::-1],
             debug_show_dim,
         )
@@ -173,7 +170,7 @@ class RDAE3d(nn.Module):
         hidden_channels: int,
         latent_dim: int,
         conv_params: list[dict[str, list[int]]],
-        motion_encoder: MotionEncoder2d,
+        motion_encoder: MotionEncoder2dOption,
         activation: str,
         aggregator: str,
         debug_show_dim: bool = False,
@@ -186,11 +183,14 @@ class RDAE3d(nn.Module):
             conv_params + [IdenticalConvBlockConvParams],
             debug_show_dim,
         )
-        self.motion_encoder = motion_encoder
+        self.motion_encoder = create_motion_encoder2d(motion_encoder)
+        dec_latent_dim = latent_dim
+        if aggregator == "concatenation":
+            dec_latent_dim += motion_encoder.latent_dim
         self.decoder = AEDecoder3d(
             out_channels,
             hidden_channels,
-            2 * latent_dim if aggregator == "concatenation" else latent_dim,
+            dec_latent_dim,
             conv_params[::-1],
             debug_show_dim,
         )

@@ -22,8 +22,8 @@ from .modules import (
     create_aggregator3d,
 )
 from .motion_encoder import (
-    MotionEncoder1d,
-    MotionEncoder2d,
+    MotionEncoder1dOption,
+    MotionEncoder2dOption,
     create_motion_encoder1d,
     create_motion_encoder2d,
 )
@@ -41,9 +41,6 @@ class HRDAE3dOption(RDAE3dOption):
 
 
 def create_hrdae2d(out_channels: int, opt: HRDAE2dOption) -> nn.Module:
-    motion_encoder = create_motion_encoder1d(
-        opt.latent_dim, opt.debug_show_dim, opt.motion_encoder
-    )
     if opt.cycle:
         return CycleHRDAE2d(
             opt.in_channels,
@@ -51,7 +48,7 @@ def create_hrdae2d(out_channels: int, opt: HRDAE2dOption) -> nn.Module:
             opt.hidden_channels,
             opt.latent_dim,
             opt.conv_params,
-            motion_encoder,
+            opt.motion_encoder,
             opt.activation,
             opt.aggregator,
             opt.connection_aggregation,
@@ -63,7 +60,7 @@ def create_hrdae2d(out_channels: int, opt: HRDAE2dOption) -> nn.Module:
         opt.hidden_channels,
         opt.latent_dim,
         opt.conv_params,
-        motion_encoder,
+        opt.motion_encoder,
         opt.activation,
         opt.aggregator,
         opt.connection_aggregation,
@@ -72,9 +69,6 @@ def create_hrdae2d(out_channels: int, opt: HRDAE2dOption) -> nn.Module:
 
 
 def create_hrdae3d(out_channels: int, opt: HRDAE3dOption) -> nn.Module:
-    motion_encoder = create_motion_encoder2d(
-        opt.latent_dim, opt.debug_show_dim, opt.motion_encoder
-    )
     if opt.cycle:
         return CycleHRDAE3d(
             opt.in_channels,
@@ -82,7 +76,7 @@ def create_hrdae3d(out_channels: int, opt: HRDAE3dOption) -> nn.Module:
             opt.hidden_channels,
             opt.latent_dim,
             opt.conv_params,
-            motion_encoder,
+            opt.motion_encoder,
             opt.activation,
             opt.aggregator,
             opt.connection_aggregation,
@@ -94,7 +88,7 @@ def create_hrdae3d(out_channels: int, opt: HRDAE3dOption) -> nn.Module:
         opt.hidden_channels,
         opt.latent_dim,
         opt.conv_params,
-        motion_encoder,
+        opt.motion_encoder,
         opt.activation,
         opt.aggregator,
         opt.connection_aggregation,
@@ -248,7 +242,7 @@ class HRDAE2d(nn.Module):
         hidden_channels: int,
         latent_dim: int,
         conv_params: list[dict[str, list[int]]],
-        motion_encoder: MotionEncoder1d,
+        motion_encoder: MotionEncoder1dOption,
         activation: str,
         aggregator: str,
         connection_aggregation: str,
@@ -256,9 +250,6 @@ class HRDAE2d(nn.Module):
     ) -> None:
         super().__init__()
 
-        dec_hidden_channels = hidden_channels
-        if aggregator == "concatenation":
-            dec_hidden_channels += latent_dim
         self.content_encoder = HierarchicalEncoder2d(
             in_channels,
             hidden_channels,
@@ -266,16 +257,21 @@ class HRDAE2d(nn.Module):
             conv_params + [IdenticalConvBlockConvParams],
             debug_show_dim,
         )
-        self.motion_encoder = motion_encoder
+        self.motion_encoder = create_motion_encoder1d(motion_encoder)
+        dec_latent_dim = latent_dim
+        dec_hidden_channels = hidden_channels
+        if aggregator == "concatenation":
+            dec_latent_dim += motion_encoder.latent_dim
+            dec_hidden_channels += motion_encoder.latent_dim
         self.decoder = HierarchicalDecoder2d(
             out_channels,
             dec_hidden_channels,
-            2 * latent_dim if aggregator == "concatenation" else latent_dim,
+            dec_latent_dim,
             conv_params[::-1],
             connection_aggregation,
             debug_show_dim,
         )
-        self.aggregator = create_aggregator2d(aggregator, latent_dim, latent_dim)
+        self.aggregator = create_aggregator2d(aggregator, latent_dim, motion_encoder.latent_dim)
         # motion guided connection
         # (Mutual Suppression Network for Video Prediction using Disentangled Features)
         self.mgc = nn.ModuleList()
@@ -349,7 +345,7 @@ class HRDAE3d(nn.Module):
         hidden_channels: int,
         latent_dim: int,
         conv_params: list[dict[str, list[int]]],
-        motion_encoder: MotionEncoder2d,
+        motion_encoder: MotionEncoder2dOption,
         activation: str,
         aggregator: str,
         connection_aggregation: str,
@@ -357,9 +353,6 @@ class HRDAE3d(nn.Module):
     ) -> None:
         super().__init__()
 
-        dec_hidden_channels = hidden_channels
-        if aggregator == "concatenation":
-            dec_hidden_channels += latent_dim
         self.content_encoder = HierarchicalEncoder3d(
             in_channels,
             hidden_channels,
@@ -367,16 +360,21 @@ class HRDAE3d(nn.Module):
             conv_params + [IdenticalConvBlockConvParams],
             debug_show_dim,
         )
-        self.motion_encoder = motion_encoder
+        self.motion_encoder = create_motion_encoder2d(motion_encoder)
+        dec_latent_dim = latent_dim
+        dec_hidden_channels = hidden_channels
+        if aggregator == "concatenation":
+            dec_latent_dim += motion_encoder.latent_dim
+            dec_hidden_channels += motion_encoder.latent_dim
         self.decoder = HierarchicalDecoder3d(
             out_channels,
             dec_hidden_channels,
-            2 * latent_dim if aggregator == "concatenation" else latent_dim,
+            dec_latent_dim,
             conv_params[::-1],
             connection_aggregation,
             debug_show_dim,
         )
-        self.aggregator = create_aggregator2d(aggregator, latent_dim, latent_dim)
+        self.aggregator = create_aggregator2d(aggregator, latent_dim, motion_encoder.latent_dim)
         # motion guided connection
         # (Mutual Suppression Network for Video Prediction using Disentangled Features)
         self.mgc = nn.ModuleList()

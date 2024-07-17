@@ -1,8 +1,8 @@
 from torch import randn
 
 from hrdae.models.networks.motion_encoder import (
-    MotionNormalEncoder1d,
-    MotionNormalEncoder2d,
+    MotionNormalEncoder1dOption,
+    MotionNormalEncoder2dOption,
 )
 from hrdae.models.networks.r_dae import CycleRDAE2d, CycleRDAE3d, RDAE2d, RDAE3d
 
@@ -25,7 +25,7 @@ def test_rdae2d():
             }
         ]
         * 2,
-        motion_encoder=MotionNormalEncoder1d(
+        motion_encoder=MotionNormalEncoder1dOption(
             s,
             hidden,
             latent,
@@ -78,7 +78,7 @@ def test_cycle_rdae2d():
             }
         ]
         * 2,
-        motion_encoder=MotionNormalEncoder1d(
+        motion_encoder=MotionNormalEncoder1dOption(
             s,
             hidden,
             latent,
@@ -132,7 +132,7 @@ def test_rdae3d():
             }
         ]
         * 2,
-        motion_encoder=MotionNormalEncoder2d(
+        motion_encoder=MotionNormalEncoder2dOption(
             s,
             hidden,
             latent,
@@ -185,7 +185,7 @@ def test_cycle_rdae3d():
             }
         ]
         * 2,
-        motion_encoder=MotionNormalEncoder2d(
+        motion_encoder=MotionNormalEncoder2dOption(
             s,
             hidden,
             latent,

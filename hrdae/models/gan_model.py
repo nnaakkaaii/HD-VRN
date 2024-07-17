@@ -80,6 +80,7 @@ class GANModel(Model):
         if debug:
             max_iter = 5
         adv_ratio = 0.1
+        train_discriminator = 5
 
         least_val_loss_g = float("inf")
         training_history: dict[str, list[dict[str, int | float]]] = {"history": []}
@@ -110,10 +111,9 @@ class GANModel(Model):
                 indices = torch.randint(0, num_frames, (batch_size, 2))
                 state1 = latent_m[torch.arange(batch_size), indices[:, 0]]
                 state2 = latent_m[torch.arange(batch_size), indices[:, 1]]
-                mixed_state1 = state1[shuffled_indices(batch_size)]
 
+                # same video, different frame
                 same = self.discriminator(torch.cat([state1, state2], dim=1))
-                # diff = self.discriminator(torch.cat([state1, mixed_state1], dim=1))
 
                 loss_g_basic = self.criterion(
                     y,
@@ -121,8 +121,6 @@ class GANModel(Model):
                     latent=latent_c,
                     cycled_latent=cycled_latent,
                 )
-                # same == onesなら、同じビデオと見破られたことになるため、state encoderのロスは最大となる
-                # diff == zerosなら、異なるビデオと見破られたことになるため、state encoderのロスは最大となる
                 loss_g_adv = self.criterion_g(
                     same, torch.zeros_like(same)
                 )  # + self.criterion_g(diff, torch.ones_like(diff))
@@ -135,22 +133,32 @@ class GANModel(Model):
                 running_loss_g_adv += loss_g_adv.item()
                 running_loss_g += loss_g.item()
 
-                self.optimizer_d.zero_grad()
-                # same == onesなら、同じビデオと見破ったことになるため、discriminatorのロスは最小となる
-                # diff == zerosなら、異なるビデオと見破ったことになるため、discriminatorのロスは最小となる
-                same = self.discriminator(
-                    torch.cat([state1.detach(), state2.detach()], dim=1)
-                )
-                diff = self.discriminator(
-                    torch.cat([state1.detach(), mixed_state1.detach()], dim=1)
-                )
-                loss_d_adv_same = self.criterion_d(same, torch.ones_like(same))
-                loss_d_adv_diff = self.criterion_d(diff, torch.zeros_like(diff))
-                loss_d_adv = (loss_d_adv_same + loss_d_adv_diff) / 2
-                loss_d_adv.backward()
-                self.optimizer_d.step()
+                for _ in range(train_discriminator):
+                    self.optimizer_d.zero_grad()
+                    with torch.no_grad():
+                        y, latent_c, latent_m, cycled_latent = self.generator(xm, xp_0, xm_0)
 
-                running_loss_d_adv += loss_d_adv.item()
+                    indices = torch.randint(0, num_frames, (batch_size, 2))
+                    state1 = latent_m[torch.arange(batch_size), indices[:, 0]]
+                    state2 = latent_m[torch.arange(batch_size), indices[:, 1]]
+                    mixed_state1 = state1[shuffled_indices(batch_size)]
+                    # same video, different frame
+                    same = self.discriminator(
+                        torch.cat([state1.detach(), state2.detach()], dim=1)
+                    )
+                    # different video
+                    diff = self.discriminator(
+                        torch.cat([state1.detach(), mixed_state1.detach()], dim=1)
+                    )
+                    # same == onesなら、同じビデオと見破ったことになるため、discriminatorのロスは最小となる
+                    loss_d_adv_same = self.criterion_d(same, torch.ones_like(same))
+                    # diff == zerosなら、異なるビデオと見破ったことになるため、discriminatorのロスは最小となる
+                    loss_d_adv_diff = self.criterion_d(diff, torch.zeros_like(diff))
+                    loss_d_adv = (loss_d_adv_same + loss_d_adv_diff) / 2
+                    loss_d_adv.backward()
+                    self.optimizer_d.step()
+
+                    running_loss_d_adv += loss_d_adv.item()
 
                 if idx % 100 == 0:
                     print(
@@ -167,7 +175,7 @@ class GANModel(Model):
             running_loss_g /= len(train_loader)
             running_loss_g_basic /= len(train_loader)
             running_loss_g_adv /= len(train_loader)
-            running_loss_d_adv /= len(train_loader)
+            running_loss_d_adv /= len(train_loader) * train_discriminator
 
             self.scheduler_g.step()
             self.scheduler_d.step()
